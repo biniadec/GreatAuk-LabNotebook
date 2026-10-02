@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 320" aria-hidden="true">
+  <defs>
+    <linearGradient id="iceberg1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eef5fa" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#c9d9e3" stop-opacity="0.55"/>
+    </linearGradient>
+    <linearGradient id="iceberg2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eef5fa" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#eef5fa" stop-opacity="0.15"/>
+    </linearGradient>
+  </defs>
+
+  <!-- distant stars / snow -->
+  <g fill="#eef5fa" opacity="0.6">
+    <circle cx="60" cy="40" r="1.6"/>
+    <circle cx="120" cy="70" r="1.2"/>
+    <circle cx="200" cy="30" r="1.8"/>
+    <circle cx="260" cy="60" r="1.2"/>
+    <circle cx="320" cy="35" r="1.6"/>
+    <circle cx="370" cy="80" r="1.3"/>
+    <circle cx="30" cy="110" r="1.2"/>
+  </g>
+
+  <!-- back iceberg -->
+  <path d="M0 230 L70 150 L140 210 L210 140 L260 215 L320 160 L420 230 L420 320 L0 320 Z" fill="url(#iceberg2)"/>
+
+  <!-- front iceberg -->
+  <path d="M0 270 L60 200 L130 250 L180 190 L250 260 L300 205 L420 270 L420 320 L0 320 Z" fill="url(#iceberg1)"/>
+
+  <!-- auk silhouette, standing on the ice -->
+  <g transform="translate(205,150)">
+    <path d="M40 2c-6 0-10.8 4.8-10.8 10.8 0 3.5 1.7 6.6 4.3 8.6C21.3 25.4 12 38.6 12 55.8 12 68.9 22.1 78 36.8 78s24.8-9.1 24.8-21.2c0-17.2-9.3-30.4-21.5-34.4 2.6-2 4.3-5.1 4.3-8.6C44.4 6.8 39.6 2 40 2z"
+      fill="#f7fbfd" opacity="0.92"/>
+    <path d="M58 20l12.5 5.6c.9.4.9 1.6 0 2l-12.5 5.2z" fill="#f7fbfd" opacity="0.92"/>
+    <circle cx="33" cy="17" r="2.1" fill="#0b2942" opacity="0.85"/>
+    <ellipse cx="36.8" cy="60" rx="9" ry="14" fill="#dfeaf2" opacity="0.55"/>
+  </g>
+
+  <!-- subtle moon -->
+  <circle cx="365" cy="48" r="16" fill="#eef5fa" opacity="0.25"/>
+</svg>

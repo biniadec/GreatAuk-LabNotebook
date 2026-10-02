@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Great Auk Comparative Genomics — Lab Notebook</title>
+  <meta name="description" content="A step-by-step lab notebook for comparative genomics of the Great Auk and its living relatives." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body data-active-nav="home">
+
+  <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"></button>
+  <div class="sidebar-overlay"></div>
+
+  <div class="app-shell">
+    <nav class="sidebar" aria-label="Primary">
+      <div class="sidebar-brand">
+        <a href="index.html" class="brand-link">
+          <span class="brand-mark"><img src="assets/auk-avatar.png" alt="" /></span>
+          <span class="brand-text">
+            <span class="brand-title">Great Auk</span>
+            <span class="brand-subtitle">Genomics</span>
+          </span>
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <a href="index.html" class="nav-link" data-nav="home">
+          <span class="nav-icon" data-icon="home"></span> Home
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <p class="sidebar-heading">Modules</p>
+        <a href="modules/01-reference-genome.html" class="nav-link" data-nav="module-01">
+          <span class="nav-icon" data-icon="module-01"></span><span class="nav-number">01</span> Reference Genome
+        </a>
+        <a href="modules/02-raw-sequencing-data.html" class="nav-link" data-nav="module-02">
+          <span class="nav-icon" data-icon="module-02"></span><span class="nav-number">02</span> Raw Sequencing Data<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/03-raw-read-qc.html" class="nav-link" data-nav="module-03">
+          <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">03</span> Raw Read QC<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/04-preprocessing.html" class="nav-link" data-nav="module-04">
+          <span class="nav-icon" data-icon="module-04"></span><span class="nav-number">04</span> Pre-processing<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/05-prepare-reference.html" class="nav-link" data-nav="module-05">
+          <span class="nav-icon" data-icon="module-05"></span><span class="nav-number">05</span> Prepare Reference<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/06-mapping.html" class="nav-link" data-nav="module-06">
+          <span class="nav-icon" data-icon="module-06"></span><span class="nav-number">06</span> Mapping<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/07-mapping-qc.html" class="nav-link" data-nav="module-07">
+          <span class="nav-icon" data-icon="module-07"></span><span class="nav-number">07</span> Mapping QC<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/08-genomic-diversity.html" class="nav-link" data-nav="module-08">
+          <span class="nav-icon" data-icon="module-08"></span><span class="nav-number">08</span> Genomic Diversity<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/09-mitochondrial-genetics.html" class="nav-link" data-nav="module-09">
+          <span class="nav-icon" data-icon="module-09"></span><span class="nav-number">09</span> Mitochondrial Genetics<span class="nav-tag">soon</span>
+        </a>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section">
+        <a href="toolbox.html" class="nav-link" data-nav="toolbox">
+          <span class="nav-icon" data-icon="toolbox"></span> Terminal Toolbox
+        </a>
+        <a href="resources.html" class="nav-link" data-nav="resources">
+          <span class="nav-icon" data-icon="resources"></span> Genome Resources
+        </a>
+        <a href="glossary.html" class="nav-link" data-nav="glossary">
+          <span class="nav-icon" data-icon="glossary"></span> Glossary
+        </a>
+      </div>
+
+      <div class="sidebar-footer">
+        Great Auk Comparative Genomics<br />
+        Lab Notebook · v1
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="content-column content-column--wide">
+
+        <section class="hero">
+          <div class="hero-photo">
+            <img src="assets/great-auk-hero.png" alt="A Great Auk (Pinguinus impennis) standing on snow and ice, with mountains in the background" />
+          </div>
+          <div class="hero-content">
+            <h1>Great Auk<br />Comparative Genomics</h1>
+            <span class="hero-kicker">LAB NOTEBOOK</span>
+            <hr class="hero-accent-rule" />
+            <p class="hero-subtitle">
+              A step-by-step guide to analysing genomic data from the Great Auk and its living relatives.
+            </p>
+            <a class="btn btn-primary btn-pill" data-role="continue-link-hero" href="modules/01-reference-genome.html">
+              Continue Learning <span data-icon="arrowRight" style="width:16px;height:16px;display:inline-flex;"></span>
+            </a>
+          </div>
+        </section>
+
+        <section class="dashboard-row">
+          <div class="card stat-card">
+            <div class="stat-card-title">Overall Progress</div>
+            <div class="donut-row">
+              <div class="donut">
+                <svg viewBox="0 0 84 84">
+                  <circle class="donut-track" cx="42" cy="42" r="34"></circle>
+                  <circle class="donut-fill" data-role="donut-fill" cx="42" cy="42" r="34"
+                    stroke-dasharray="213.6" stroke-dashoffset="213.6"></circle>
+                </svg>
+                <span class="donut-label" data-role="overall-progress-number">0%</span>
+              </div>
+              <div class="donut-stats">
+                <p data-role="modules-started-label">0 / 9 modules started</p>
+                <p data-role="overall-progress-sub">0 / 15 exercises complete</p>
+              </div>
+            </div>
+          </div>
+
+          <a class="card continue-card-compact" data-role="continue-link" href="modules/01-reference-genome.html">
+            <span class="continue-thumb" data-icon="document"></span>
+            <span class="continue-body">
+              <span class="continue-label" data-role="continue-label">Module 01</span>
+              <h3 data-role="continue-title">Start with Exercise 1</h3>
+              <p data-role="continue-sub">Find, download, and critically inspect a reference genome assembly.</p>
+              <span class="btn btn-secondary btn-small" data-role="continue-cta">Go to Exercise →</span>
+            </span>
+          </a>
+
+          <div class="card stat-card">
+            <div class="stat-card-title">Quick Links</div>
+            <div class="quick-links-grid">
+              <a class="quick-link-tile" href="toolbox.html">
+                <span data-icon="toolbox"></span> Terminal Toolbox
+              </a>
+              <a class="quick-link-tile" href="resources.html">
+                <span data-icon="resources"></span> Genome Resources
+              </a>
+              <a class="quick-link-tile" href="glossary.html">
+                <span data-icon="glossary"></span> Glossary
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-heading">
+            <h2>Modules</h2>
+          </div>
+          <div class="card-grid" id="module-grid">
+            <!-- Rendered by home.js -->
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+            <div class="card info-card">
+              <span class="info-icon" data-icon="compass"></span>
+              <div>
+                <h3>Building Your Skills</h3>
+                <p>Each module includes step-by-step exercises, background explanations, practice with Linux and genomics tools, and space for your own notes and questions.</p>
+              </div>
+            </div>
+            <div class="card info-card">
+              <span class="info-icon" data-icon="flask"></span>
+              <div>
+                <h3>A Real Research Project</h3>
+                <p>Learn by doing, with real data and real questions, as you explore the genomics of the Great Auk and its living relatives.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="site-footer">
+          Great Auk Comparative Genomics — Lab Notebook · <span data-current-year></span> · Built for Luigi's Master's project
+        </footer>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/modules-data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

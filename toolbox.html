@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Terminal Toolbox | Great Auk Lab Notebook</title>
+  <meta name="description" content="Quick reference for the core Linux commands used throughout the course." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body data-active-nav="toolbox">
+
+  <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"></button>
+  <div class="sidebar-overlay"></div>
+
+  <div class="app-shell">
+    <nav class="sidebar" aria-label="Primary">
+      <div class="sidebar-brand">
+        <a href="index.html" class="brand-link">
+          <span class="brand-mark"><img src="assets/auk-avatar.png" alt="" /></span>
+          <span class="brand-text">
+            <span class="brand-title">Great Auk</span>
+            <span class="brand-subtitle">Genomics</span>
+          </span>
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <a href="index.html" class="nav-link" data-nav="home">
+          <span class="nav-icon" data-icon="home"></span> Home
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <p class="sidebar-heading">Modules</p>
+        <a href="modules/01-reference-genome.html" class="nav-link" data-nav="module-01">
+          <span class="nav-icon" data-icon="module-01"></span><span class="nav-number">01</span> Reference Genome
+        </a>
+        <a href="modules/02-raw-sequencing-data.html" class="nav-link" data-nav="module-02">
+          <span class="nav-icon" data-icon="module-02"></span><span class="nav-number">02</span> Raw Sequencing Data<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/03-raw-read-qc.html" class="nav-link" data-nav="module-03">
+          <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">03</span> Raw Read QC<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/04-preprocessing.html" class="nav-link" data-nav="module-04">
+          <span class="nav-icon" data-icon="module-04"></span><span class="nav-number">04</span> Pre-processing<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/05-prepare-reference.html" class="nav-link" data-nav="module-05">
+          <span class="nav-icon" data-icon="module-05"></span><span class="nav-number">05</span> Prepare Reference<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/06-mapping.html" class="nav-link" data-nav="module-06">
+          <span class="nav-icon" data-icon="module-06"></span><span class="nav-number">06</span> Mapping<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/07-mapping-qc.html" class="nav-link" data-nav="module-07">
+          <span class="nav-icon" data-icon="module-07"></span><span class="nav-number">07</span> Mapping QC<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/08-genomic-diversity.html" class="nav-link" data-nav="module-08">
+          <span class="nav-icon" data-icon="module-08"></span><span class="nav-number">08</span> Genomic Diversity<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/09-mitochondrial-genetics.html" class="nav-link" data-nav="module-09">
+          <span class="nav-icon" data-icon="module-09"></span><span class="nav-number">09</span> Mitochondrial Genetics<span class="nav-tag">soon</span>
+        </a>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section">
+        <a href="toolbox.html" class="nav-link" data-nav="toolbox">
+          <span class="nav-icon" data-icon="toolbox"></span> Terminal Toolbox
+        </a>
+        <a href="resources.html" class="nav-link" data-nav="resources">
+          <span class="nav-icon" data-icon="resources"></span> Genome Resources
+        </a>
+        <a href="glossary.html" class="nav-link" data-nav="glossary">
+          <span class="nav-icon" data-icon="glossary"></span> Glossary
+        </a>
+      </div>
+
+      <div class="sidebar-footer">
+        Great Auk Comparative Genomics<br />
+        Lab Notebook · v1
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="content-column">
+
+        <p class="breadcrumb"><a href="index.html">Home</a> / Terminal Toolbox</p>
+        <h1 class="page-title">Terminal Toolbox</h1>
+        <p class="page-intro">
+          A quick reference for the core Linux commands used throughout this course. Come back here
+          whenever you need a reminder — this page is a companion to the exercises, not a replacement
+          for working through them.
+        </p>
+
+        <div class="toolbox-group">
+          <h2>Orientation &amp; navigation</h2>
+          <p class="group-sub">Finding out where you are and moving around the filesystem.</p>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>pwd</code></div>
+            <p>Prints the absolute path of your current working directory. Your first move whenever you're unsure where you are.</p>
+          </div>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>ls</code></div>
+            <p>Lists the contents of the current directory (or a directory you specify).</p>
+          </div>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>ls -lh</code></div>
+            <p>Lists contents in "long" format — permissions, owner, size, and modification date — with file sizes shown in human-readable units (K, M, G) rather than raw bytes.</p>
+          </div>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>cd</code></div>
+            <p>Changes your current working directory. <code>cd ..</code> moves up one level; <code>cd</code> with no argument returns you to your home directory; <code>cd -</code> returns you to the previous directory you were in.</p>
+          </div>
+        </div>
+
+        <div class="toolbox-group">
+          <h2>Files &amp; directories</h2>
+          <p class="group-sub">Creating, copying, moving, and removing things.</p>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>mkdir</code></div>
+            <p>Creates a new, empty directory. <code>mkdir -p a/b/c</code> creates nested directories in one go, including any missing parent directories.</p>
+          </div>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>cp</code></div>
+            <p>Copies a file (or, with <code>-r</code>, a directory and its contents) to a new location, leaving the original in place.</p>
+          </div>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>mv</code></div>
+            <p>Moves or renames a file or directory. There is no separate "rename" command — moving a file to a new name in the same directory is how renaming works.</p>
+          </div>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>rm</code></div>
+            <p>Deletes a file permanently — there is no undo and no recycle bin. Use <code>rm -r</code> to remove a directory and its contents. Always double-check the path before pressing enter.</p>
+          </div>
+        </div>
+
+        <div class="toolbox-group">
+          <h2>Inspecting files</h2>
+          <p class="group-sub">Looking inside files without necessarily opening the whole thing.</p>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>head</code></div>
+            <p>Prints the first lines of a file (10 by default). Use <code>head -n 20 file</code> to control how many lines are shown. Safe to use on huge files since it only reads the start.</p>
+          </div>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>less</code></div>
+            <p>Opens a file for interactive, scrollable viewing without loading the whole thing into memory at once. Arrow keys / space bar to scroll, <code>/pattern</code> to search, <code>q</code> to quit.</p>
+          </div>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>cat</code></div>
+            <p>Prints an entire file's contents to the screen. Useful for small files; avoid on very large files since it will flood your terminal.</p>
+          </div>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>file</code></div>
+            <p>Inspects a file's actual content to report its real type (e.g. "gzip compressed data", "ASCII text"), regardless of what its extension claims.</p>
+          </div>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>du</code></div>
+            <p>Reports disk usage. <code>du -sh .</code> summarises the total size of the current directory in human-readable units — far more useful day-to-day than the default verbose, per-file output.</p>
+          </div>
+        </div>
+
+        <div class="toolbox-group">
+          <h2>Compression</h2>
+          <p class="group-sub">Most genomic data is distributed compressed.</p>
+
+          <div class="card command-card">
+            <div class="command-card-head"><code>gzip</code> / <code>gunzip</code></div>
+            <p>
+              <code>gzip file</code> compresses <code>file</code> into <code>file.gz</code> (and removes the original by default).
+              <code>gunzip file.gz</code> reverses this. Add <code>-k</code> to either command to keep the original file
+              as well as the new one.
+            </p>
+          </div>
+        </div>
+
+        <footer class="site-footer">
+          Great Auk Comparative Genomics — Lab Notebook · <span data-current-year></span>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

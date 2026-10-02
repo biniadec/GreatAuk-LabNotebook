@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glossary | Great Auk Lab Notebook</title>
+  <meta name="description" content="Concise definitions of terms introduced as the course progresses." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body data-active-nav="glossary">
+
+  <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"></button>
+  <div class="sidebar-overlay"></div>
+
+  <div class="app-shell">
+    <nav class="sidebar" aria-label="Primary">
+      <div class="sidebar-brand">
+        <a href="index.html" class="brand-link">
+          <span class="brand-mark"><img src="assets/auk-avatar.png" alt="" /></span>
+          <span class="brand-text">
+            <span class="brand-title">Great Auk</span>
+            <span class="brand-subtitle">Genomics</span>
+          </span>
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <a href="index.html" class="nav-link" data-nav="home">
+          <span class="nav-icon" data-icon="home"></span> Home
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <p class="sidebar-heading">Modules</p>
+        <a href="modules/01-reference-genome.html" class="nav-link" data-nav="module-01">
+          <span class="nav-icon" data-icon="module-01"></span><span class="nav-number">01</span> Reference Genome
+        </a>
+        <a href="modules/02-raw-sequencing-data.html" class="nav-link" data-nav="module-02">
+          <span class="nav-icon" data-icon="module-02"></span><span class="nav-number">02</span> Raw Sequencing Data<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/03-raw-read-qc.html" class="nav-link" data-nav="module-03">
+          <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">03</span> Raw Read QC<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/04-preprocessing.html" class="nav-link" data-nav="module-04">
+          <span class="nav-icon" data-icon="module-04"></span><span class="nav-number">04</span> Pre-processing<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/05-prepare-reference.html" class="nav-link" data-nav="module-05">
+          <span class="nav-icon" data-icon="module-05"></span><span class="nav-number">05</span> Prepare Reference<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/06-mapping.html" class="nav-link" data-nav="module-06">
+          <span class="nav-icon" data-icon="module-06"></span><span class="nav-number">06</span> Mapping<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/07-mapping-qc.html" class="nav-link" data-nav="module-07">
+          <span class="nav-icon" data-icon="module-07"></span><span class="nav-number">07</span> Mapping QC<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/08-genomic-diversity.html" class="nav-link" data-nav="module-08">
+          <span class="nav-icon" data-icon="module-08"></span><span class="nav-number">08</span> Genomic Diversity<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/09-mitochondrial-genetics.html" class="nav-link" data-nav="module-09">
+          <span class="nav-icon" data-icon="module-09"></span><span class="nav-number">09</span> Mitochondrial Genetics<span class="nav-tag">soon</span>
+        </a>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section">
+        <a href="toolbox.html" class="nav-link" data-nav="toolbox">
+          <span class="nav-icon" data-icon="toolbox"></span> Terminal Toolbox
+        </a>
+        <a href="resources.html" class="nav-link" data-nav="resources">
+          <span class="nav-icon" data-icon="resources"></span> Genome Resources
+        </a>
+        <a href="glossary.html" class="nav-link" data-nav="glossary">
+          <span class="nav-icon" data-icon="glossary"></span> Glossary
+        </a>
+      </div>
+
+      <div class="sidebar-footer">
+        Great Auk Comparative Genomics<br />
+        Lab Notebook · v1
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="content-column">
+
+        <p class="breadcrumb"><a href="index.html">Home</a> / Glossary</p>
+        <h1 class="page-title">Glossary</h1>
+        <p class="page-intro">
+          Concise definitions for terms used in the course so far. This list will grow as later modules
+          introduce new concepts.
+        </p>
+
+        <details class="glossary-term">
+          <summary>Absolute path</summary>
+          <div class="glossary-term-body">A file or directory path written from the root of the filesystem (starting with <code>/</code>). Unambiguous regardless of your current working directory.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Accession</summary>
+          <div class="glossary-term-body">A unique identifier assigned to a database record — for example, a specific genome assembly or sequencing run — so it can be unambiguously cited and retrieved.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Chromosome-level assembly</summary>
+          <div class="glossary-term-body">A genome assembly in which sequence has been ordered and oriented into complete chromosomes, rather than left as many shorter, unordered fragments.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Compressed file</summary>
+          <div class="glossary-term-body">A file that has been algorithmically shrunk to take up less disk space. Must be decompressed (or read with compression-aware tools) to access its original content. Gzip (<code>.gz</code>) is the most common format for genomic data.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Compute node</summary>
+          <div class="glossary-term-body">On an HPC cluster such as Mjolnir, a machine dedicated to running scheduled jobs (via Slurm) — where actual analyses, alignments, and other resource-intensive work should run, as opposed to a login node.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Contig</summary>
+          <div class="glossary-term-body">A contiguous stretch of assembled sequence built by overlapping sequencing reads, with no gaps. Short for "contiguous sequence."</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>FASTA</summary>
+          <div class="glossary-term-body">A plain-text format for representing one or more sequences. Each sequence begins with a header line starting with <code>&gt;</code>, followed by the sequence itself on the following line(s).</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Genome assembly</summary>
+          <div class="glossary-term-body">A reconstruction of an organism's genome built computationally from sequencing reads, consisting of contigs and/or scaffolds (and, ideally, full chromosomes).</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Login node</summary>
+          <div class="glossary-term-body">On an HPC cluster such as Mjolnir, the shared machine you land on when you connect — meant for lightweight tasks like file organisation, script editing, and job submission, not for running analyses directly.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Metadata</summary>
+          <div class="glossary-term-body">Data about data — for a genome assembly, this includes things like the submitting organisation, sequencing technology used, assembly date, and quality statistics, rather than the sequence itself.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Project directory (Mjolnir)</summary>
+          <div class="glossary-term-body">On Mjolnir, the shared location <code>/projects/&lt;project&gt;/</code> where a research project's data lives, with a standard internal layout including a <code>people/&lt;KU-ID&gt;/</code> folder for each member's own working files — distinct from your personal, size-limited home directory.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Reference genome</summary>
+          <div class="glossary-term-body">A genome assembly chosen to serve as the standard coordinate system that other data (reads, variants, annotations) are compared or aligned against.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Relative path</summary>
+          <div class="glossary-term-body">A file or directory path interpreted relative to your current working directory. Convenient, but only correct if you know where you're starting from.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Scaffold</summary>
+          <div class="glossary-term-body">A sequence built by ordering and orienting multiple contigs, with gaps of estimated length (often represented as runs of <code>N</code>) between them where the exact sequence is unknown.</div>
+        </details>
+
+        <footer class="site-footer">
+          Great Auk Comparative Genomics — Lab Notebook · <span data-current-year></span>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
