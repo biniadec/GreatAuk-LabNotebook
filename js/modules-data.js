@@ -16,6 +16,22 @@
 
   const MODULES = [
     {
+      id: 0,
+      slug: "00-getting-started",
+      number: "00",
+      title: "Getting Started on Mjolnir",
+      status: "active",
+      summary:
+        "Prepare to work independently on the UCPH Mjolnir HPC cluster before starting the Great Auk genomics analysis.",
+      exerciseIds: [
+        "m0-ex01", "m0-ex02", "m0-ex03", "m0-ex04", "m0-ex05",
+        "m0-ex06", "m0-ex07", "m0-ex08", "m0-ex09", "m0-ex10",
+        "m0-ex11", "m0-ex12", "m0-ex13", "m0-ex14", "m0-ex15",
+        "m0-ex16", "m0-ex17", "m0-ex18", "m0-ex19", "m0-ex20",
+        "m0-ex21",
+      ],
+    },
+    {
       id: 1,
       slug: "01-reference-genome",
       number: "01",

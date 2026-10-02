@@ -94,33 +94,48 @@
     const heroLink = document.querySelector("[data-role='continue-link-hero']");
     if (!compactLink) return;
 
-    const activeModule = modules.find((m) => m.status === "active" && m.exerciseIds.length > 0);
-    if (!activeModule) return;
+    const activeModules = modules.filter((m) => m.status === "active" && m.exerciseIds.length > 0);
+    if (activeModules.length === 0) return;
 
-    const firstIncompleteIndex = activeModule.exerciseIds.findIndex((id) => !completedMap[id]);
     const labelEl = compactLink.querySelector("[data-role='continue-label']");
     const titleEl = compactLink.querySelector("[data-role='continue-title']");
     const subEl = compactLink.querySelector("[data-role='continue-sub']");
     const ctaEl = compactLink.querySelector("[data-role='continue-cta']");
 
-    if (firstIncompleteIndex === -1) {
-      labelEl.textContent = `Module ${activeModule.number} complete`;
-      titleEl.textContent = "Nice work — every exercise is done";
-      subEl.textContent = "Module 02 is still a placeholder — check back once it has been developed.";
-      ctaEl.textContent = "Review Module 01 →";
-      compactLink.href = `modules/${activeModule.slug}.html`;
-      if (heroLink) heroLink.href = `modules/${activeModule.slug}.html`;
+    // Find the first active module (in course order) that still has an
+    // incomplete exercise, so progress naturally advances from one active
+    // module to the next rather than getting stuck on the first one.
+    let targetModule = null;
+    let firstIncompleteIndex = -1;
+    for (const mod of activeModules) {
+      const idx = mod.exerciseIds.findIndex((id) => !completedMap[id]);
+      if (idx !== -1) {
+        targetModule = mod;
+        firstIncompleteIndex = idx;
+        break;
+      }
+    }
+
+    if (!targetModule) {
+      // Every active module is fully complete.
+      const lastActive = activeModules[activeModules.length - 1];
+      labelEl.textContent = "All active modules complete";
+      titleEl.textContent = "Nice work — every exercise so far is done";
+      subEl.textContent = "The next module is still a placeholder — check back once it has been developed.";
+      ctaEl.textContent = `Review Module ${lastActive.number} →`;
+      compactLink.href = `modules/${lastActive.slug}.html`;
+      if (heroLink) heroLink.href = `modules/${lastActive.slug}.html`;
       return;
     }
 
     const exerciseNumber = firstIncompleteIndex + 1;
-    const exerciseId = activeModule.exerciseIds[firstIncompleteIndex];
+    const exerciseId = targetModule.exerciseIds[firstIncompleteIndex];
     const isFirst = firstIncompleteIndex === 0;
-    const href = `modules/${activeModule.slug}.html#${exerciseId}`;
+    const href = `modules/${targetModule.slug}.html#${exerciseId}`;
 
-    labelEl.textContent = `Module ${activeModule.number}`;
+    labelEl.textContent = `Module ${targetModule.number}`;
     titleEl.textContent = isFirst ? "Start with Exercise 1" : `Exercise ${exerciseNumber}`;
-    subEl.textContent = activeModule.summary;
+    subEl.textContent = targetModule.summary;
     ctaEl.textContent = "Go to Exercise →";
     compactLink.href = href;
     if (heroLink) heroLink.href = href;

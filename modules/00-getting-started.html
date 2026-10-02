@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Module 00 — Getting Started on Mjolnir | Great Auk Lab Notebook</title>
+  <meta name="description" content="Prepare to work independently on the UCPH Mjolnir HPC cluster before starting the Great Auk genomics analysis." />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-active-nav="module-00">
+
+  <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"></button>
+  <div class="sidebar-overlay"></div>
+
+  <div class="app-shell">
+    <nav class="sidebar" aria-label="Primary">
+      <div class="sidebar-brand">
+        <a href="../index.html" class="brand-link">
+          <span class="brand-mark"><img src="../assets/auk-avatar.png" alt="" /></span>
+          <span class="brand-text">
+            <span class="brand-title">Great Auk</span>
+            <span class="brand-subtitle">Genomics</span>
+          </span>
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <a href="../index.html" class="nav-link" data-nav="home">
+          <span class="nav-icon" data-icon="home"></span> Home
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <p class="sidebar-heading">Modules</p>
+        <a href="../modules/00-getting-started.html" class="nav-link" data-nav="module-00">
+          <span class="nav-icon" data-icon="module-00"></span><span class="nav-number">00</span> Getting Started on Mjolnir
+        </a>
+        <a href="../modules/01-reference-genome.html" class="nav-link" data-nav="module-01">
+          <span class="nav-icon" data-icon="module-01"></span><span class="nav-number">01</span> Reference Genome
+        </a>
+        <a href="../modules/02-raw-sequencing-data.html" class="nav-link" data-nav="module-02">
+          <span class="nav-icon" data-icon="module-02"></span><span class="nav-number">02</span> Raw Sequencing Data<span class="nav-tag">soon</span>
+        </a>
+        <a href="../modules/03-raw-read-qc.html" class="nav-link" data-nav="module-03">
+          <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">03</span> Raw Read QC<span class="nav-tag">soon</span>
+        </a>
+        <a href="../modules/04-preprocessing.html" class="nav-link" data-nav="module-04">
+          <span class="nav-icon" data-icon="module-04"></span><span class="nav-number">04</span> Pre-processing<span class="nav-tag">soon</span>
+        </a>
+        <a href="../modules/05-prepare-reference.html" class="nav-link" data-nav="module-05">
+          <span class="nav-icon" data-icon="module-05"></span><span class="nav-number">05</span> Prepare Reference<span class="nav-tag">soon</span>
+        </a>
+        <a href="../modules/06-mapping.html" class="nav-link" data-nav="module-06">
+          <span class="nav-icon" data-icon="module-06"></span><span class="nav-number">06</span> Mapping<span class="nav-tag">soon</span>
+        </a>
+        <a href="../modules/07-mapping-qc.html" class="nav-link" data-nav="module-07">
+          <span class="nav-icon" data-icon="module-07"></span><span class="nav-number">07</span> Mapping QC<span class="nav-tag">soon</span>
+        </a>
+        <a href="../modules/08-genomic-diversity.html" class="nav-link" data-nav="module-08">
+          <span class="nav-icon" data-icon="module-08"></span><span class="nav-number">08</span> Genomic Diversity<span class="nav-tag">soon</span>
+        </a>
+        <a href="../modules/09-mitochondrial-genetics.html" class="nav-link" data-nav="module-09">
+          <span class="nav-icon" data-icon="module-09"></span><span class="nav-number">09</span> Mitochondrial Genetics<span class="nav-tag">soon</span>
+        </a>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section">
+        <a href="../toolbox.html" class="nav-link" data-nav="toolbox">
+          <span class="nav-icon" data-icon="toolbox"></span> Terminal Toolbox
+        </a>
+        <a href="../resources.html" class="nav-link" data-nav="resources">
+          <span class="nav-icon" data-icon="resources"></span> Genome Resources
+        </a>
+        <a href="../glossary.html" class="nav-link" data-nav="glossary">
+          <span class="nav-icon" data-icon="glossary"></span> Glossary
+        </a>
+      </div>
+
+      <div class="sidebar-footer">
+        Great Auk Comparative Genomics<br />
+        Lab Notebook · v1
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="content-column">
+
+        <p class="breadcrumb"><a href="../index.html">Home</a> / Module 00</p>
+
+        <header class="module-header">
+          <div class="module-eyebrow">Module 00 of 10</div>
+          <h1>Getting Started on Mjolnir</h1>
+          <p class="module-intro">
+            Before you touch any genomic data, you need to be comfortable working independently on
+            <strong>Mjolnir</strong>, the University of Copenhagen's HPC cluster. This module covers the
+            HPC and Linux fundamentals — connecting, navigating, storage, software, and Slurm — that
+            every later module assumes you already have. Everything here recurs constantly from
+            Module 01 onward, so it's worth doing properly now rather than guessing later.
+          </p>
+        </header>
+
+        <div class="card objectives-card">
+          <h2>Learning objectives</h2>
+          <ul>
+            <li>Connect to Mjolnir and tell the difference between a login node and a compute node</li>
+            <li>Navigate the filesystem confidently, and understand absolute vs relative paths</li>
+            <li>Know where your files belong on Mjolnir (home vs project storage) and how to check usage</li>
+            <li>Use basic file operations safely: <code>cp</code>, <code>mv</code>, <code>rm</code>, <code>head</code>, <code>less</code>, <code>cat</code>, <code>file</code></li>
+            <li>Find and load shared software using environment modules</li>
+            <li>Understand what Slurm is, and why jobs must request resources</li>
+            <li>Write, submit, and monitor a Slurm batch job</li>
+            <li>Read a job's output/error files, and check how efficiently it used its resources</li>
+            <li>Cancel a job, and know when that's appropriate</li>
+          </ul>
+        </div>
+
+        <div class="module-progress-bar" data-role="module-progress">
+          <div class="progress-label"><span data-role="module-progress-label">0 of 21 exercises complete</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:0%"></div></div>
+        </div>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex01" data-exercise-id="m0-ex01">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">01</span><h3>Connect to Mjolnir and identify yourself</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              Mjolnir access goes through the UCPH VPN, then SSH with your KU ID. Logging in doesn't put
+              you on the machine that runs analyses — it puts you on a shared <strong>login node</strong>.
+              The first habit to build, every single session, is confirming who you are and where you've
+              landed before doing anything else.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Connect to Mjolnir, then run three commands: one that prints your username, one that prints the machine's name, and one that prints your current location.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>The connection itself is one SSH command using your KU ID. Once in, <code>whoami</code>, <code>hostname</code>, and <code>pwd</code> each answer one of the three questions above.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="ssh <KU-ID>@mjolnirgate.unicph.domain
+whoami
+hostname
+pwd"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button># from your own computer, with the UCPH VPN connected
+ssh &lt;KU-ID&gt;@mjolnirgate.unicph.domain
+
+# once logged in
+whoami
+hostname
+pwd</div>
+                <p><code>whoami</code> prints your username (it should match your KU-ID). <code>hostname</code> prints the machine's name — on Mjolnir this confirms you're on a login node. <code>pwd</code> prints your current absolute path.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Does <code>whoami</code> match your KU-ID? Based on the name <code>hostname</code> returned, do you think you're on a login node or a compute node — and how would you know either way?</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul>
+              <li><a href="https://mjolnir-ucph.dk/docs/getting-started/first-15-minutes/" target="_blank" rel="noopener">First 15 minutes on Mjolnir</a></li>
+              <li><a href="https://mjolnir-ucph.dk/docs/accounts-access/vpn-ssh-access/" target="_blank" rel="noopener">VPN and SSH access</a></li>
+            </ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex01" data-role="complete-checkbox" /><label for="complete-m0-ex01">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex02" data-exercise-id="m0-ex02">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">02</span><h3>What is an HPC cluster, and what is Mjolnir?</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              An HPC (High-Performance Computing) cluster is many networked computers sharing storage and
+              a scheduler, pooled together so jobs too large for a single laptop — and jobs from many
+              people at once — can run efficiently. Mjolnir is UCPH's cluster for exactly this kind of
+              research. Crucially, you are never the only person using it: everything about how you're
+              expected to behave on it (which you'll meet across this module) follows from that one fact.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>In your own words, write a short note explaining what makes a cluster different from your own laptop, and why sharing it with many other researchers changes how you're expected to use it.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>Think about what would happen if every user on a shared machine ran heavy, long-running work wherever and whenever they liked.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show model answer</summary>
+              <div class="reveal-body">
+                <p>
+                  A cluster multiplies the compute and memory available to you far beyond a laptop, but
+                  that capacity is finite and shared. If one person's job eats all the CPU or memory on a
+                  shared entry point, every other person connected at that moment is slowed down — so
+                  clusters enforce etiquette (separate login/compute nodes, a scheduler, resource limits)
+                  that a single-user laptop never needs.
+                </p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Can you name one concrete rule a shared cluster needs that your own laptop never would?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex02" data-role="complete-checkbox" /><label for="complete-m0-ex02">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex03" data-exercise-id="m0-ex03">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">03</span><h3>Login nodes vs compute nodes: what belongs where</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              Mjolnir's login node is a shared entry point for everyone connected at that moment — meant
+              for lightweight tasks: organising files, writing scripts, submitting and checking jobs.
+              Actual analyses run on <strong>compute nodes</strong>, scheduled through Slurm. Running real
+              computation on the login node slows down every other user's session, and persistent misuse
+              can lead to your access being withdrawn.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>List three tasks that belong on a login node, and three that must go to a compute node instead. Think ahead to the kind of work you'll do in later modules (downloading a small reference file vs. running an alignment, for example).</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>The deciding factor isn't "is this a command I type" — it's how much CPU, memory, or time it's likely to need.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show model answer</summary>
+              <div class="reveal-body">
+                <p><strong>Login node:</strong> editing a script, organising directories, checking a small file with <code>head</code>, submitting a job with <code>sbatch</code>.</p>
+                <p><strong>Compute node (via Slurm):</strong> aligning reads to a genome, running an assembly, anything described as "model training," or any step whose runtime or memory you genuinely aren't sure of in advance.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>What do you think actually happens — technically and socially — if everyone treated the login node like a compute node?</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul><li><a href="https://mjolnir-ucph.dk/docs/getting-started/login-vs-compute-nodes/" target="_blank" rel="noopener">Login nodes vs compute nodes</a></li></ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex03" data-role="complete-checkbox" /><label for="complete-m0-ex03">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex04" data-exercise-id="m0-ex04">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">04</span><h3>Navigating the filesystem</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>These four commands are the absolute foundation of working on any Linux server, and you'll run them more than anything else in this entire project: <code>pwd</code> (where am I), <code>ls</code> (what's here), <code>ls -lh</code> (the same, with detail and readable sizes), and <code>cd</code> (go there).</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Starting from wherever you land after logging in, check your location, list what's there in detail, move into any subdirectory you can see, and confirm you arrived.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p><code>cd</code> takes the name (or path) of where you want to go as its argument.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="pwd
+ls -lh
+cd <some_directory>
+pwd"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>pwd
+ls -lh
+cd &lt;some_directory&gt;
+pwd</div>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>How can you tell from <code>ls -lh</code> output which entries are directories and which are files?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex04" data-role="complete-checkbox" /><label for="complete-m0-ex04">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex05" data-exercise-id="m0-ex05">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">05</span><h3>Shortcuts that matter: <code>.</code>, <code>..</code>, <code>~</code></h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p><code>.</code> means "this directory," <code>..</code> means "the parent directory," and <code>~</code> means "my home directory" — all three save you from typing full paths constantly, and all three appear again and again in other commands, not just <code>cd</code>.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>From wherever you currently are, jump straight home, then move up one level from there, then return to exactly where you started using the shortcut, not a typed-out path.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p><code>cd ~</code> works from anywhere. <code>cd -</code> is a bonus shortcut that returns you to wherever you were before your last <code>cd</code>.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="cd ~
+pwd
+cd ..
+pwd
+cd -
+pwd"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>cd ~
+pwd
+cd ..
+pwd
+cd -
+pwd</div>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Where might <code>.</code> be useful as an argument to a command other than <code>cd</code> — for example, as a destination for <code>cp</code>?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex05" data-role="complete-checkbox" /><label for="complete-m0-ex05">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex06" data-exercise-id="m0-ex06">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">06</span><h3>Absolute vs relative paths</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>An <strong>absolute path</strong> starts from the root of the filesystem (<code>/</code>) and is unambiguous no matter where you currently are. A <strong>relative path</strong> is interpreted relative to your current directory — shorter to type, but it only means what you think it means if you know your starting point. Mixing these up is one of the most common sources of "file not found" errors, and worse, scripts that silently touch the wrong location.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Print the absolute path of your home directory without moving there. Then, from a subdirectory of your choice, write down a relative path that points back to that same home directory.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p><code>echo ~</code> expands and prints your home directory's absolute path without changing your location. An absolute path always starts with <code>/</code>; a relative one never does.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="echo ~
+cd <some_subdirectory>
+pwd
+cd .."><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>echo ~
+cd &lt;some_subdirectory&gt;
+pwd
+
+# relative path back to where you started
+cd ..</div>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>If you moved to a completely different directory first, would the same relative path (e.g. <code>../data</code>) still point to the same place? Why not — and why does an absolute path not have this problem?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex06" data-role="complete-checkbox" /><label for="complete-m0-ex06">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex07" data-exercise-id="m0-ex07">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">07</span><h3>Home vs project storage on Mjolnir</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              Your home directory (<code>/home/&lt;KU-ID&gt;</code>) is personal but capped at 100&nbsp;GB, and is
+              meant for configuration files and small scripts — not datasets or analysis output. Actual
+              project data belongs under <code>/projects/&lt;project&gt;/</code>, which has a standard layout
+              including a <code>people/&lt;KU-ID&gt;/</code> directory that is your own working space within
+              the project. If that folder doesn't exist for you yet, ask your supervisor or Mjolnir
+              support rather than improvising a location yourself.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Find both locations: your home directory, and your personal folder within the project's shared space. Don't create anything yet — just confirm both exist and note the difference.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p><code>echo ~</code> gives you the first. The second has the shape <code>/projects/&lt;project&gt;/people/&lt;KU-ID&gt;/</code> — <code>ls /projects/</code> shows you which projects you can see.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="echo ~
+ls /projects/
+ls /projects/<project>/people/"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>echo ~
+ls /projects/
+ls /projects/&lt;project&gt;/people/</div>
+                <p class="placeholder-note">Replace <code>&lt;project&gt;</code> with the actual project name your supervisor gives you.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Which of these two locations should hold your actual working files for this course, and why?</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul>
+              <li><a href="https://mjolnir-ucph.dk/docs/storage/project-folders/" target="_blank" rel="noopener">Where should my files go?</a></li>
+              <li><a href="https://mjolnir-ucph.dk/docs/storage/storage-policy/" target="_blank" rel="noopener">Storage limits and responsibilities</a></li>
+            </ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex07" data-role="complete-checkbox" /><label for="complete-m0-ex07">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex08" data-exercise-id="m0-ex08">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">08</span><h3>Create a sensible working directory</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>Now that you know where project work belongs, create a dedicated space for the exercises in this module — kept separate from the Great Auk project directory you'll set up in Module 01.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Inside your personal project folder, create a directory for practising these HPC exercises, and move into it.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>A short, clear, lowercase name with no spaces — something like <code>hpc_intro</code>.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="cd /projects/<project>/people/<KU-ID>/
+mkdir hpc_intro
+cd hpc_intro
+pwd"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>cd /projects/&lt;project&gt;/people/&lt;KU-ID&gt;/
+mkdir hpc_intro
+cd hpc_intro
+pwd</div>
+                <p class="placeholder-note">The directory name is up to you — <code>hpc_intro</code> is just an example.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Does <code>pwd</code> confirm you're inside the new directory, under <code>/projects/</code>?</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul><li><a href="https://mjolnir-ucph.dk/docs/storage/project-folders/" target="_blank" rel="noopener">Where should my files go?</a></li></ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex08" data-role="complete-checkbox" /><label for="complete-m0-ex08">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex09" data-exercise-id="m0-ex09">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">09</span><h3>Checking your storage usage</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p><code>/projects/</code> storage isn't currently quota-enforced the way your home directory is — but it's still a shared, finite resource used by many research groups, not an unlimited personal allocation. Checking usage periodically is good practice, not a one-off task.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Check how much space your personal project folder is using, and which subfolders (if any) are using the most.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>The flag that matters for accurate reporting is <code>--apparent-size</code> — it reports actual data size rather than filesystem allocation, which is what you want for capacity planning.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="du -sh --apparent-size /projects/<project>/people/<KU-ID>/
+du -h --apparent-size --max-depth=1 /projects/<project>/people/<KU-ID>/ | sort -h"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button># total usage
+du -sh --apparent-size /projects/&lt;project&gt;/people/&lt;KU-ID&gt;/
+
+# broken down by immediate subfolder, smallest to largest
+du -h --apparent-size --max-depth=1 /projects/&lt;project&gt;/people/&lt;KU-ID&gt;/ | sort -h</div>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Does the first command give you one total? What does the second one show you that the first doesn't?</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul><li><a href="https://mjolnir-ucph.dk/docs/storage/checking-storage-use/" target="_blank" rel="noopener">How much storage am I using?</a></li></ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex09" data-role="complete-checkbox" /><label for="complete-m0-ex09">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex10" data-exercise-id="m0-ex10">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">10</span><h3>Copying, moving, and (carefully) removing files</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p><code>cp</code> copies a file, leaving the original in place. <code>mv</code> moves it — or renames it, since there's no separate "rename" command. <code>rm</code> deletes a file permanently: there is no undo and no recycle bin, so always double-check the path (and any wildcard) before pressing enter.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Create a small text file, make a copy of it, rename that copy, then delete the renamed copy — leaving the original untouched.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p><code>echo "some text" &gt; filename</code> writes that text into a new file. <code>mv</code> used with a new name in the same directory renames a file.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="echo 'hello world' > notes.txt
+cp notes.txt notes_backup.txt
+mv notes_backup.txt notes_copy.txt
+rm notes_copy.txt
+ls -lh"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>echo 'hello world' > notes.txt
+cp notes.txt notes_backup.txt
+mv notes_backup.txt notes_copy.txt
+rm notes_copy.txt
+ls -lh</div>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Is <code>notes_copy.txt</code> recoverable after <code>rm</code>? Does <code>notes.txt</code> still exist? What's one habit worth building before running <code>rm</code>, especially with a wildcard like <code>*</code>?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex10" data-role="complete-checkbox" /><label for="complete-m0-ex10">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex11" data-exercise-id="m0-ex11">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">11</span><h3>Inspecting files without fully opening them</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>Files on a cluster can be huge — opening one fully is slow at best, and can freeze your session at worst. <code>cat</code> prints a whole (small) file. <code>head</code> prints just the start. <code>less</code> lets you page through interactively without loading everything at once. <code>file</code> reports what a file actually is, regardless of its extension.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Using the <code>notes.txt</code> file from the previous exercise, try all four commands.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p><code>less</code> is interactive — press <code>q</code> to quit back to the prompt.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="cat notes.txt
+head -n 5 notes.txt
+less notes.txt
+file notes.txt"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>cat notes.txt
+head -n 5 notes.txt
+less notes.txt
+file notes.txt</div>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>What does <code>file</code> report for this plain text file? You'll see it report something very different — "gzip compressed data" — once you start working with real genomic files in Module 01. Why is checking this before you assume a file's format a good habit?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex11" data-role="complete-checkbox" /><label for="complete-m0-ex11">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex12" data-exercise-id="m0-ex12">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">12</span><h3>What are environment modules, and why do they exist?</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>Mjolnir provides shared research software through <strong>Environment Modules</strong>. Rather than everyone installing their own copy of every bioinformatics tool, pre-installed software is loaded into your shell's (or job's) environment on demand with a single command. Much of it is packaged internally as Conda environments, but you access it through the module system, not by managing Conda yourself.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Before touching any commands, think about and note down: why would a shared cluster prefer this system over letting every user install and manage their own software?</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>Think about disk space (your home directory's 100&nbsp;GB cap), reproducibility, and what happens if 50 people each install a slightly different version of the same tool.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show model answer</summary>
+              <div class="reveal-body">
+                <p>Shared, version-pinned installs save enormous duplicated disk space and effort, and mean that when you tell someone which module (and version) you used, they can reproduce your environment exactly — rather than everyone's personal installs silently drifting apart.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Why might installing your own Conda environment in your home directory specifically be a bad idea on Mjolnir?</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul><li><a href="https://mjolnir-ucph.dk/docs/software/modules-conda/" target="_blank" rel="noopener">Find and load software</a></li></ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex12" data-role="complete-checkbox" /><label for="complete-m0-ex12">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex13" data-exercise-id="m0-ex13">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">13</span><h3>Finding and loading software</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              <code>module avail</code> lists everything installed; adding a search term narrows it.
+              <code>module whatis</code> and <code>module display</code> show details before you commit to loading
+              something. <code>module load</code> brings a tool into your environment — pin an exact version
+              for work you intend to repeat. <code>module list</code> shows what's currently loaded, and
+              <code>module purge</code> clears everything.
+            </p>
+            <p class="placeholder-note">Note: Mjolnir does <strong>not</strong> support <code>module spider</code>, even though you may see it mentioned elsewhere — use <code>module avail</code> and <code>module apropos</code> instead.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Search for <code>samtools</code> (a very common bioinformatics tool you'll likely use later), check what versions exist, load one, confirm it's active, then clear your environment again.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p><code>which samtools</code> confirms a loaded tool is actually on your <code>PATH</code>.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="module avail samtools
+module whatis samtools
+module load samtools/<version>
+module list
+which samtools
+module purge"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>module avail samtools
+module whatis samtools
+module load samtools/&lt;version&gt;
+module list
+which samtools
+module purge</div>
+                <p class="placeholder-note">Replace <code>&lt;version&gt;</code> with one of the versions <code>module avail samtools</code> actually showed you — exact versions change over time, so don't assume one from elsewhere.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>What does <code>module list</code> show immediately after <code>module purge</code>? Why might it be good practice to start every batch script with <code>module purge</code> before loading what you actually need?</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul><li><a href="https://mjolnir-ucph.dk/docs/software/modules-conda/" target="_blank" rel="noopener">Find and load software</a></li></ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex13" data-role="complete-checkbox" /><label for="complete-m0-ex13">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex14" data-exercise-id="m0-ex14">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">14</span><h3>What is Slurm, and why must you request resources?</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              Slurm is the scheduler that decides which job runs on which compute node, and when. Every
+              submitted job gets a job ID, and must declare the CPU, memory, and maximum wall time it
+              needs, plus which <strong>partition</strong> (a pool of nodes for a particular purpose) and
+              <strong>QoS</strong> (quality of service — a priority/limits tier) it should run under. On
+              Mjolnir, <code>--qos</code> is mandatory: jobs submitted without one are rejected outright.
+              <code>cpuqueue</code> is the general-purpose default partition; <code>normal</code> is the
+              everyday default QoS.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Before writing any script, note down: why does a shared cluster require everyone to declare their resource needs upfront, rather than just letting jobs run and seeing what happens?</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>Think about what information the scheduler needs to fit many users' jobs onto a limited number of machines without conflicts.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show model answer</summary>
+              <div class="reveal-body">
+                <p>Without declared requirements, Slurm would have no way to know which jobs can safely run together on the same node without running out of memory or starving each other of CPU. Declared requests are also what Mjolnir's fairshare system charges against — more on that in Exercise 19.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>What do you think happens if you request far more memory than your program actually ends up using? Hold that thought for Exercise 19.</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul>
+              <li><a href="https://mjolnir-ucph.dk/docs/job-submission/submitting-jobs/" target="_blank" rel="noopener">Submitting jobs</a></li>
+              <li><a href="https://mjolnir-ucph.dk/docs/slurm/partitions-qos-fairshare/" target="_blank" rel="noopener">Partitions, QoS, and fairshare</a></li>
+            </ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex14" data-role="complete-checkbox" /><label for="complete-m0-ex14">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex15" data-exercise-id="m0-ex15">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">15</span><h3>Write your first Slurm batch script</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              A Slurm batch script is an ordinary bash script with <code>#SBATCH</code> comment lines at
+              the top telling Slurm what resources and settings to use before your actual commands run.
+              <code>--output</code>/<code>--error</code> with <code>%j</code> let Slurm substitute the real
+              job ID into the log filenames once it's submitted.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Create a file called <code>hello_mjolnir.sbatch</code> that requests the minimum sensible resources for a job that only prints a hostname, a date, and a message — then prints that message.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>A job that just runs <code>hostname</code>/<code>date</code>/<code>echo</code> needs barely any CPU, memory, or time — resist the urge to request more "just in case." You can create a multi-line file directly from the command line with a <code>cat &lt;&lt;'EOF' ... EOF</code> block, or use a terminal editor like <code>nano</code> if you prefer.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="cat > hello_mjolnir.sbatch <<'EOF'
+#!/bin/bash
+#SBATCH --job-name=hello_mjolnir
+#SBATCH --partition=cpuqueue
+#SBATCH --qos=normal
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=500M
+#SBATCH --time=00:05:00
+#SBATCH --output=hello_mjolnir-%j.out
+#SBATCH --error=hello_mjolnir-%j.err
+
+echo "Starting job $SLURM_JOB_ID on $(hostname)"
+date
+echo "Hello from Mjolnir!"
+EOF
+cat hello_mjolnir.sbatch"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>cat > hello_mjolnir.sbatch &lt;&lt;'EOF'
+#!/bin/bash
+#SBATCH --job-name=hello_mjolnir
+#SBATCH --partition=cpuqueue
+#SBATCH --qos=normal
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=500M
+#SBATCH --time=00:05:00
+#SBATCH --output=hello_mjolnir-%j.out
+#SBATCH --error=hello_mjolnir-%j.err
+
+echo "Starting job $SLURM_JOB_ID on $(hostname)"
+date
+echo "Hello from Mjolnir!"
+EOF
+cat hello_mjolnir.sbatch</div>
+                <p>
+                  <code>--partition=cpuqueue</code> is the general-purpose default. <code>--qos=normal</code>
+                  is mandatory and is the everyday default tier. <code>--cpus-per-task=1</code> and
+                  <code>--mem-per-cpu=500M</code> are deliberately minimal, since this job only prints text.
+                  <code>--time=00:05:00</code> is a safety cap, not an estimate of how long it'll actually
+                  take.
+                </p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Why is requesting 1 CPU and 500&nbsp;MB the right call here, compared to a heavier example you might see elsewhere in the documentation (e.g. 4 CPUs and 2&nbsp;GB per CPU)?</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul><li><a href="https://mjolnir-ucph.dk/docs/job-submission/submitting-jobs/" target="_blank" rel="noopener">Submitting jobs</a></li></ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex15" data-role="complete-checkbox" /><label for="complete-m0-ex15">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex16" data-exercise-id="m0-ex16">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">16</span><h3>Submit the job</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p><code>sbatch</code> hands your script to Slurm, which immediately replies with a job ID. You'll need that ID for every remaining exercise in this module — monitoring, logs, and efficiency checks are all keyed on it.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Submit <code>hello_mjolnir.sbatch</code>, and record the job ID it returns in your notes below.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>One command, the script's filename as its only argument.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="sbatch hello_mjolnir.sbatch"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>sbatch hello_mjolnir.sbatch</div>
+                <p>Slurm responds with something like <code>Submitted batch job 123456</code> — that number is your job ID.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>What job ID did you get?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Record your job ID here — you'll need it for the next few exercises."></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex16" data-role="complete-checkbox" /><label for="complete-m0-ex16">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex17" data-exercise-id="m0-ex17">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">17</span><h3>Monitor your job</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p><code>squeue -u $USER</code> shows your own queued and running jobs. A job's state (column <code>ST</code>) moves through <code>PD</code> (pending), <code>R</code> (running), <code>CG</code> (completing), and finally disappears from this live view once it's <code>COMPLETED</code> (or <code>FAILED</code>/<code>TIMEOUT</code>/<code>CANCELLED</code>).</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Run <code>squeue -u $USER</code> a few times, quickly — your job only takes seconds, so you're watching for it to appear running and then disappear.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>While it's running, the last column of <code>squeue</code>'s output shows the compute node's name. While pending, it shows the reason it's waiting instead.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="squeue -u $USER"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>squeue -u $USER</div>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Which compute node did your job run on, according to <code>squeue</code>? Write it down — the final challenge will ask you to confirm this a different way.</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul><li><a href="https://mjolnir-ucph.dk/docs/monitoring-jobs/monitoring-jobs/" target="_blank" rel="noopener">Monitoring jobs</a></li></ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex17" data-role="complete-checkbox" /><label for="complete-m0-ex17">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex18" data-exercise-id="m0-ex18">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">18</span><h3>Find and read your job's output and error files</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>Because your script set <code>--output</code>/<code>--error</code> with <code>%j</code>, Slurm wrote two files named after your job ID. Normal output (like <code>echo</code> and <code>date</code>) goes to the <code>.out</code> file; errors and warnings go to the <code>.err</code> file. Telling these apart matters hugely once you're running real bioinformatics tools that report problems this way.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>List your directory, find the two log files matching your job ID, and inspect both.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>A wildcard with your job ID will match both files at once in <code>ls</code>.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="ls -lh *<jobid>*
+cat hello_mjolnir-<jobid>.out
+cat hello_mjolnir-<jobid>.err"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>ls -lh *&lt;jobid&gt;*
+cat hello_mjolnir-&lt;jobid&gt;.out
+cat hello_mjolnir-&lt;jobid&gt;.err</div>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Does the hostname printed inside the <code>.out</code> file match the compute node name <code>squeue</code> showed you? Is the <code>.err</code> file empty — what would you expect to see there if something had gone wrong?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex18" data-role="complete-checkbox" /><label for="complete-m0-ex18">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex19" data-exercise-id="m0-ex19">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">19</span><h3>Check how efficiently your job used its resources</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              <code>seff &lt;jobid&gt;</code> gives a quick summary of CPU and memory use as a percentage of
+              what you requested. <code>sacct</code> gives more detail. Right-sizing requests matters for
+              reasons beyond your own job: <strong>fairshare is charged on what you request, not what you
+              consume</strong>, so over-requesting hurts your own future priority; memory you reserve but
+              don't use is unavailable to anyone else for the whole run, even while the CPUs sit idle; and
+              smaller, realistic requests let the scheduler backfill jobs into gaps far more easily.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Check your finished job's efficiency, and compare what you requested against what it actually used.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>Both commands take your job ID as an argument.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="seff <jobid>
+sacct -j <jobid> --format=JobID,JobName,State,Elapsed,AllocCPUS,ReqMem,MaxRSS,ExitCode"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>seff &lt;jobid&gt;
+sacct -j &lt;jobid&gt; --format=JobID,JobName,State,Elapsed,AllocCPUS,ReqMem,MaxRSS,ExitCode</div>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Did your job use anywhere near the 1 CPU / 500&nbsp;MB you requested? If you'd requested 8 CPUs and 16&nbsp;GB "just to be safe" instead, what would that have cost — to you and to everyone else sharing Mjolnir right now?</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul><li><a href="https://mjolnir-ucph.dk/docs/monitoring-jobs/job-efficiency/" target="_blank" rel="noopener">Check job efficiency</a></li></ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Record requested vs. actual CPU/memory here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex19" data-role="complete-checkbox" /><label for="complete-m0-ex19">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex20" data-exercise-id="m0-ex20">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">20</span><h3>Cancelling a job</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              <code>scancel &lt;jobid&gt;</code> requests termination — it doesn't guarantee an instant stop.
+              Running jobs get a brief grace period before being forced to stop; pending jobs are simply
+              removed from the queue. Appropriate reasons to cancel include wrong input files or
+              arguments, wrong resource requests, an accidental duplicate submission, or a job that's
+              clearly stuck. Repeatedly cancelling and resubmitting to try to "jump the queue" doesn't
+              work — fairshare priority isn't affected by that.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Submit a second, deliberately slow test job (one that just sleeps for a while), then cancel it before it finishes.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>This needs its own script and its own job ID — your first job already finished, so there's nothing left to cancel there.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="cat > sleep_test.sbatch <<'EOF'
+#!/bin/bash
+#SBATCH --job-name=sleep_test
+#SBATCH --partition=cpuqueue
+#SBATCH --qos=normal
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=500M
+#SBATCH --time=00:10:00
+#SBATCH --output=sleep_test-%j.out
+#SBATCH --error=sleep_test-%j.err
+
+sleep 600
+EOF
+sbatch sleep_test.sbatch
+squeue -u $USER
+scancel <jobid>
+squeue -u $USER"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>cat > sleep_test.sbatch &lt;&lt;'EOF'
+#!/bin/bash
+#SBATCH --job-name=sleep_test
+#SBATCH --partition=cpuqueue
+#SBATCH --qos=normal
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=500M
+#SBATCH --time=00:10:00
+#SBATCH --output=sleep_test-%j.out
+#SBATCH --error=sleep_test-%j.err
+
+sleep 600
+EOF
+sbatch sleep_test.sbatch
+squeue -u $USER
+
+# cancel it using the job ID squeue just showed you
+scancel &lt;jobid&gt;
+squeue -u $USER</div>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>After running <code>scancel</code>, how long did it take for the job to actually disappear from <code>squeue</code>? Was it instant?</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul><li><a href="https://mjolnir-ucph.dk/docs/monitoring-jobs/canceling-jobs/" target="_blank" rel="noopener">Cancelling jobs</a></li></ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex20" data-role="complete-checkbox" /><label for="complete-m0-ex20">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m0-ex21" data-exercise-id="m0-ex21">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">21</span><h3>Final mini-challenge: do it all yourself</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>This is where every piece of this module comes together, independently, exactly as you'll need to work for every real analysis step from Module 01 onward. Nothing here is new — the only new part is doing it without a template in front of you.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Without copying a ready-made script, independently:</p>
+            <ul>
+              <li>Create (or navigate to) an appropriate working directory</li>
+              <li>Write a small <code>.sbatch</code> script requesting sensible, minimal resources</li>
+              <li>Load a module inside the script if your job actually uses one (e.g. print a tool's version)</li>
+              <li>Submit the job and record the job ID it returns</li>
+              <li>Monitor it until it finishes</li>
+              <li>Identify which compute node ran it</li>
+              <li>Locate and read its stdout and stderr files</li>
+              <li>Check its completed-job resource usage</li>
+              <li>Record requested vs. actual resource use</li>
+              <li>In your notes, briefly explain why this job belonged on a compute node rather than the login node</li>
+            </ul>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>Every single step here was covered somewhere in Exercises 08 and 13–20. If you get stuck on one specific step, that's the exercise to revisit — rather than reaching for the reveal below immediately.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Still stuck? A few more hints (not a ready-made script)</summary>
+              <div class="reveal-body">
+                <ul>
+                  <li>The heredoc pattern from Exercise 15 (<code>cat &gt; name.sbatch &lt;&lt;'EOF' ... EOF</code>) still works here.</li>
+                  <li>If you load a module, do it <em>inside</em> the sbatch script, after a <code>module purge</code> — not just in your login shell (Exercise 13).</li>
+                  <li><code>squeue -u $USER</code> for monitoring and the node name; <code>ls</code> with your job ID to find the log files (Exercises 17–18).</li>
+                  <li><code>seff &lt;jobid&gt;</code> for the efficiency comparison (Exercise 19).</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Can you point to, right now: your job ID, the compute node's name, the contents of your <code>.out</code> file, and at least one actual-vs-requested resource number? If any of those are missing, that's a sign to revisit the relevant exercise above rather than mark this complete.</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul>
+              <li><a href="https://mjolnir-ucph.dk/docs/job-submission/submitting-jobs/" target="_blank" rel="noopener">Submitting jobs</a></li>
+              <li><a href="https://mjolnir-ucph.dk/docs/monitoring-jobs/monitoring-jobs/" target="_blank" rel="noopener">Monitoring jobs</a></li>
+              <li><a href="https://mjolnir-ucph.dk/docs/monitoring-jobs/job-efficiency/" target="_blank" rel="noopener">Check job efficiency</a></li>
+              <li><a href="https://mjolnir-ucph.dk/docs/monitoring-jobs/canceling-jobs/" target="_blank" rel="noopener">Cancelling jobs</a></li>
+            </ul>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label notes">Notes / questions</span>
+            <textarea class="notes-textarea" data-role="notes" placeholder="Job ID:
+Compute node:
+Requested vs. actual CPU/memory:
+Why this belonged on a compute node, not the login node:
+Anything that tripped you up:"></textarea>
+            <div class="notes-save-status" data-role="notes-status"></div>
+          </div>
+          <div class="completion-row"><input type="checkbox" id="complete-m0-ex21" data-role="complete-checkbox" /><label for="complete-m0-ex21">Mark this exercise complete</label></div>
+        </section>
+
+        <div class="card summary-card">
+          <h2>Module 00 summary</h2>
+          <p>
+            By the end of this module you should be able to connect to Mjolnir, navigate confidently,
+            know where your files belong, find and load software, and write, submit, monitor, and
+            clean up after a Slurm job — entirely on your own. Every one of these habits recurs from
+            Module 01 onward.
+          </p>
+        </div>
+
+        <div class="module-footer">
+          <a href="../index.html" class="btn btn-secondary">← Back to Home</a>
+          <a href="01-reference-genome.html" class="btn btn-primary">Module 01: Reference Genome →</a>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/modules-data.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/icons.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/progress.js"></script>
+</body>
+</html>

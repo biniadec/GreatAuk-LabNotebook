@@ -16,7 +16,9 @@
   const ICONS = {
     home: `<svg viewBox="0 0 24 24" ${stroke}><path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1h3.2v-6.2h4.6V21H17.5a1 1 0 0 0 1-1V9.5"/></svg>`,
 
-    "module-01": `<svg viewBox="0 0 24 24" ${stroke}><path d="M6 3c0 4.5 12 4.5 12 9s-12 4.5-12 9"/><path d="M18 3c0 4.5-12 4.5-12 9s12 4.5 12 9"/><path d="M7.2 7.2h9.6M6.3 12h11.4M7.2 16.8h9.6"/></svg>`,
+    "module-00": `<svg viewBox="0 0 24 24" ${stroke}><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></svg>`,
+
+    "module-01":`<svg viewBox="0 0 24 24" ${stroke}><path d="M6 3c0 4.5 12 4.5 12 9s-12 4.5-12 9"/><path d="M18 3c0 4.5-12 4.5-12 9s12 4.5 12 9"/><path d="M7.2 7.2h9.6M6.3 12h11.4M7.2 16.8h9.6"/></svg>`,
 
     "module-02": `<svg viewBox="0 0 24 24" ${stroke}><ellipse cx="12" cy="5.5" rx="7" ry="2.8"/><path d="M5 5.5v6.2c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8V5.5"/><path d="M5 11.7v6.2c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-6.2"/></svg>`,
 
