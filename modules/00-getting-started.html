@@ -164,7 +164,7 @@ pwd</div>
           </div>
           <div class="exercise-block">
             <span class="block-label check">Check yourself</span>
-            <p>Does <code>whoami</code> match your KU-ID? Based on the name <code>hostname</code> returned, do you think you're on a login node or a compute node — and how would you know either way?</p>
+            <p>Does <code>whoami</code> match your KU-ID? What command or piece of information would you use to confirm which machine/node you are currently on?</p>
           </div>
           <div class="exercise-block further-reading">
             <span class="block-label doc">Mjolnir documentation</span>
@@ -405,10 +405,12 @@ cd ..</div>
             <p>
               Your home directory (<code>/home/&lt;KU-ID&gt;</code>) is personal but capped at 100&nbsp;GB, and is
               meant for configuration files and small scripts — not datasets or analysis output. Actual
-              project data belongs under <code>/projects/&lt;project&gt;/</code>, which has a standard layout
-              including a <code>people/&lt;KU-ID&gt;/</code> directory that is your own working space within
-              the project. If that folder doesn't exist for you yet, ask your supervisor or Mjolnir
-              support rather than improvising a location yourself.
+              project data belongs under <code>/projects/&lt;project&gt;/</code>, which has a standard layout:
+              <code>people/&lt;KU-ID&gt;/</code> (your own working space), <code>data/</code> (shared datasets
+              used by the whole project), and <code>scratch/</code> (temporary working space — <strong>not
+              backed up</strong>, so treat anything there as disposable). If your <code>people/</code> folder
+              doesn't exist for you yet, ask your supervisor or Mjolnir support rather than improvising a
+              location yourself.
             </p>
           </div>
           <div class="exercise-block">
@@ -670,6 +672,7 @@ file notes.txt</div>
               for work you intend to repeat. <code>module list</code> shows what's currently loaded, and
               <code>module purge</code> clears everything.
             </p>
+            <p>Modules required by a batch job must be loaded <strong>inside the sbatch script itself</strong> — a batch job starts in its own environment on a different machine, so anything you loaded interactively in your login shell does not carry over.</p>
             <p class="placeholder-note">Note: Mjolnir does <strong>not</strong> support <code>module spider</code>, even though you may see it mentioned elsewhere — use <code>module avail</code> and <code>module apropos</code> instead.</p>
           </div>
           <div class="exercise-block">
@@ -685,11 +688,13 @@ file notes.txt</div>
               <summary>Show command</summary>
               <div class="reveal-body">
                 <div class="command-block" data-command="module avail samtools
+module apropos samtools
 module whatis samtools
 module load samtools/<version>
 module list
 which samtools
 module purge"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>module avail samtools
+module apropos samtools
 module whatis samtools
 module load samtools/&lt;version&gt;
 module list
@@ -726,7 +731,9 @@ module purge</div>
               <strong>QoS</strong> (quality of service — a priority/limits tier) it should run under. On
               Mjolnir, <code>--qos</code> is mandatory: jobs submitted without one are rejected outright.
               <code>cpuqueue</code> is the general-purpose default partition; <code>normal</code> is the
-              everyday default QoS.
+              everyday default QoS. Mjolnir also has other partitions and QoS tiers for other situations
+              (GPU work, low-priority background jobs, and more) — <code>cpuqueue</code>/<code>normal</code>
+              is simply the everyday default you'll use for now.
             </p>
           </div>
           <div class="exercise-block">
