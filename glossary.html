@@ -105,6 +105,11 @@
         </details>
 
         <details class="glossary-term">
+          <summary>BUSCO</summary>
+          <div class="glossary-term-body">Benchmarking Universal Single-Copy Orthologs — a tool and completeness metric reporting what proportion of a fixed set of genes expected in nearly every member of a lineage are found intact in a given assembly. A proxy for how much real, unbroken biology the assembly actually contains.</div>
+        </details>
+
+        <details class="glossary-term">
           <summary>Chromosome-level assembly</summary>
           <div class="glossary-term-body">A genome assembly in which sequence has been ordered and oriented into complete chromosomes, rather than left as many shorter, unordered fragments.</div>
         </details>
@@ -130,8 +135,18 @@
         </details>
 
         <details class="glossary-term">
+          <summary>GCA_ / GCF_ accession prefix</summary>
+          <div class="glossary-term-body">NCBI genome assembly accessions starting <code>GCA_</code> are GenBank assemblies (submitted by any group, not independently curated by NCBI); those starting <code>GCF_</code> are RefSeq assemblies, which NCBI has additionally processed and annotated. The prefix reflects database status, not assembly quality.</div>
+        </details>
+
+        <details class="glossary-term">
           <summary>Genome assembly</summary>
           <div class="glossary-term-body">A reconstruction of an organism's genome built computationally from sequencing reads, consisting of contigs and/or scaffolds (and, ideally, full chromosomes).</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Heterospecific mapping</summary>
+          <div class="glossary-term-body">Aligning sequencing reads from one species against a reference genome from a different, related species — necessary when no reference exists for the species itself (as with the extinct Great Auk), but prone to reference bias: increasing sequence divergence causes more mismatches, reduced mapping of divergent regions, and under-detection of true heterozygosity.</div>
         </details>
 
         <details class="glossary-term">
@@ -145,8 +160,18 @@
         </details>
 
         <details class="glossary-term">
+          <summary>N50 (contig / scaffold)</summary>
+          <div class="glossary-term-body">A contiguity statistic: the length at which half of an assembly's total size is contained in contigs (or scaffolds) at least that long. A higher N50 generally means a more contiguous assembly, but contig N50 and scaffold N50 measure different things and should not be compared to each other directly.</div>
+        </details>
+
+        <details class="glossary-term">
           <summary>Project directory (Mjolnir)</summary>
           <div class="glossary-term-body">On Mjolnir, the shared location <code>/projects/&lt;project&gt;/</code> where a research project's data lives, with a standard internal layout including a <code>people/&lt;KU-ID&gt;/</code> folder for each member's own working files — distinct from your personal, size-limited home directory.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Reference bias</summary>
+          <div class="glossary-term-body">Systematic distortion introduced when sequencing reads are mapped to a reference genome that differs from the sampled individual's own genome — reads or alleles that resemble the reference are retained preferentially, which can under-detect true heterozygosity. Increases with evolutionary distance between sample and reference.</div>
         </details>
 
         <details class="glossary-term">

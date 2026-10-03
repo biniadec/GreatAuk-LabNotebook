@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Module 01 — Reference Genome | Great Auk Lab Notebook</title>
-  <meta name="description" content="Find, download, and critically inspect a reference genome assembly." />
+  <meta name="description" content="Find, evaluate, and reproducibly obtain the reference genome(s) for the Great Auk comparative project." />
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 <body data-active-nav="module-01">
@@ -90,36 +90,46 @@
         <p class="breadcrumb"><a href="../index.html">Home</a> / Module 01</p>
 
         <header class="module-header">
-          <div class="module-eyebrow">Module 01 of 09</div>
+          <div class="module-eyebrow">Module 01 of 10</div>
           <h1>Reference Genome</h1>
           <p class="module-intro">
-            Every comparative genomics project starts from a reference: a published genome assembly
-            that downstream reads are compared against. Before you align a single read, you need to
-            know what reference you're using, where it came from, and whether it's actually
-            appropriate for this project. This module is about doing that carefully, on
-            <strong>Mjolnir</strong> (the University of Copenhagen's HPC cluster), using the same basic
-            commands and HPC habits you'll rely on for the rest of the project.
+            Module 00 covered how to work on Mjolnir. This is where the Great Auk project itself begins:
+            finding, evaluating, and obtaining the genome we'll compare everything else against. You
+            already know how to connect, navigate, and run commands — the questions in this module are
+            biological and analytical, not mechanical: which genome(s) do we actually use, and what are
+            the consequences of that choice?
+          </p>
+          <p class="module-intro">
+            This module works with <strong>genome assemblies</strong> — already-built genome sequences —
+            because that's what you need in order to choose and download a reference. Later in the
+            project, for comparing genetic diversity across species, we'll instead work with
+            <strong>raw sequencing reads</strong> processed through one consistent pipeline. Published
+            heterozygosity estimates from different papers are rarely directly comparable: they differ in
+            mapper, filtering, genotype calling, depth, callable-site definitions, repeat masking, and
+            more. Running everything through the same pipeline removes those methodological differences
+            — though, as you'll see by the end of this module, it does not remove every source of bias,
+            since the Great Auk itself has no living member of its own genus and must be compared against
+            a related species.
           </p>
         </header>
 
         <div class="card objectives-card">
           <h2>Learning objectives</h2>
           <ul>
-            <li>Confidently orient yourself on Mjolnir and the filesystem (<code>pwd</code>, <code>ls</code>, <code>cd</code>)</li>
-            <li>Understand the difference between Mjolnir's login and compute nodes, and where project files should live</li>
-            <li>Create a sensible, well-named project directory structure in the right location</li>
-            <li>Explain the difference between an absolute and a relative path</li>
-            <li>Identify a genome assembly that is appropriate as a reference for this project</li>
-            <li>Download a file from a public genomic database onto the server</li>
-            <li>Inspect a file without fully opening it: size, type, and compression state</li>
-            <li>Read and interpret FASTA format, including headers</li>
-            <li>Record what you downloaded, from where, and why — your first lab notebook entry</li>
+            <li>Determine which Alcidae species are relevant comparators for the Great Auk, and why</li>
+            <li>Search NCBI for available genome assemblies, and interpret <code>GCA_</code>/<code>GCF_</code> accessions</li>
+            <li>Evaluate assembly quality using real metrics — not a single number — and justify a choice</li>
+            <li>Explain why the Great Auk needs a heterospecific reference, and what that costs downstream</li>
+            <li>Download a chosen assembly reproducibly, by accession, on Mjolnir</li>
+            <li>Organise a multi-species reference collection in a sensible project structure</li>
+            <li>Build a reproducible provenance manifest for the genomes you select</li>
+            <li>Explain how reference choice could bias diversity estimates — and preview how we'll test that directly</li>
           </ul>
         </div>
 
         <div class="module-progress-bar" data-role="module-progress">
           <div class="progress-label">
-            <span data-role="module-progress-label">0 of 15 exercises complete</span>
+            <span data-role="module-progress-label">0 of 8 exercises complete</span>
           </div>
           <div class="progress-track">
             <div class="progress-fill" style="width:0%"></div>
@@ -133,7 +143,7 @@
           <div class="exercise-header">
             <div class="exercise-title">
               <span class="exercise-number">01</span>
-              <h3>Orient yourself on the server</h3>
+              <h3>Who are the Great Auk's living relatives?</h3>
             </div>
             <span class="exercise-complete-badge">✓ Complete</span>
           </div>
@@ -141,55 +151,48 @@
           <div class="exercise-block">
             <span class="block-label">Concept</span>
             <p>
-              You'll be doing this project's practical work on <strong>Mjolnir</strong>, the University of
-              Copenhagen's HPC cluster. Logging in doesn't put you on the machine that actually runs
-              analyses — it puts you on a <strong>login node</strong>, a shared entry point used by everyone
-              connected at that moment. Login nodes are for lightweight tasks: organising files, writing
-              scripts, submitting jobs. Running real computation there slows down every other user's
-              session, and persistent misuse can lead to your access being withdrawn. Actual analyses run
-              on <strong>compute nodes</strong>, scheduled through Slurm — you'll meet that properly in a later
-              module. For now, the habit to build is simple: before you create or download anything, know
-              where you are — both in the filesystem, and on which kind of node.
+              Comparative genomics starts with knowing your comparison group. The Great Auk
+              (<em>Pinguinus impennis</em>, extinct since the mid-19th century) belonged to family
+              <strong>Alcidae</strong> — the auks — within the order Charadriiformes. Before picking any
+              genome, you need to know which living species are close enough relatives to be
+              scientifically meaningful comparators, not just "any bird genome." Taxonomic distance
+              affects everything downstream: how useful a species is as a mapping reference, how
+              informative it is phylogenetically, and how interpretable any comparison ends up being.
+            </p>
+            <p>
+              <em>Pinguinus</em> was a single-species genus — the Great Auk had no other living members
+              of its own genus. Phylogenetic work places <em>Alca torda</em> (the razorbill) as its
+              closest living relative, which is why the razorbill will matter a great deal later in this
+              module.
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label">Task</span>
             <p>
-              Connect to Mjolnir over the UCPH VPN, then log in over SSH with your KU ID. Once connected,
-              confirm two things: (a) which machine you've landed on, and (b) your current working
-              directory and what's already inside it.
+              Using the <a href="https://www.ncbi.nlm.nih.gov/taxonomy" target="_blank" rel="noopener">NCBI
+              Taxonomy browser</a>, look up family Alcidae and compile your own list of extant genera and
+              representative species in your notes. You don't need to work out the exact phylogeny — focus
+              on recognising who the family's living members actually are, beyond the razorbill.
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label hint">Hint</span>
-            <p>
-              One command prints the hostname of the machine you're on — on Mjolnir this confirms you're
-              on a login node. Two more commands tell you where you are and what's there (you'll
-              recognise these from general Linux use).
-            </p>
+            <p>Search "Alcidae" directly in the NCBI Taxonomy browser and look at its child taxa — this is faster and more reliable than trying to recall species names from memory.</p>
           </div>
 
           <div class="exercise-block">
             <details class="reveal">
-              <summary>Show command</summary>
+              <summary>Show model answer</summary>
               <div class="reveal-body">
-                <div class="command-block" data-command="ssh <KU-ID>@mjolnirgate.unicph.domain
-hostname
-pwd
-ls -lh"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button># from your own computer, with the UCPH VPN connected
-ssh &lt;KU-ID&gt;@mjolnirgate.unicph.domain
-
-# once logged in
-hostname
-pwd
-ls -lh</div>
                 <p>
-                  <code>hostname</code> prints the name of the machine you're currently on — useful for
-                  confirming you've landed on a login node rather than assuming it. <code>pwd</code> (print
-                  working directory) prints the absolute path of where you are. <code>ls -lh</code> lists the
-                  contents of that directory with human-readable file sizes.
+                  Alcidae contains roughly two dozen living species across genera including <em>Alca</em>
+                  (razorbill), <em>Uria</em> (murres/guillemots), <em>Fratercula</em> (puffins),
+                  <em>Cepphus</em> (guillemots), <em>Brachyramphus</em> and <em>Synthliboramphus</em>
+                  (murrelets), and several smaller auklet genera. For this project, the razorbill, murres,
+                  and puffins are the most immediately relevant — they're well-studied, more likely to have
+                  good-quality genome assemblies, and (for the razorbill especially) phylogenetically close.
                 </p>
               </div>
             </details>
@@ -198,22 +201,15 @@ ls -lh</div>
           <div class="exercise-block">
             <span class="block-label check">Check yourself</span>
             <p>
-              Does <code>pwd</code> show you're in your home directory by default? What does that tell you
-              about where you should (and shouldn't) store this project's data — see Exercise 2.
+              Why isn't "any bird genome" an adequate comparator here? What specifically would you lose —
+              for mapping, and for a phylogenetic tree — if you picked a distantly related seabird instead
+              of a close Alcidae relative?
             </p>
-          </div>
-
-          <div class="exercise-block further-reading">
-            <span class="block-label doc">Mjolnir documentation</span>
-            <ul>
-              <li><a href="https://mjolnir-ucph.dk/docs/getting-started/first-15-minutes/" target="_blank" rel="noopener">First 15 minutes on Mjolnir</a></li>
-              <li><a href="https://mjolnir-ucph.dk/docs/getting-started/login-vs-compute-nodes/" target="_blank" rel="noopener">Login nodes vs compute nodes</a></li>
-            </ul>
           </div>
 
           <div class="exercise-block">
             <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea>
+            <textarea class="notes-textarea" data-role="notes" placeholder="List the Alcidae genera/species you found, and which ones look most relevant…"></textarea>
             <div class="notes-save-status" data-role="notes-status"></div>
           </div>
 
@@ -230,7 +226,7 @@ ls -lh</div>
           <div class="exercise-header">
             <div class="exercise-title">
               <span class="exercise-number">02</span>
-              <h3>Create a project directory</h3>
+              <h3>Find available Alcidae genome assemblies</h3>
             </div>
             <span class="exercise-complete-badge">✓ Complete</span>
           </div>
@@ -238,68 +234,61 @@ ls -lh</div>
           <div class="exercise-block">
             <span class="block-label">Concept</span>
             <p>
-              On a shared HPC system, you don't just create directories wherever you like — the system
-              has designated locations, and using the wrong one has real consequences. Your home
-              directory on Mjolnir (<code>/home/&lt;KU-ID&gt;</code>) is personal but capped at 100&nbsp;GB,
-              and is meant for configuration files and small scripts — not datasets or analysis output;
-              filling it can make your jobs fail later on. Actual project data belongs under
-              <code>/projects/&lt;project&gt;/</code>, which already has a standard internal layout, including a
-              <code>people/&lt;KU-ID&gt;/</code> directory that is your own working space within the project.
-              If that folder doesn't exist for you yet, the right move is to ask your supervisor or
-              Mjolnir support to have it created — not to improvise one yourself elsewhere.
+              Genome assemblies for most species live in <strong>NCBI Assembly</strong> (searchable via
+              NCBI Datasets), with <strong>GenBank</strong> and <strong>RefSeq</strong> as the two
+              underlying databases. An accession starting <code>GCA_</code> is a <strong>GenBank</strong>
+              assembly — submitted by any research group, not independently curated by NCBI. One starting
+              <code>GCF_</code> is a <strong>RefSeq</strong> assembly — a GenBank assembly that NCBI has
+              additionally processed and annotated. A species can have several assemblies at once, from
+              different groups, of very different quality — "a genome exists for this species" does not
+              mean every assembly of it is equally usable. ENA (European Nucleotide Archive) mirrors much
+              of the same data if you ever need an alternative source, but we'll centre this workflow on
+              NCBI.
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label">Task</span>
             <p>
-              Navigate to your personal working directory within the project's shared space, and create
-              one subdirectory there for this specific Great Auk project — something to keep it separate
-              from any other work you might do inside the same personal folder.
+              Using <a href="https://www.ncbi.nlm.nih.gov/datasets/genome/" target="_blank" rel="noopener">NCBI
+              Datasets (Genome)</a>, search for 2–3 species from your Exercise 1 list, including the
+              razorbill. For each, record in your notes: how many assemblies exist, their accessions, and
+              which (if any) is flagged as RefSeq.
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label hint">Hint</span>
-            <p>
-              The path has the shape <code>/projects/&lt;project&gt;/people/&lt;KU-ID&gt;/</code> — ask your
-              supervisor for the actual project name if you don't have it yet. Give your new directory a
-              short, clear, lowercase name with no spaces.
-            </p>
+            <p>The NCBI Datasets results table has sortable columns for assembly level and RefSeq category — use them to compare candidates at a glance rather than opening each record individually.</p>
           </div>
 
           <div class="exercise-block">
             <details class="reveal">
-              <summary>Show command</summary>
+              <summary>Show solution approach</summary>
               <div class="reveal-body">
-                <div class="command-block" data-command="cd /projects/<project>/people/<KU-ID>/
-mkdir great_auk"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button># replace &lt;project&gt; and &lt;KU-ID&gt; with your actual values
-cd /projects/&lt;project&gt;/people/&lt;KU-ID&gt;/
-mkdir great_auk</div>
-                <p>
-                  <code>mkdir</code> (make directory) creates a new, empty directory with the name you give it.
-                  <span class="placeholder-note">This project directory's exact name is up to you — <code>great_auk</code> is just an example.</span>
-                </p>
+                <p>There's no single command here — this is a database navigation task. A reasonable approach:</p>
+                <ol>
+                  <li>Search NCBI Datasets (Genome) for each species name in turn.</li>
+                  <li>Note every assembly returned, its accession, and its assembly level.</li>
+                  <li>Check whether a RefSeq (<code>GCF_</code>) version exists alongside any GenBank (<code>GCA_</code>) ones.</li>
+                  <li>Do the same for the razorbill specifically — you'll need its best assembly for Exercise 3 onward.</li>
+                </ol>
               </div>
             </details>
           </div>
 
           <div class="exercise-block">
             <span class="block-label check">Check yourself</span>
-            <p>Run <code>ls</code> and <code>pwd</code> again. Is your new directory there, and does the absolute path start with <code>/projects/</code> rather than <code>/home/</code>? Why does that distinction matter here?</p>
-          </div>
-
-          <div class="exercise-block further-reading">
-            <span class="block-label doc">Mjolnir documentation</span>
-            <ul>
-              <li><a href="https://mjolnir-ucph.dk/docs/storage/project-folders/" target="_blank" rel="noopener">Where should my files go?</a></li>
-              <li><a href="https://mjolnir-ucph.dk/docs/storage/storage-policy/" target="_blank" rel="noopener">Storage limits and responsibilities</a></li>
-            </ul>
+            <p>
+              For the razorbill, did you find more than one assembly? Independent of quality, what does
+              the <code>GCA_</code> vs <code>GCF_</code> prefix tell you about an assembly's status — and
+              what does it <em>not</em> tell you?
+            </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea>
+            <textarea class="notes-textarea" data-role="notes" placeholder="Species searched, assemblies found, accessions, RefSeq status…"></textarea>
             <div class="notes-save-status" data-role="notes-status"></div>
           </div>
 
@@ -316,59 +305,88 @@ mkdir great_auk</div>
           <div class="exercise-header">
             <div class="exercise-title">
               <span class="exercise-number">03</span>
-              <h3>Create a directory for reference genomes</h3>
+              <h3>Which assembly should we use?</h3>
             </div>
             <span class="exercise-complete-badge">✓ Complete</span>
           </div>
 
           <div class="exercise-block">
             <span class="block-label">Concept</span>
-            <p>
-              Good directory organisation means each type of data gets its own clearly labelled place.
-              Reference genome files are logically distinct from raw sequencing reads, which are distinct
-              from results. Separating them now, before you have any files, is far easier than
-              reorganising later.
-            </p>
+            <p>Reference selection is a biological and analytical decision, not "pick the assembly with the biggest N50." Metrics worth weighing together include:</p>
+            <ul>
+              <li><strong>Assembly level</strong> — contig, scaffold, or chromosome-level (how far sequence has been ordered and joined)</li>
+              <li><strong>Contig N50 / Scaffold N50</strong> — the length at which half the assembly's total size is contained in pieces that size or longer; higher usually means more contiguous, but contig N50 and scaffold N50 measure different things</li>
+              <li><strong>Number of contigs/scaffolds</strong> — fewer, larger pieces are generally easier to work with</li>
+              <li><strong>BUSCO completeness</strong> — the proportion of expected single-copy genes found intact, a proxy for how much real biology is actually present and unbroken</li>
+              <li><strong>Gaps</strong> — regions of unknown sequence (often shown as runs of <code>N</code>) within an otherwise joined assembly</li>
+              <li><strong>RefSeq vs GenBank status, and provenance</strong> — who produced it, whether it's linked to a peer-reviewed paper, and how it was generated (short-read vs long-read, Hi-C scaffolded, etc.)</li>
+              <li><strong>Primary vs alternate/haplotype-resolved</strong> — some modern assemblies split a diploid genome into two haplotypes rather than collapsing it into one representative sequence</li>
+            </ul>
           </div>
 
           <div class="exercise-block">
-            <span class="block-label">Task</span>
-            <p>
-              Inside your project directory, create a subdirectory to hold reference genome files.
-              Choose a name that would make sense to someone else looking at your project for the
-              first time.
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label hint">Hint</span>
-            <p>
-              <code>mkdir</code> can take a path, not just a bare name — it doesn't have to be run from inside
-              the parent directory first.
-            </p>
-          </div>
-
-          <div class="exercise-block">
+            <span class="block-label">Worked example (hypothetical — not real NCBI data)</span>
+            <p>Two fictional candidate assemblies for the same species, to illustrate that these metrics can pull in different directions:</p>
+            <div class="comparison-table-wrap">
+              <table class="comparison-table">
+                <thead>
+                  <tr><th>Metric</th><th>Candidate A</th><th>Candidate B</th></tr>
+                </thead>
+                <tbody>
+                  <tr><th>Assembly level</th><td>Chromosome-level</td><td>Scaffold-level (no Hi-C)</td></tr>
+                  <tr><th>Contig N50</th><td>2.1 Mb</td><td>8.4 Mb</td></tr>
+                  <tr><th>Scaffold N50</th><td>45 Mb</td><td>12 Mb</td></tr>
+                  <tr><th>BUSCO complete</th><td>92%</td><td>98.5%</td></tr>
+                  <tr><th>Gaps</th><td>Moderate</td><td>Very few (long-read)</td></tr>
+                  <tr><th>Status</th><td>GenBank, 2016, published</td><td>GenBank, 2023, preprint only</td></tr>
+                </tbody>
+              </table>
+            </div>
             <details class="reveal">
-              <summary>Show command</summary>
+              <summary>Show reasoning</summary>
               <div class="reveal-body">
-                <div class="command-block" data-command="mkdir great_auk/reference_genomes"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>mkdir great_auk/reference_genomes</div>
                 <p>
-                  A name like <code>reference_genomes</code> is immediately understandable. Avoid vague names
-                  like <code>data</code> or <code>stuff</code> — they tell a reader nothing.
+                  Neither candidate is simply "better." A is chromosome-level with a publication trail —
+                  valuable if you need chromosome-scale structure or synteny, and reassuring because it's
+                  been through peer review. B has far higher contig-level contiguity and completeness
+                  (likely long-read sequencing) — valuable for variant calling and heterozygosity
+                  estimation, where unbroken sequence matters more than chromosome assignment — but it
+                  isn't chromosome-anchored and hasn't been externally vetted yet. The right choice depends
+                  on what you're using the reference <em>for</em>, which is exactly why this is a judgement
+                  call rather than a lookup.
                 </p>
               </div>
             </details>
           </div>
 
           <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>
+              Now do this for real. Using the candidates you found in Exercise 2 for the razorbill (or
+              another species with more than one assembly), build the same comparison for your actual
+              options using NCBI Datasets' reported metrics, then write a justified decision: which would
+              you choose, and why?
+            </p>
+          </div>
+
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>NCBI Datasets' genome record page reports most of these metrics directly (assembly stats, BUSCO where available) — you shouldn't need to calculate any of them yourself.</p>
+          </div>
+
+          <div class="exercise-block">
             <span class="block-label check">Check yourself</span>
-            <p>Use <code>ls</code> on your project directory. Does it show the new subdirectory? How might you list the contents of the project directory and its subdirectories in one go?</p>
+            <p>
+              Which single metric, if you'd looked at only that one, would have given you a misleading
+              answer? And separately: why shouldn't every Alcidae species automatically be mapped to the
+              razorbill genome, even though it's well-studied? What's the general strategy for choosing a
+              reference for an extant species, versus for the Great Auk specifically?
+            </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea>
+            <textarea class="notes-textarea" data-role="notes" placeholder="Your real comparison, and your justified choice…"></textarea>
             <div class="notes-save-status" data-role="notes-status"></div>
           </div>
 
@@ -385,7 +403,7 @@ mkdir great_auk</div>
           <div class="exercise-header">
             <div class="exercise-title">
               <span class="exercise-number">04</span>
-              <h3>Navigate into the directory</h3>
+              <h3>The razorbill reference and heterospecific mapping</h3>
             </div>
             <span class="exercise-complete-badge">✓ Complete</span>
           </div>
@@ -393,36 +411,52 @@ mkdir great_auk</div>
           <div class="exercise-block">
             <span class="block-label">Concept</span>
             <p>
-              Creating a directory doesn't move you into it. You need a separate command to change your
-              current working directory. Getting comfortable moving around the filesystem — and always
-              knowing where you are — is one of the most repeated skills in this entire project.
+              The Great Auk has no living member of its own genus, so there is no conspecific reference
+              genome to map its reads against. Instead, we use the razorbill — a closely related but
+              distinct species. Mapping reads to a different species' genome is called
+              <strong>heterospecific mapping</strong>, and it has real, predictable consequences:
+            </p>
+            <div class="concept-chain">
+              <div class="concept-chain-step">Sequence divergence between Great Auk and razorbill</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">More mismatches when aligning Great Auk reads to the razorbill reference</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">Reduced mapping probability, especially in the most divergent regions</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">Reads/alleles that happen to resemble the reference are retained preferentially</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">Loss of callable genome, and under-detection of true heterozygosity</div>
+            </div>
+            <p>
+              Ancient DNA compounds this: Great Auk reads will typically be short and chemically damaged
+              (characteristic cytosine-to-thymine misincorporation near fragment ends), which makes
+              divergent regions even harder to map correctly. We won't run any of this yet — the
+              quantitative test comes once you reach the mapping module — but the causal logic above is
+              worth understanding now, since it's the reason reference choice matters at all.
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label">Task</span>
-            <p>Move into the <code>reference_genomes</code> directory you just created, and confirm that it worked.</p>
+            <p>
+              In your own words, walk through what happens to a single Great Auk sequencing read that
+              falls in a genomic region where the Great Auk and razorbill sequences differ substantially —
+              follow it through each step of the chain above.
+            </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label hint">Hint</span>
-            <p>One command changes directory. The command from Exercise 1 confirms where you ended up.</p>
-          </div>
-
-          <div class="exercise-block">
-            <details class="reveal">
-              <summary>Show command</summary>
-              <div class="reveal-body">
-                <div class="command-block" data-command="cd great_auk/reference_genomes
-pwd"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>cd great_auk/reference_genomes
-pwd</div>
-              </div>
-            </details>
+            <p>Think about what an aligner does when a read has too many mismatches to confidently place — does it map with low confidence, map incorrectly, or simply fail to map at all?</p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label check">Check yourself</span>
-            <p>Does the output of <code>pwd</code> end in <code>reference_genomes</code>? If you run <code>cd ..</code>, where do you end up, and why?</p>
+            <p>
+              Why might heterospecific mapping specifically cause heterozygosity to be
+              <strong>underestimated</strong>, rather than just noisier in both directions? Why does
+              ancient DNA make this worse rather than just adding random noise?
+            </p>
           </div>
 
           <div class="exercise-block">
@@ -444,7 +478,7 @@ pwd</div>
           <div class="exercise-header">
             <div class="exercise-title">
               <span class="exercise-number">05</span>
-              <h3>Absolute versus relative paths</h3>
+              <h3>Download a reference genome reproducibly</h3>
             </div>
             <span class="exercise-complete-badge">✓ Complete</span>
           </div>
@@ -452,46 +486,62 @@ pwd</div>
           <div class="exercise-block">
             <span class="block-label">Concept</span>
             <p>
-              An <strong>absolute path</strong> describes a location starting from the root of the filesystem
-              (<code>/</code>) — it is unambiguous no matter where you currently are. A <strong>relative path</strong>
-              describes a location relative to your current working directory — short and convenient,
-              but it only means what you think it means if you know where you're starting from. Mixing
-              these up is one of the most common sources of "file not found" errors and, worse, scripts
-              that silently do the wrong thing.
+              A filename tells a future reader nothing, and a link copied from a browser can break,
+              redirect, or silently point at a different assembly version later. An <strong>accession</strong>
+              is a stable, citable identifier that anyone can resolve back to the exact same assembly,
+              indefinitely. NCBI's own <code>datasets</code> command-line tool is built around exactly
+              this: <code>datasets download genome accession &lt;ACCESSION&gt;</code> fetches the official
+              data package for that accession, with no manual URL involved at all.
+            </p>
+            <p>
+              Mjolnir's software documentation doesn't list <code>datasets</code> as a pre-installed
+              module (it names <code>samtools</code> as its example tool, not this one) — so, exactly as
+              in Module 00, the first step is to check rather than assume.
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label">Task</span>
             <p>
-              From inside <code>reference_genomes</code>, write down (in your notes) both the absolute path and a
-              relative path (relative to your project directory) that point to the same location.
-              Then test both: use each path with <code>cd</code> to confirm they take you to the same place.
+              Check whether <code>datasets</code> is already available on Mjolnir. If it isn't, fetch
+              NCBI's own static binary directly into your personal space (no admin rights needed) and use
+              that instead. Either way, use it to download your chosen razorbill assembly by its accession
+              from Exercise 3.
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label hint">Hint</span>
-            <p>
-              An absolute path always starts with <code>/</code>. A relative path never does. <code>cd ..</code> and <code>cd ../..</code>
-              move up one and two levels respectively, using relative notation.
-            </p>
+            <p>Two commands from Module 00 check whether a tool is available. If neither finds anything, NCBI publishes the tool itself as a plain downloadable binary — no module system or conda environment required.</p>
           </div>
 
           <div class="exercise-block">
             <details class="reveal">
               <summary>Show command</summary>
               <div class="reveal-body">
-                <div class="command-block" data-command="pwd
-cd /projects/<project>/people/<KU-ID>/great_auk/reference_genomes
-cd ../reference_genomes"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button># absolute path (use the real path reported by your own pwd)
-pwd
-cd /projects/&lt;project&gt;/people/&lt;KU-ID&gt;/great_auk/reference_genomes
+                <div class="command-block" data-command="module avail datasets
+which datasets
 
-# relative path, from the great_auk project directory
-cd ../reference_genomes</div>
+curl -o datasets 'https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/v2/linux-amd64/datasets'
+chmod +x datasets
+
+./datasets download genome accession <ACCESSION>"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button># first, check whether it's already available
+module avail datasets
+which datasets
+
+# if neither finds it, fetch NCBI's own tool directly — a one-time setup step
+curl -o datasets 'https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/v2/linux-amd64/datasets'
+chmod +x datasets
+
+# then download by accession, exactly the same way either tool is obtained
+./datasets download genome accession &lt;ACCESSION&gt;</div>
                 <p>
-                  <span class="placeholder-note">Replace <code>&lt;project&gt;</code> and <code>&lt;KU-ID&gt;</code> with the actual path reported by <code>pwd</code> on your system.</span>
+                  This downloads a <code>.zip</code> data package (you'll open it in Exercise 6). The
+                  <code>curl</code> call here fetches NCBI's own versioned tool binary, not a per-species
+                  download link — the actual genome is still requested purely by accession, so the result
+                  is identical whichever route got you there. If <code>datasets</code> turns out to be
+                  available as a module after all, drop the <code>curl</code>/<code>chmod</code> lines and
+                  load it the way you learned in Module 00 instead.
                 </p>
               </div>
             </details>
@@ -500,14 +550,15 @@ cd ../reference_genomes</div>
           <div class="exercise-block">
             <span class="block-label check">Check yourself</span>
             <p>
-              If you changed your current directory first, would the relative path you wrote down still
-              point to the same place? Why or why not?
+              Why is downloading by accession more reproducible than right-clicking "download" on a web
+              page? Exactly what would someone else need — written down, nothing more — to redo this
+              identical download in a year's time?
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea>
+            <textarea class="notes-textarea" data-role="notes" placeholder="Record the exact accession you downloaded, and whether datasets was already available or you fetched it yourself…"></textarea>
             <div class="notes-save-status" data-role="notes-status"></div>
           </div>
 
@@ -524,7 +575,7 @@ cd ../reference_genomes</div>
           <div class="exercise-header">
             <div class="exercise-title">
               <span class="exercise-number">06</span>
-              <h3>What is a reference genome, and where do you find one?</h3>
+              <h3>Inspect and organise the downloaded reference</h3>
             </div>
             <span class="exercise-complete-badge">✓ Complete</span>
           </div>
@@ -532,63 +583,59 @@ cd ../reference_genomes</div>
           <div class="exercise-block">
             <span class="block-label">Concept</span>
             <p>
-              A <strong>genome assembly</strong> is a reconstruction of an organism's genome built from
-              sequencing data — overlapping reads are computationally joined into longer stretches of
-              contiguous sequence (<strong>contigs</strong>), which may themselves be ordered and joined
-              into larger <strong>scaffolds</strong>, and ideally into full <strong>chromosomes</strong>.
-              A <strong>reference genome</strong> is simply an assembly chosen to serve as the standard
-              coordinate system that other data (reads, variants, annotations) get compared against.
+              NCBI Datasets packages arrive as a <code>.zip</code> archive with a nested structure —
+              typically <code>ncbi_dataset/data/&lt;ACCESSION&gt;/</code> containing the genomic FASTA
+              alongside metadata files (an assembly data report, sequence report, and similar). You'll
+              need to unzip it, find the actual FASTA inside, and confirm it before trusting it — the same
+              "inspect before you use it" habit from Module 00, just applied to a real, messier package
+              this time. From here, each species gets its own named subdirectory inside your project's
+              reference collection, so the structure stays legible as it grows:
             </p>
-            <p>
-              Not every assembly is equally useful as a reference. Assembly quality varies enormously —
-              from highly fragmented draft assemblies with thousands of short scaffolds, to
-              chromosome-level assemblies with a handful of large, well-ordered sequences. For a species
-              as rare as the Great Auk (<em>Pinguinus impennis</em>, extinct since the mid-19th century),
-              a reference assembled directly from its own genome may not exist or may be limited; in that
-              case, a high-quality assembly from a closely related living species can serve as a
-              reference instead — the Alcidae family (auks, murres, puffins, razorbills) includes several
-              extant species useful for this kind of comparative work.
-            </p>
+            <pre class="command-block" style="white-space:pre;">great_auk/
+  reference_genomes/
+    Alca_torda/
+    Fratercula_arctica/
+    Uria_aalge/
+  metadata/
+  analysis/
+  raw_reads/</pre>
+            <p class="placeholder-note">Species subfolders are named as they're added — you'll only have <code>Alca_torda/</code> after this exercise; the others appear later as the Alcidae collection grows.</p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label">Task</span>
             <p>
-              Using NCBI Datasets and/or the ENA browser (see <a href="../resources.html">Genome Resources</a>),
-              search for genome assemblies for <em>Pinguinus impennis</em> and for relevant living relatives.
-              For each candidate you find, record in your notes: the organism name, the assembly
-              accession, the assembly level (contig / scaffold / chromosome), and the submitting
-              institution or project. Do not download anything yet — this step is purely about
-              identifying candidates.
+              Unzip the downloaded package, locate the genomic FASTA inside it, confirm it with the file
+              tools you already know, then move it into a new <code>Alca_torda/</code> subdirectory inside
+              <code>reference_genomes/</code>. Also create <code>metadata/</code>, <code>analysis/</code>,
+              and <code>raw_reads/</code> as siblings of <code>reference_genomes/</code> — you won't put
+              anything in the last two yet, but the structure should exist.
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label hint">Hint</span>
-            <p>
-              On the NCBI Datasets genome page, searching by organism name will show you an assembly
-              level column directly in the results table — this is the fastest way to compare multiple
-              candidates at a glance.
-            </p>
+            <p><code>unzip &lt;file&gt;.zip</code> extracts an archive (new command — your first <code>.gz</code> files in Module 01 didn't need it, since gzip and zip are different formats). <code>find . -name "*.fna"</code> will locate the FASTA regardless of how deeply it's nested.</p>
           </div>
 
           <div class="exercise-block">
             <details class="reveal">
-              <summary>Show solution approach</summary>
+              <summary>Show command</summary>
               <div class="reveal-body">
-                <p>
-                  There is no single command here — this is a research task. A reasonable approach:
-                </p>
-                <ol>
-                  <li>Search NCBI Datasets (Genomes) for "<em>Pinguinus impennis</em>".</li>
-                  <li>Note whether any assembly exists, and if so its accession and assembly level.</li>
-                  <li>Search for one or two of the closest living relatives in Alcidae and repeat.</li>
-                  <li>Bring your shortlist to your supervisor before deciding which assembly to actually use as the project's reference — this is a scientific decision, not just a technical one.</li>
-                </ol>
-                <p class="placeholder-note">
-                  This website does not prescribe a specific accession — the correct choice depends on
-                  decisions you'll make together with your supervisor.
-                </p>
+                <div class="command-block" data-command="unzip ncbi_dataset.zip -d razorbill_download
+find razorbill_download -name '*.fna'
+file razorbill_download/ncbi_dataset/data/<ACCESSION>/*.fna
+grep -c '^>' razorbill_download/ncbi_dataset/data/<ACCESSION>/*.fna
+
+mkdir -p ../reference_genomes/Alca_torda ../metadata ../analysis ../raw_reads
+mv razorbill_download/ncbi_dataset/data/<ACCESSION>/*.fna ../reference_genomes/Alca_torda/"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>unzip ncbi_dataset.zip -d razorbill_download
+find razorbill_download -name '*.fna'
+file razorbill_download/ncbi_dataset/data/&lt;ACCESSION&gt;/*.fna
+grep -c '^&gt;' razorbill_download/ncbi_dataset/data/&lt;ACCESSION&gt;/*.fna
+
+mkdir -p ../reference_genomes/Alca_torda ../metadata ../analysis ../raw_reads
+mv razorbill_download/ncbi_dataset/data/&lt;ACCESSION&gt;/*.fna ../reference_genomes/Alca_torda/</div>
+                <p class="placeholder-note">Paths are relative to wherever you downloaded into — adjust to match your own directory structure from here.</p>
               </div>
             </details>
           </div>
@@ -596,15 +643,17 @@ cd ../reference_genomes</div>
           <div class="exercise-block">
             <span class="block-label check">Check yourself</span>
             <p>
-              Can you explain, in your own words, why a chromosome-level assembly is generally
-              preferable to a highly fragmented one for comparative genomics? What might you lose by
-              using a more fragmented assembly?
+              How many sequences did <code>grep -c '^&gt;'</code> report, and does that roughly match the
+              assembly level you recorded back in Exercise 2/3 — a small number close to a chromosome
+              count, or a much larger number for a scaffold-level assembly? Separately: why keep each
+              species in its own subfolder, rather than putting every FASTA directly inside
+              <code>reference_genomes/</code>?
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="List your candidate assemblies here: organism, accession, assembly level, source…"></textarea>
+            <textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea>
             <div class="notes-save-status" data-role="notes-status"></div>
           </div>
 
@@ -621,7 +670,7 @@ cd ../reference_genomes</div>
           <div class="exercise-header">
             <div class="exercise-title">
               <span class="exercise-number">07</span>
-              <h3>Download the reference FASTA</h3>
+              <h3>Build the Alcidae genome manifest</h3>
             </div>
             <span class="exercise-complete-badge">✓ Complete</span>
           </div>
@@ -629,54 +678,42 @@ cd ../reference_genomes</div>
           <div class="exercise-block">
             <span class="block-label">Concept</span>
             <p>
-              Once an assembly has been agreed with your supervisor, you need to get the actual sequence
-              file — typically a FASTA file — from the database onto the server. Command-line download
-              tools let you pull files directly onto a remote server without downloading to your laptop
-              first and re-uploading, which matters once files get large.
-            </p>
-            <p>
-              A single reference genome download is a lightweight, network-bound task, so doing it
-              directly on the Mjolnir login node (as in Exercise 1) is appropriate — this is the kind of
-              file organisation and preparation work login nodes are for. The judgement call to keep
-              practising: if a step starts taking a long time or using significant CPU or memory (for
-              example, decompressing a very large file), that's a signal it belongs on a compute node
-              instead, not the login node.
+              A folder full of FASTA files means nothing on its own — without a record of what each file
+              is, where it came from, and why it was chosen, neither you nor anyone else can reconstruct
+              this work later. A plain-text, tab-separated manifest is simple, diffable, and easy to
+              extend as you add more species to the Alcidae collection.
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label">Task</span>
             <p>
-              Once you and your supervisor have confirmed which assembly to use, find its download link
-              (NCBI Datasets and ENA both provide direct FASTA download links on the assembly page), and
-              download it into your <code>reference_genomes</code> directory using <code>wget</code> or <code>curl</code>. Give the
-              downloaded file a meaningful name if the default filename isn't clear.
+              Create <code>metadata/genome_manifest.tsv</code> with a header row and one row for the
+              razorbill assembly you just downloaded. Include at minimum: <code>species</code>,
+              <code>common_name</code>, <code>assembly_accession</code>, <code>assembly_name</code>,
+              <code>source</code>, <code>assembly_level</code>, <code>genome_size</code>,
+              <code>contig_N50</code>, <code>scaffold_N50</code>, <code>download_date</code>,
+              <code>intended_use</code> (e.g. "Great Auk mapping reference"), and <code>notes</code>.
+              You'll add a new row for each additional species as the Alcidae collection grows — the file
+              just needs to exist and be correct for now.
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label hint">Hint</span>
-            <p>
-              <code>wget &lt;url&gt;</code> downloads a file keeping its original name. <code>curl -L -o &lt;filename&gt; &lt;url&gt;</code> downloads
-              it under a name you choose (<code>-L</code> follows redirects, which genomic databases often use).
-            </p>
+            <p>Typing literal tab characters into a heredoc is error-prone. <code>printf</code> with explicit <code>\t</code> and <code>\n</code> is more reliable than <code>echo</code> for building a TSV line by line.</p>
           </div>
 
           <div class="exercise-block">
             <details class="reveal">
               <summary>Show command</summary>
               <div class="reveal-body">
-                <div class="command-block" data-command="wget <DOWNLOAD_URL>
-curl -L -o great_auk_reference_genomic.fna.gz <DOWNLOAD_URL>"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button># option A — keep the server's original filename
-wget &lt;DOWNLOAD_URL&gt;
-
-# option B — choose your own filename
-curl -L -o great_auk_reference_genomic.fna.gz &lt;DOWNLOAD_URL&gt;</div>
-                <p class="placeholder-note">
-                  Replace <code>&lt;DOWNLOAD_URL&gt;</code> with the actual link from NCBI Datasets / ENA for the
-                  assembly you and your supervisor selected. If <code>wget</code> isn't available on your server,
-                  use <code>curl</code>.
-                </p>
+                <div class="command-block" data-command="printf 'species\tcommon_name\tassembly_accession\tassembly_name\tsource\tassembly_level\tgenome_size\tcontig_N50\tscaffold_N50\tdownload_date\tintended_use\tnotes\n' > metadata/genome_manifest.tsv
+printf 'Alca torda\trazorbill\t<ACCESSION>\t<ASSEMBLY_NAME>\tNCBI\t<ASSEMBLY_LEVEL>\t<GENOME_SIZE>\t<CONTIG_N50>\t<SCAFFOLD_N50>\t<DATE>\tGreat Auk mapping reference\t<NOTES>\n' >> metadata/genome_manifest.tsv
+cat metadata/genome_manifest.tsv"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>printf 'species\tcommon_name\tassembly_accession\tassembly_name\tsource\tassembly_level\tgenome_size\tcontig_N50\tscaffold_N50\tdownload_date\tintended_use\tnotes\n' > metadata/genome_manifest.tsv
+printf 'Alca torda\trazorbill\t&lt;ACCESSION&gt;\t&lt;ASSEMBLY_NAME&gt;\tNCBI\t&lt;ASSEMBLY_LEVEL&gt;\t&lt;GENOME_SIZE&gt;\t&lt;CONTIG_N50&gt;\t&lt;SCAFFOLD_N50&gt;\t&lt;DATE&gt;\tGreat Auk mapping reference\t&lt;NOTES&gt;\n' >> metadata/genome_manifest.tsv
+cat metadata/genome_manifest.tsv</div>
+                <p class="placeholder-note">Replace every <code>&lt;PLACEHOLDER&gt;</code> with the real values you recorded in Exercises 2–5.</p>
               </div>
             </details>
           </div>
@@ -684,21 +721,16 @@ curl -L -o great_auk_reference_genomic.fna.gz &lt;DOWNLOAD_URL&gt;</div>
           <div class="exercise-block">
             <span class="block-label check">Check yourself</span>
             <p>
-              Did the download finish without errors? What does the tool's output tell you about the
-              file size it expected versus what it actually received?
+              Six months from now, could someone redownload exactly this file using only this manifest
+              row — without searching NCBI's website again? If not, what's missing? Also: why record both
+              <code>assembly_accession</code> <em>and</em> <code>assembly_name</code>, when the accession
+              alone is the "real," permanent identifier?
             </p>
-          </div>
-
-          <div class="exercise-block further-reading">
-            <span class="block-label doc">Mjolnir documentation</span>
-            <ul>
-              <li><a href="https://mjolnir-ucph.dk/docs/getting-started/login-vs-compute-nodes/" target="_blank" rel="noopener">Login nodes vs compute nodes</a></li>
-            </ul>
           </div>
 
           <div class="exercise-block">
             <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="Record the exact URL and filename you used…"></textarea>
+            <textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea>
             <div class="notes-save-status" data-role="notes-status"></div>
           </div>
 
@@ -715,7 +747,7 @@ curl -L -o great_auk_reference_genomic.fna.gz &lt;DOWNLOAD_URL&gt;</div>
           <div class="exercise-header">
             <div class="exercise-title">
               <span class="exercise-number">08</span>
-              <h3>Inspect the downloaded file</h3>
+              <h3>Looking ahead: testing reference bias</h3>
             </div>
             <span class="exercise-complete-badge">✓ Complete</span>
           </div>
@@ -723,43 +755,54 @@ curl -L -o great_auk_reference_genomic.fna.gz &lt;DOWNLOAD_URL&gt;</div>
           <div class="exercise-block">
             <span class="block-label">Concept</span>
             <p>
-              Never assume a download worked correctly just because the command finished. A silently
-              truncated or corrupted file will cause confusing errors much later, often far from the
-              actual cause. A quick inspection immediately after downloading is cheap insurance.
+              Exercise 4 argued, conceptually, that mapping to a related-but-different species' genome
+              should cost you something. We're not going to take that on faith. Later, once you've learned
+              mapping, you'll take the <strong>same raw sequencing dataset</strong> from one extant Alcidae
+              species and map it twice:
+            </p>
+            <ul>
+              <li>(A) against that species' <strong>own</strong> reference genome</li>
+              <li>(B) against a <strong>related</strong> species' reference genome (the razorbill's situation, simulated on a species where you have the choice)</li>
+            </ul>
+            <p>
+              Then compare mapping rate, MAPQ distribution, properly-paired rate, depth, callable genome
+              size, and heterozygosity between the two. The teaching point: <strong>same reads, same
+              pipeline, different reference — any difference you see is reference bias, measured directly
+              rather than assumed.</strong> Nothing about that experiment happens in this module; the
+              reference you've chosen, downloaded, and documented here is what makes it possible later.
+            </p>
+            <p>
+              This also closes the loop on this module's opening point: even with a carefully chosen
+              assembly, a heterospecific reference is still a heterospecific reference. That's precisely
+              why the project will eventually move to raw reads processed through one shared pipeline for
+              the diversity comparisons — it standardises the <em>methodology</em>, even though, as you now
+              know, it can't fully standardise away the fact that the Great Auk's reference isn't its own
+              species.
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label">Task</span>
-            <p>List the contents of your <code>reference_genomes</code> directory and note the exact filename and size of what you downloaded.</p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label hint">Hint</span>
-            <p>You already used this command in Exercise 1 — the <code>-h</code> flag makes file sizes human-readable (KB/MB/GB) instead of raw byte counts.</p>
-          </div>
-
-          <div class="exercise-block">
-            <details class="reveal">
-              <summary>Show command</summary>
-              <div class="reveal-body">
-                <div class="command-block" data-command="ls -lh"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>ls -lh</div>
-              </div>
-            </details>
+            <p>
+              Write a short prediction in your notes: for the own-reference vs. related-reference
+              experiment above, which direction do you expect mapping rate and heterozygosity to move when
+              using the non-native reference, and why? You're not running anything yet — this is a
+              prediction worth revisiting once the real experiment happens.
+            </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label check">Check yourself</span>
             <p>
-              Does the file size look reasonable for a genome assembly (typically tens of megabytes to a
-              few gigabytes, depending on genome size and compression)? A file of only a few kilobytes
-              usually means something went wrong.
+              What result from that future experiment would make you <strong>more</strong> confident in the
+              Great Auk's razorbill-mapped heterozygosity estimate? What result would make you
+              <strong>less</strong> confident?
             </p>
           </div>
 
           <div class="exercise-block">
             <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea>
+            <textarea class="notes-textarea" data-role="notes" placeholder="Your prediction, and anything you'd want to check once the real experiment runs…"></textarea>
             <div class="notes-save-status" data-role="notes-status"></div>
           </div>
 
@@ -769,482 +812,14 @@ curl -L -o great_auk_reference_genomic.fna.gz &lt;DOWNLOAD_URL&gt;</div>
           </div>
         </section>
 
-        <!-- ============================================================ -->
-        <!-- Exercise 9 -->
-        <!-- ============================================================ -->
-        <section class="exercise" id="m1-ex09" data-exercise-id="m1-ex09">
-          <div class="exercise-header">
-            <div class="exercise-title">
-              <span class="exercise-number">09</span>
-              <h3>Understanding compressed (.gz) files</h3>
-            </div>
-            <span class="exercise-complete-badge">✓ Complete</span>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Concept</span>
-            <p>
-              Genomic files are large and highly compressible, so they are almost always distributed
-              compressed — most commonly with <strong>gzip</strong>, giving a <code>.gz</code> extension (e.g.
-              <code>genome.fna.gz</code>). A <code>.gz</code> file is a compressed version of the original; the
-              original filename is normally everything before the <code>.gz</code>. Many bioinformatics tools
-              can actually read gzip-compressed files directly, so decompression is not always required —
-              but you need to be able to recognise and handle compression either way.
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Task</span>
-            <p>
-              Confirm that your downloaded file is indeed gzip-compressed, without decompressing it yet.
-              Use its file extension as a first clue, then confirm using a command that inspects file
-              content rather than just the name.
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label hint">Hint</span>
-            <p>File extensions are just a naming convention — they can be wrong or missing. One command actually examines the file's contents to determine its real type.</p>
-          </div>
-
-          <div class="exercise-block">
-            <details class="reveal">
-              <summary>Show command</summary>
-              <div class="reveal-body">
-                <div class="command-block" data-command="file <your_downloaded_file>"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button># replace with your actual filename
-file &lt;your_downloaded_file&gt;</div>
-                <p><code>file</code> inspects the actual bytes of a file and reports its real type, regardless of what the extension claims.</p>
-              </div>
-            </details>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label check">Check yourself</span>
-            <p>Does the output of <code>file</code> mention "gzip compressed data"? What would it say instead if the file were plain text?</p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea>
-            <div class="notes-save-status" data-role="notes-status"></div>
-          </div>
-
-          <div class="completion-row">
-            <input type="checkbox" id="complete-m1-ex09" data-role="complete-checkbox" />
-            <label for="complete-m1-ex09">Mark this exercise complete</label>
-          </div>
-        </section>
-
-        <!-- ============================================================ -->
-        <!-- Exercise 10 -->
-        <!-- ============================================================ -->
-        <section class="exercise" id="m1-ex10" data-exercise-id="m1-ex10">
-          <div class="exercise-header">
-            <div class="exercise-title">
-              <span class="exercise-number">10</span>
-              <h3>Decompressing the file</h3>
-            </div>
-            <span class="exercise-complete-badge">✓ Complete</span>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Concept</span>
-            <p>
-              For this early inspection stage, it's useful to have an uncompressed copy so you can look
-              directly at the FASTA content with simple tools. Later in the project, once files get much
-              larger, you'll often keep data compressed and use tools that read <code>.gz</code> files directly
-              to save disk space — but for now, decompressing is the simpler option while you're learning
-              to read FASTA format.
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Task</span>
-            <p>Decompress your downloaded <code>.gz</code> file. Decide (and note down your reasoning) whether you want to keep the original compressed file as well.</p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label hint">Hint</span>
-            <p>By default, the standard decompression command removes the <code>.gz</code> file once it's done. A flag exists if you want to keep both the compressed and decompressed versions.</p>
-          </div>
-
-          <div class="exercise-block">
-            <details class="reveal">
-              <summary>Show command</summary>
-              <div class="reveal-body">
-                <div class="command-block" data-command="gunzip <your_file>.gz
-gunzip -k <your_file>.gz"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button># this replaces the .gz file with the decompressed version
-gunzip &lt;your_file&gt;.gz
-
-# -k ("keep") preserves the original .gz file as well
-gunzip -k &lt;your_file&gt;.gz</div>
-              </div>
-            </details>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label check">Check yourself</span>
-            <p>Run <code>ls -lh</code> again. How does the uncompressed file's size compare to the compressed version? Does that match your expectation for genomic sequence data?</p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea>
-            <div class="notes-save-status" data-role="notes-status"></div>
-          </div>
-
-          <div class="completion-row">
-            <input type="checkbox" id="complete-m1-ex10" data-role="complete-checkbox" />
-            <label for="complete-m1-ex10">Mark this exercise complete</label>
-          </div>
-        </section>
-
-        <!-- ============================================================ -->
-        <!-- Exercise 11 -->
-        <!-- ============================================================ -->
-        <section class="exercise" id="m1-ex11" data-exercise-id="m1-ex11">
-          <div class="exercise-header">
-            <div class="exercise-title">
-              <span class="exercise-number">11</span>
-              <h3>Check file size and file type</h3>
-            </div>
-            <span class="exercise-complete-badge">✓ Complete</span>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Concept</span>
-            <p>
-              With the uncompressed file in hand, it's worth re-confirming both its size and its type —
-              this time you should be looking at plain text, not compressed binary data. This habit of
-              "trust but verify" after every transformation will save you a lot of debugging time over
-              the course of the project.
-            </p>
-            <p>
-              On Mjolnir, <code>/projects/</code> storage isn't currently quota-limited the way your home
-              directory is — but it's still a shared, finite resource used by many research groups, not
-              an unlimited personal allocation. Checking usage with <code>du</code> periodically, as you're
-              doing here, is good practice rather than a one-off exercise.
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Task</span>
-            <p>Check the size and type of the decompressed file, and also check how much disk space your whole <code>reference_genomes</code> directory is now using.</p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label hint">Hint</span>
-            <p>You've used two of these commands already. The third, <code>du</code> (disk usage), summarises space used by files or directories — the <code>-h</code> and <code>-s</code> flags make the output short and readable.</p>
-          </div>
-
-          <div class="exercise-block">
-            <details class="reveal">
-              <summary>Show command</summary>
-              <div class="reveal-body">
-                <div class="command-block" data-command="ls -lh
-file <your_file>
-du -sh ."><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>ls -lh
-file &lt;your_file&gt;
-du -sh .</div>
-              </div>
-            </details>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label check">Check yourself</span>
-            <p>Does <code>file</code> now report something like "ASCII text" rather than "gzip compressed data"? Does <code>du -sh .</code> roughly match what you'd expect from adding up the files you can see?</p>
-          </div>
-
-          <div class="exercise-block further-reading">
-            <span class="block-label doc">Mjolnir documentation</span>
-            <ul>
-              <li><a href="https://mjolnir-ucph.dk/docs/storage/checking-storage-use/" target="_blank" rel="noopener">How much storage am I using?</a></li>
-            </ul>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea>
-            <div class="notes-save-status" data-role="notes-status"></div>
-          </div>
-
-          <div class="completion-row">
-            <input type="checkbox" id="complete-m1-ex11" data-role="complete-checkbox" />
-            <label for="complete-m1-ex11">Mark this exercise complete</label>
-          </div>
-        </section>
-
-        <!-- ============================================================ -->
-        <!-- Exercise 12 -->
-        <!-- ============================================================ -->
-        <section class="exercise" id="m1-ex12" data-exercise-id="m1-ex12">
-          <div class="exercise-header">
-            <div class="exercise-title">
-              <span class="exercise-number">12</span>
-              <h3>Inspect the beginning of the FASTA file</h3>
-            </div>
-            <span class="exercise-complete-badge">✓ Complete</span>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Concept</span>
-            <p>
-              Genome FASTA files can be enormous — opening one fully in a text editor is slow at best and
-              can freeze your session at worst. Instead, you look at just the first portion to confirm
-              the file looks as expected, using a tool designed for exactly this.
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Task</span>
-            <p>Print the first 20 lines of your decompressed FASTA file to the screen.</p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label hint">Hint</span>
-            <p>One command prints the "head" (start) of a file. It takes a flag to control how many lines are shown.</p>
-          </div>
-
-          <div class="exercise-block">
-            <details class="reveal">
-              <summary>Show command</summary>
-              <div class="reveal-body">
-                <div class="command-block" data-command="head -n 20 <your_file>"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>head -n 20 &lt;your_file&gt;</div>
-                <p>For scrolling through more of the file interactively (rather than a fixed number of lines), <code>less &lt;your_file&gt;</code> lets you page through and search — press <code>q</code> to quit. See the <a href="../toolbox.html">Terminal Toolbox</a> for more on <code>less</code>.</p>
-              </div>
-            </details>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label check">Check yourself</span>
-            <p>Does the very first line start with a <code>&gt;</code> character? What do you think everything after that line, up until the next <code>&gt;</code>, represents?</p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea>
-            <div class="notes-save-status" data-role="notes-status"></div>
-          </div>
-
-          <div class="completion-row">
-            <input type="checkbox" id="complete-m1-ex12" data-role="complete-checkbox" />
-            <label for="complete-m1-ex12">Mark this exercise complete</label>
-          </div>
-        </section>
-
-        <!-- ============================================================ -->
-        <!-- Exercise 13 -->
-        <!-- ============================================================ -->
-        <section class="exercise" id="m1-ex13" data-exercise-id="m1-ex13">
-          <div class="exercise-header">
-            <div class="exercise-title">
-              <span class="exercise-number">13</span>
-              <h3>Understanding FASTA headers</h3>
-            </div>
-            <span class="exercise-complete-badge">✓ Complete</span>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Concept</span>
-            <p>
-              FASTA format represents one or more sequences as: a header line starting with <code>&gt;</code>,
-              followed by the sequence itself (usually wrapped across multiple lines, often 60 or 70
-              characters wide). The header typically contains a sequence identifier and, often, free-text
-              description — for a genome assembly, headers usually identify each contig, scaffold, or
-              chromosome. An assembly with hundreds of thousands of headers is a sign of a fragmented
-              assembly; one with a small number of headers matching the expected chromosome count is a
-              sign of a chromosome-level assembly.
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Task</span>
-            <p>
-              Count how many sequence headers are in your FASTA file (i.e. how many individual sequences
-              — contigs, scaffolds, or chromosomes — it contains). Then look closely at a few header lines
-              and note what information they contain.
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label hint">Hint</span>
-            <p>
-              You can search for lines matching a pattern with <code>grep</code>, and count matching lines with
-              the <code>-c</code> flag. The pattern you want matches lines starting with <code>&gt;</code>.
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <details class="reveal">
-              <summary>Show command</summary>
-              <div class="reveal-body">
-                <div class="command-block" data-command="grep -c '^>' <your_file>
-grep '^>' <your_file> | head -n 5"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>grep -c '^&gt;' &lt;your_file&gt;
-grep '^&gt;' &lt;your_file&gt; | head -n 5</div>
-                <p>
-                  The first command counts all lines starting with <code>&gt;</code> — i.e. the number of sequences
-                  in the file. The second extracts all header lines and pipes them into <code>head</code> so you
-                  only see the first five.
-                </p>
-              </div>
-            </details>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label check">Check yourself</span>
-            <p>
-              Does the number of headers roughly match what you'd expect for the assembly level you
-              recorded in Exercise 6 (e.g. close to the known chromosome count for a chromosome-level
-              assembly, or a much larger number for a scaffold-level one)?
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea>
-            <div class="notes-save-status" data-role="notes-status"></div>
-          </div>
-
-          <div class="completion-row">
-            <input type="checkbox" id="complete-m1-ex13" data-role="complete-checkbox" />
-            <label for="complete-m1-ex13">Mark this exercise complete</label>
-          </div>
-        </section>
-
-        <!-- ============================================================ -->
-        <!-- Exercise 14 -->
-        <!-- ============================================================ -->
-        <section class="exercise" id="m1-ex14" data-exercise-id="m1-ex14">
-          <div class="exercise-header">
-            <div class="exercise-title">
-              <span class="exercise-number">14</span>
-              <h3>Identify important assembly metadata</h3>
-            </div>
-            <span class="exercise-complete-badge">✓ Complete</span>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Concept</span>
-            <p>
-              The FASTA file itself only contains sequence and minimal header text. The full context —
-              assembly accession and version, assembly name, submitting organisation, sequencing
-              technology used, assembly date, total assembly length, number of chromosomes/scaffolds,
-              and BUSCO or other quality metrics — normally lives on the database's assembly report page,
-              not inside the FASTA file. Recording this metadata alongside the file is essential: a
-              bare file called <code>genome.fna</code> tells a future reader (including future you) nothing
-              about its provenance.
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Task</span>
-            <p>
-              Go back to the database page for the assembly you downloaded (NCBI Datasets or ENA) and
-              record its key metadata: assembly accession, assembly name, assembly level, total assembly
-              length, number of sequences, and submitter/organisation.
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label hint">Hint</span>
-            <p>On NCBI Datasets, this information is typically summarised in a table on the assembly's overview page — you generally don't need to calculate it yourself from the FASTA file.</p>
-          </div>
-
-          <div class="exercise-block">
-            <details class="reveal">
-              <summary>Show solution approach</summary>
-              <div class="reveal-body">
-                <p>There's no single command for this — it's a matter of reading the database page carefully. A useful habit: copy the metadata table (or a screenshot/link to it) directly into your notes below, so you don't have to re-find the page later.</p>
-              </div>
-            </details>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label check">Check yourself</span>
-            <p>Does the total assembly length roughly match what you'd expect from the uncompressed file size you measured in Exercise 11 (allowing for the fact that each base is one character, plus header lines and line breaks)?</p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="Record assembly accession, name, level, length, sequence count, submitter…"></textarea>
-            <div class="notes-save-status" data-role="notes-status"></div>
-          </div>
-
-          <div class="completion-row">
-            <input type="checkbox" id="complete-m1-ex14" data-role="complete-checkbox" />
-            <label for="complete-m1-ex14">Mark this exercise complete</label>
-          </div>
-        </section>
-
-        <!-- ============================================================ -->
-        <!-- Exercise 15 -->
-        <!-- ============================================================ -->
-        <section class="exercise" id="m1-ex15" data-exercise-id="m1-ex15">
-          <div class="exercise-header">
-            <div class="exercise-title">
-              <span class="exercise-number">15</span>
-              <h3>Record it in the lab notebook</h3>
-            </div>
-            <span class="exercise-complete-badge">✓ Complete</span>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Concept</span>
-            <p>
-              A lab notebook entry isn't just a copy-paste of commands — it's a record that lets you (or
-              anyone else) reconstruct what was done and why, months later, without re-deriving it from
-              scratch. For a reference genome specifically, the minimum worth recording is: what you
-              downloaded, where from, when, why you chose it over alternatives, and exactly where it
-              lives on the server.
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label">Task</span>
-            <p>
-              Write a short lab notebook entry below summarising Module 01: the assembly you chose, its
-              accession and source database, the reasoning behind choosing it (versus the alternatives
-              you found in Exercise 6), the exact file path on the server, and the date you downloaded
-              it.
-            </p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label hint">Hint</span>
-            <p>Write this as if a labmate with no context will read it in six months and need to find and re-download the exact same file.</p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label check">Check yourself</span>
-            <p>Could someone else, reading only this entry, locate the exact file on the server and understand why it was chosen — without asking you anything further?</p>
-          </div>
-
-          <div class="exercise-block">
-            <span class="block-label notes">Notes / questions</span>
-            <textarea class="notes-textarea" data-role="notes" placeholder="Date:
-Assembly chosen:
-Accession:
-Source database:
-Reasoning:
-File path on server:
-Any open questions for my supervisor:"></textarea>
-            <div class="notes-save-status" data-role="notes-status"></div>
-          </div>
-
-          <div class="completion-row">
-            <input type="checkbox" id="complete-m1-ex15" data-role="complete-checkbox" />
-            <label for="complete-m1-ex15">Mark this exercise complete</label>
-          </div>
-        </section>
-
         <div class="card summary-card">
           <h2>Module 01 summary</h2>
           <p>
-            By the end of this module you should have a dedicated project directory with a clearly
-            named subdirectory for reference genomes, containing a reference FASTA file you identified,
-            downloaded, and understand the provenance of — plus a lab notebook entry documenting all of
-            it. Every one of these habits (orientation, naming, verification, documentation) will recur
-            in every module that follows.
+            By the end of this module you should have identified a scientifically justified reference
+            genome for Great Auk mapping, downloaded it reproducibly by accession, organised it inside a
+            multi-species project structure, and documented its provenance in a manifest — plus a clear,
+            causal understanding of why a heterospecific reference has consequences, and a concrete
+            prediction to test once you reach mapping.
           </p>
         </div>
 

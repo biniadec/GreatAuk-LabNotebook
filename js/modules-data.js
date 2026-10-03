@@ -38,11 +38,10 @@
       title: "Reference Genome",
       status: "active",
       summary:
-        "Find, download, and critically inspect a reference genome assembly before using it for anything downstream.",
+        "Investigate Alcidae taxonomy, evaluate candidate genome assemblies, and reproducibly obtain the Great Auk's mapping reference.",
       exerciseIds: [
-        "m1-ex01", "m1-ex02", "m1-ex03", "m1-ex04", "m1-ex05",
-        "m1-ex06", "m1-ex07", "m1-ex08", "m1-ex09", "m1-ex10",
-        "m1-ex11", "m1-ex12", "m1-ex13", "m1-ex14", "m1-ex15",
+        "m1-ex01", "m1-ex02", "m1-ex03", "m1-ex04",
+        "m1-ex05", "m1-ex06", "m1-ex07", "m1-ex08",
       ],
     },
     {

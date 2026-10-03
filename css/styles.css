@@ -1365,6 +1365,79 @@ details.reveal .reveal-body {
   font-style: italic;
 }
 
+/* ---------- Comparison tables (e.g. assembly quality comparisons) ---------- */
+
+.comparison-table-wrap {
+  overflow-x: auto;
+  margin: 0.75rem 0;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.87rem;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid var(--border-soft);
+  text-align: left;
+  vertical-align: top;
+}
+
+.comparison-table thead th {
+  background: var(--accent-light);
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.comparison-table tbody th {
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  background: var(--ice-light);
+}
+
+.comparison-table tbody tr:last-child td,
+.comparison-table tbody tr:last-child th {
+  border-bottom: none;
+}
+
+/* ---------- Concept chain (short causal-chain diagrams) ---------- */
+
+.concept-chain {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  margin: 0.75rem 0;
+  max-width: 560px;
+}
+
+.concept-chain-step {
+  background: var(--ice-light);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 1rem;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.concept-chain-arrow {
+  align-self: center;
+  color: var(--accent);
+  font-size: 1rem;
+  line-height: 1.4;
+  padding: 0.1rem 0;
+}
+
 /* ---------- Module summary / navigation footer ---------- */
 
 .module-footer {
