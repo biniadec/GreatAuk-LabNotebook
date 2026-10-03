@@ -168,6 +168,64 @@
           </div>
 
           <div class="exercise-block">
+            <div class="phylo-diagram">
+              <h4>Where Alcini sits within Alcidae (simplified)</h4>
+              <svg viewBox="0 0 400 170" role="img" aria-label="Simplified cladogram showing Alcidae splitting into Fraterculinae, and Alcinae splitting into Alcini and other Alcinae tribes">
+                <path class="branch" d="M10,85 H60" />
+                <path class="branch" d="M60,30 V130" />
+                <path class="branch" d="M60,30 H190" />
+                <text x="196" y="34">Fraterculinae (puffins)</text>
+                <path class="branch" d="M60,130 H110" />
+                <path class="branch" d="M110,105 V155" />
+                <path class="branch-highlight" d="M110,105 H190" />
+                <text x="196" y="109" class="label-highlight">Alcini — razorbill &amp; Great Auk</text>
+                <path class="branch" d="M110,155 H190" />
+                <text x="196" y="159">Other Alcinae</text>
+              </svg>
+              <p class="phylo-caption">
+                "Other Alcinae" groups murres, guillemots, auklets, and murrelets. Simplified from the
+                topology in Smith &amp; Clarke (2015); fossil lineages and exact branch lengths omitted for
+                clarity. Not to scale.
+              </p>
+            </div>
+
+            <div class="phylo-diagram">
+              <h4>Zoom in: Alcini</h4>
+              <svg viewBox="0 0 400 110" role="img" aria-label="Cladogram showing Alcini splitting into Alca torda, the living razorbill, and Pinguinus impennis, the extinct Great Auk">
+                <path class="branch" d="M10,55 H70" />
+                <path class="branch" d="M70,25 V85" />
+                <path class="branch-highlight" d="M70,25 H170" />
+                <circle class="dot-living" cx="176" cy="25" r="4" />
+                <text x="186" y="29" class="label-highlight"><tspan font-style="italic">Alca torda</tspan> — razorbill (living)</text>
+                <path class="branch-extinct" d="M70,85 H170" />
+                <text x="176" y="89" class="label-extinct">† <tspan font-style="italic">Pinguinus impennis</tspan> (extinct)</text>
+              </svg>
+              <p class="phylo-caption">
+                The razorbill — living, and the key mapping-reference candidate for this project — and the
+                extinct Great Auk are recovered as sister taxa in Smith (2011), the closest such
+                relationship in the tree.
+              </p>
+            </div>
+
+            <p class="placeholder-note">
+              Both diagrams above are original illustrations redrawn from the published topologies, not
+              reproductions of the original figures (see sources below) — the original figures weren't
+              clearly licensed for reuse here, and a simplified version better suits a two-species
+              zoom-in anyway.
+            </p>
+
+            <details class="reveal">
+              <summary>Sources for the diagrams above</summary>
+              <div class="reveal-body">
+                <ul>
+                  <li>Smith, N.A. &amp; Clarke, J.A. (2015). Systematics and evolution of the Pan-Alcidae (Aves, Charadriiformes). <em>Journal of Avian Biology</em>, 46(2), 125–140. <a href="https://doi.org/10.1111/jav.00487" target="_blank" rel="noopener">https://doi.org/10.1111/jav.00487</a></li>
+                  <li>Smith, N.A. (2011). Taxonomic revision and phylogenetic analysis of the flightless Mancallinae (Aves, Pan-Alcidae). <em>ZooKeys</em>, 91, 1–116. <a href="https://doi.org/10.3897/zookeys.91.709" target="_blank" rel="noopener">https://doi.org/10.3897/zookeys.91.709</a> (open access, CC BY 4.0)</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+
+          <div class="exercise-block">
             <span class="block-label">Task</span>
             <p>
               Using the <a href="https://www.ncbi.nlm.nih.gov/taxonomy" target="_blank" rel="noopener">NCBI

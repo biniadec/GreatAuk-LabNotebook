@@ -1410,6 +1410,81 @@ details.reveal .reveal-body {
   border-bottom: none;
 }
 
+/* ---------- Phylogenetic diagrams (simplified, original SVGs) ---------- */
+
+.phylo-diagram {
+  background: var(--ice-light);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.1rem 0.8rem;
+  margin: 0.85rem 0;
+}
+
+.phylo-diagram h4 {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0 0 0.6rem;
+}
+
+.phylo-diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.phylo-diagram .branch {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1.6;
+}
+
+.phylo-diagram .branch-highlight {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.2;
+}
+
+.phylo-diagram .branch-extinct {
+  fill: none;
+  stroke: var(--text-faint);
+  stroke-width: 1.6;
+  stroke-dasharray: 3 3;
+}
+
+.phylo-diagram text {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  fill: var(--text);
+}
+
+.phylo-diagram .label-highlight {
+  font-weight: 700;
+  fill: var(--accent-dark);
+}
+
+.phylo-diagram .label-extinct {
+  font-style: italic;
+  fill: var(--text-faint);
+}
+
+.phylo-diagram .dot-living {
+  fill: var(--accent);
+}
+
+.phylo-caption {
+  font-size: 0.78rem;
+  color: var(--text-faint);
+  margin: 0.5rem 0 0;
+}
+
+.phylo-caption a {
+  color: var(--text-faint);
+  text-decoration: underline;
+}
+
 /* ---------- Concept chain (short causal-chain diagrams) ---------- */
 
 .concept-chain {
