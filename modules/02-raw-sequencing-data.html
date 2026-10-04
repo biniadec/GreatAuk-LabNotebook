@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Module 02 — Raw Sequencing Data | Great Auk Lab Notebook</title>
-  <meta name="description" content="Obtain and organise the raw sequencing reads for the samples used in this project." />
+  <meta name="description" content="Understand what the Great Auk's raw sequencing data represent, then find, download, and document them from ENA." />
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 <body data-active-nav="module-02">
@@ -39,7 +39,7 @@
           <span class="nav-icon" data-icon="module-01"></span><span class="nav-number">01</span> Reference Genome
         </a>
         <a href="../modules/02-raw-sequencing-data.html" class="nav-link" data-nav="module-02">
-          <span class="nav-icon" data-icon="module-02"></span><span class="nav-number">02</span> Raw Sequencing Data<span class="nav-tag">soon</span>
+          <span class="nav-icon" data-icon="module-02"></span><span class="nav-number">02</span> Raw Sequencing Data
         </a>
         <a href="../modules/03-raw-read-qc.html" class="nav-link" data-nav="module-03">
           <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">03</span> Raw Read QC<span class="nav-tag">soon</span>
@@ -90,34 +90,603 @@
         <p class="breadcrumb"><a href="../index.html">Home</a> / Module 02</p>
 
         <header class="module-header">
-          <div class="module-eyebrow">Module 02 of 09</div>
+          <div class="module-eyebrow">Module 02 of 10</div>
           <h1>Raw Sequencing Data</h1>
-          <p class="module-intro">Obtain and organise the raw sequencing reads for the samples used in this project.</p>
+          <p class="module-intro">
+            Modules 00 and 01 got you onto Mjolnir and gave you a reference genome. This module is about
+            understanding what the Great Auk's own sequencing data actually <em>are</em> before you do
+            anything to them. The raw data for this project are real, public, and hosted on
+            <strong>ENA</strong> (the European Nucleotide Archive) — you'll work with the actual accessions
+            throughout, not a generic stand-in dataset.
+          </p>
+          <p class="module-intro">
+            You will <strong>not</strong> run quality control, trimming, or mapping in this module — those
+            belong to Modules 03 onward. By the end here, you should know exactly what you have, where it
+            came from, how its pieces relate to each other, and that the files you've downloaded are
+            intact. Nothing about the reads themselves will have changed.
+          </p>
         </header>
 
-        <div class="card placeholder-module">
-          <span class="status-badge placeholder">Coming soon</span>
-          <h2 style="font-size:1.1rem;">This module hasn't been developed yet</h2>
-          <p style="color:var(--text-muted); max-width:620px;">
-            This module will cover locating and downloading raw sequencing reads (for example from the ENA or SRA), understanding sequencing read formats such as FASTQ, and organising read files sensibly alongside the reference genome from Module 01.
-          </p>
-          <p class="placeholder-note">
-            Detailed exercises, concepts, and commands for this module will be added once the
-            scientific workflow for this stage has been finalised with your supervisor — following
-            the same concept / task / hint / solution / check-yourself structure used in
-            <a href="01-reference-genome.html">Module 01</a>.
-          </p>
+        <div class="card objectives-card">
+          <h2>Learning objectives</h2>
+          <ul>
+            <li>Trace the path from a museum specimen to the FASTQ files you'll actually work with</li>
+            <li>Explain what a sequencing library is, and why one specimen can have several</li>
+            <li>Distinguish specimen, sample, library/experiment, and run — using ENA's own terms</li>
+            <li>Read and interpret FASTQ structure and Phred quality, conceptually</li>
+            <li>Determine whether a real dataset is paired-end or single-end, rather than assume</li>
+            <li>Navigate the real Great Auk ENA record and build a table of its actual metadata</li>
+            <li>Distinguish what the metadata does and doesn't tell you about why several libraries exist</li>
+            <li>Download the real data reproducibly, verify it, and document its provenance</li>
+          </ul>
+        </div>
 
-          <div class="placeholder-list">
-            <div class="placeholder-list-item"><span class="dot"></span> Concept &amp; learning objectives — to be added</div>
-            <div class="placeholder-list-item"><span class="dot"></span> Guided exercises — to be added</div>
-            <div class="placeholder-list-item"><span class="dot"></span> Lab notebook prompts — to be added</div>
+        <div class="module-progress-bar" data-role="module-progress">
+          <div class="progress-label"><span data-role="module-progress-label">0 of 11 exercises complete</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:0%"></div></div>
+        </div>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m2-ex01" data-exercise-id="m2-ex01">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">01</span><h3>From ancient specimen to sequencing reads</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
           </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>You already know the molecular biology — this is a refresher focused on the steps that matter once you're sitting in front of a terminal rather than a bench:</p>
+            <div class="concept-chain">
+              <div class="concept-chain-step">Museum specimen (bone, skin, tissue)</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">DNA extraction — degraded, fragmented, chemically damaged DNA, vastly outnumbered by microbial/environmental DNA</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">Library preparation — the extract is converted into a sequencer-ready pool of adapter-ligated molecules</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">Sequencing — the library is loaded onto an instrument</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">Base calling — raw signal becomes nucleotide calls with confidence scores</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">FASTQ files — what you actually receive and work with</div>
+            </div>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Before continuing, note in your own words: which of these steps do you think determines how <strong>short</strong> and how <strong>damaged</strong> the DNA fragments end up being — and why does that matter for everything downstream, from this module through mapping?</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>At which step does "the specimen" stop being a unique physical object and become digital data you can copy, share, and re-analyse endlessly without touching the original again?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m2-ex01" data-role="complete-checkbox" /><label for="complete-m2-ex01">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m2-ex02" data-exercise-id="m2-ex02">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">02</span><h3>Refresh: how Illumina sequencing works</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>Just enough to make a FASTQ file meaningful, not a full chemistry lecture:</p>
+            <ul>
+              <li>DNA is fragmented and ligated to adapters on both ends</li>
+              <li>Fragments bind to a flow cell and are locally amplified into <strong>clusters</strong> — many identical copies, needed so the optical signal is strong enough to detect</li>
+              <li><strong>Sequencing by synthesis</strong>: fluorescently labelled bases are added cycle by cycle and imaged; each cycle reveals one position</li>
+              <li>For paired-end runs, after reading from one end the process re-primes and reads from the other end too (more on this in Exercise 6)</li>
+              <li>Each cycle's signal becomes a base call plus a confidence value — the <strong>Phred quality score</strong></li>
+            </ul>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>In one sentence: why is a cluster of many identical copies needed, rather than sequencing one DNA molecule directly?</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>If the fluorescence signal at a given cycle is weak or ambiguous between two bases, would you expect the resulting Phred quality score to be high or low? Why?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m2-ex02" data-role="complete-checkbox" /><label for="complete-m2-ex02">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m2-ex03" data-exercise-id="m2-ex03">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">03</span><h3>What is a sequencing library?</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>A <strong>library</strong> is a prepared, adapter-ligated, sequencer-ready collection of DNA molecules derived from a sample. A single specimen can genuinely yield several distinct libraries, for reasons including:</p>
+            <ul>
+              <li>Multiple independent extractions or preparations</li>
+              <li>Different library protocols (e.g. single-stranded vs. double-stranded library chemistry, common in ancient DNA work)</li>
+              <li>Independent sequencing batches run at different times</li>
+              <li>Deliberate attempts to increase total sequencing depth</li>
+              <li>Resequencing</li>
+            </ul>
+            <p class="placeholder-note">Don't assume which of these applies to any particular real dataset unless the metadata or publication actually says so — that's exactly what Exercise 8 will have you work out.</p>
+            <p>
+              The real Great Auk genome project (ENA BioProject <code>PRJNA1228327</code>) consists of
+              <strong>13 separately named libraries</strong> — <code>G1</code>–<code>G4</code>,
+              <code>GH1</code>–<code>GH4</code>, <code>lib_12</code>, <code>lib_15</code>, <code>lib_20</code>,
+              <code>lib2_13</code>, <code>lib2_17</code> — all from one specimen (BioSample
+              <code>SAMN47047800</code>).
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Before Exercise 8 tries to pin this down carefully, write your own first-pass hypotheses: what are 2–3 plausible, genuine reasons a single historical specimen might have been prepared into 13 separate libraries rather than one?</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Does a larger number of libraries automatically mean a larger number of individuals were sampled? Why is that assumption risky?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Your hypotheses for why 13 libraries exist…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m2-ex03" data-role="complete-checkbox" /><label for="complete-m2-ex03">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m2-ex04" data-exercise-id="m2-ex04">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">04</span><h3>Specimen, sample, library, experiment, and run</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>This distinction matters enough to be explicit, using ENA's own terms:</p>
+            <ul>
+              <li><strong>Specimen</strong> — the physical biological source (here: one museum-vouchered Great Auk)</li>
+              <li><strong>Sample</strong> (ENA/NCBI <em>BioSample</em>, accession prefix <code>SAMN</code>/<code>SAMEA</code>) — the database record describing that specimen/extraction</li>
+              <li><strong>Library</strong> (ENA <em>experiment</em>, prefix <code>SRX</code>/<code>ERX</code>) — one prepared, sequenceable DNA pool</li>
+              <li><strong>Run</strong> (prefix <code>SRR</code>/<code>ERR</code>) — one actual execution of sequencing on a library, producing FASTQ file(s)</li>
+            </ul>
+            <p>In general, this hierarchy can branch at more than one level — illustrated generically below (not real data):</p>
+            <pre class="command-block" style="white-space:pre;">Specimen
+└── Sample / extraction
+    ├── Library A
+    │   ├── Run 1 → FASTQ
+    │   └── Run 2 → FASTQ
+    └── Library B
+        └── Run 3 → FASTQ</pre>
+            <p>Now compare that to the <strong>real</strong> Great Auk project, which turns out to be flatter than the generic picture above — every library here has exactly one run:</p>
+            <pre class="command-block" style="white-space:pre;">Specimen (NHMD153070)
+└── Sample SAMN47047800
+    ├── Library G1  → Run SRR32500060 → FASTQ
+    ├── Library G2  → Run SRR32500059 → FASTQ
+    ├── Library GH1 → Run SRR32500064 → FASTQ
+    ├── …
+    └── Library lib2_17 → Run SRR32500066 → FASTQ
+        (13 libraries total, each with exactly one run)</pre>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Match each ENA/NCBI accession prefix to the right level of the hierarchy: <code>PRJNA</code>, <code>SAMN</code>, <code>SRX</code>, <code>SRR</code>. Then, before checking in Exercise 7, say how many of each you'd expect to see for the Great Auk project.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>"One specimen is not necessarily one library" and "one library is not necessarily one run" — which of these two statements does the real Great Auk data confirm, and which does it leave untested (because the data happens not to show that particular case)?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m2-ex04" data-role="complete-checkbox" /><label for="complete-m2-ex04">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m2-ex05" data-exercise-id="m2-ex05">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">05</span><h3>What is a FASTQ file?</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>FASTQ represents each read as exactly four lines. Here's an illustrative example (not a real Great Auk read — you'll inspect real ones in Exercise 10):</p>
+            <div class="fastq-anatomy">
+              <div class="fastq-line"><span class="fastq-line-label">1 · ID</span><span class="fastq-line-content">@SRR_EXAMPLE.1 1 length=101</span></div>
+              <div class="fastq-line"><span class="fastq-line-label">2 · Sequence</span><span class="fastq-line-content">AGCTTAGCTAGCTACGGAATTCCCAGGACCTGATCGATCGATCGTAGCTAGCATCGATCGTAGCTAGCTAGCTAGCATCGTAGCTAGCATCGTAGCTAGC</span></div>
+              <div class="fastq-line"><span class="fastq-line-label">3 · Separator</span><span class="fastq-line-content">+</span></div>
+              <div class="fastq-line"><span class="fastq-line-label">4 · Quality</span><span class="fastq-line-content"><span class="qual-high">AAFFFKKKKKKKKKKKKKKKKKKKKKKKKFFFKKKKKKKKKKKKKKKKKKKKKK</span><span class="qual-low">:::::,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,</span></span></div>
+            </div>
+            <p>
+              Line 1 starts with <code>@</code> and identifies the read. Line 2 is the called sequence.
+              Line 3 is almost always a bare <code>+</code> (historically it could repeat the identifier).
+              Line 4 is the same length as line 2 — one character per base — each character encoding a
+              Phred quality score as an ASCII character (higher letters later in the ASCII range generally
+              mean higher quality under the near-universal Phred+33 encoding). Real FASTQ files are almost
+              always distributed as <code>.fastq.gz</code>.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Using the example above, note in your own words which line is which. Then look at the quality line: does it stay constant across the read, or change? Where would you expect quality to be worst, and why?</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>If you opened a FASTQ file and every single quality character was identical, what would that suggest to you — ordinary real sequencing, or something worth double-checking (e.g. a placeholder or simulated file)?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m2-ex05" data-role="complete-checkbox" /><label for="complete-m2-ex05">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m2-ex06" data-exercise-id="m2-ex06">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">06</span><h3>Paired-end vs. single-end: what does this dataset actually use?</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              In <strong>paired-end</strong> sequencing, a fragment is read from both ends, producing two
+              files per run — <strong>R1</strong> and <strong>R2</strong>. R1 and R2 are <em>mates</em>: the
+              same physical fragment, observed from each end, not two independent reads. Read <em>n</em> in
+              R1 must correspond to read <em>n</em> in R2 — pairing must stay synchronized. This is the
+              common Illumina design, and you will likely meet paired-end data elsewhere in this project.
+              But don't assume it applies here — check.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Check the <code>library_layout</code> field for the Great Auk runs (ENA browser or the filereport API — you'll use both properly in Exercise 7). Is it <code>PAIRED</code> or <code>SINGLE</code>? What does that tell you about how many FASTQ files to expect per run?</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>A single field in the run metadata answers this directly — you don't need to infer it from file counts.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show answer</summary>
+              <div class="reveal-body">
+                <p>
+                  All 13 Great Auk runs are <code>library_layout: SINGLE</code> — one FASTQ file per run, not
+                  an R1/R2 pair. A plausible (not confirmed) reason: ancient DNA fragments are frequently
+                  shorter than a single Illumina read. When that's true, reading both ends adds little —
+                  the two reads would mostly re-sequence the same bases or run past the fragment into
+                  adapter — so some ancient DNA projects sequence single-end instead. There's no
+                  publication linked to this project to confirm that this is the actual reason here, so
+                  treat it as a reasonable hypothesis, not a fact.
+                </p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>If this dataset were paired-end instead, what failure mode would you need to watch for that simply doesn't exist for single-end data?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m2-ex06" data-role="complete-checkbox" /><label for="complete-m2-ex06">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m2-ex07" data-exercise-id="m2-ex07">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">07</span><h3>Explore the actual Great Auk dataset on ENA</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              You can browse ENA records through its web interface, but for anything you intend to record
+              in a manifest, its <strong>filereport API</strong> is more reproducible than copying numbers
+              off a webpage by hand — the same philosophy as downloading by accession in Module 01.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>
+              Using the <a href="https://www.ebi.ac.uk/ena/browser/view/PRJNA1228327" target="_blank" rel="noopener">ENA browser page for PRJNA1228327</a>
+              and the filereport API, build your own table recording: the BioProject and BioSample
+              accessions, the specimen's voucher/locality/collection date, and for <strong>each of the 13
+              runs</strong> — run accession, experiment accession, library name, platform, layout, read
+              count, base count, FASTQ file size, and MD5 checksum.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>The filereport endpoint takes an accession and a comma-separated list of fields. Construct the URL yourself rather than guessing field names from memory — <code>fields=run_accession,experiment_accession,library_name,library_layout,instrument_platform,read_count,base_count,fastq_ftp,fastq_md5,fastq_bytes</code> is a good starting set.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="curl -s 'https://www.ebi.ac.uk/ena/portal/api/filereport?accession=PRJNA1228327&result=read_run&fields=run_accession,experiment_accession,library_name,library_layout,instrument_platform,read_count,base_count,fastq_ftp,fastq_md5,fastq_bytes&format=tsv'"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>curl -s 'https://www.ebi.ac.uk/ena/portal/api/filereport?accession=PRJNA1228327&result=read_run&fields=run_accession,experiment_accession,library_name,library_layout,instrument_platform,read_count,base_count,fastq_ftp,fastq_md5,fastq_bytes&format=tsv'</div>
+                <p>This prints a tab-separated table with one header row and one row per run — redirect it to a file (<code>&gt; ena_filereport.tsv</code>) and use it directly, rather than retyping anything by hand. Record the result in your notes below.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Does the BioSample accession differ across any of the 13 runs, or is it identical for all of them? What does that tell you, on its own, about how many individual birds this project sequenced?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Your full 13-row table goes here (or a note on where you saved it)…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m2-ex07" data-role="complete-checkbox" /><label for="complete-m2-ex07">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m2-ex08" data-exercise-id="m2-ex08">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">08</span><h3>Why are there several Great Auk libraries?</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>Now test your Exercise 3 hypotheses against what the metadata you just built in Exercise 7 actually shows. No publication is linked to this project, so your answers have to come entirely from the metadata — say clearly when something can't be determined, rather than guessing.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Using your Exercise 7 table, answer each of these — and for each answer, note whether it's a fact the metadata directly states, or your own reasonable inference:</p>
+            <ul>
+              <li>Are all 13 runs from the same specimen?</li>
+              <li>Are they paired-end or single-end?</li>
+              <li>Were they generated on the same sequencing platform?</li>
+              <li>Are read lengths identical across runs?</li>
+              <li>Are the libraries named in a way that suggests distinct batches?</li>
+              <li>Is there a sequencing date recorded per run (as opposed to the specimen's collection date)?</li>
+              <li>Is there any circumstantial evidence of resequencing to increase depth?</li>
+            </ul>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>Read counts and file sizes vary enormously across the 13 runs — that variation itself is a clue, but it's circumstantial, not proof of any single explanation.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Write one short paragraph separating what you've <strong>confirmed</strong> from the metadata, what you're <strong>inferring</strong> reasonably but can't prove, and what remains genuinely <strong>unknown</strong>. You'll want this distinction later if anyone asks why you treated these 13 libraries separately rather than pooling them.</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Confirmed / inferred / unknown, for each question above…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m2-ex08" data-role="complete-checkbox" /><label for="complete-m2-ex08">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m2-ex09" data-exercise-id="m2-ex09">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">09</span><h3>Download the Great Auk reads from ENA</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              Unlike NCBI's <code>datasets</code> tool in Module 01, ENA needs no special client at all —
+              the filereport gives you direct HTTPS URLs and MD5 checksums, so <code>wget</code> plus
+              <code>md5sum</code> is the whole toolchain. All 13 runs together total roughly
+              <strong>96.5 GB</strong> — too much to treat as a single step, and too much to just run on
+              the login node as an ordinary transfer. Mjolnir's storage documentation draws exactly this
+              distinction: everyday transfers ("a few files, actively working") belong on the login node,
+              but a <strong>large, long-running transfer</strong> has its own dedicated
+              <code>filetransfer</code> partition and QoS — the same one Module 00 mentioned existed
+              without going into detail. It allows up to 4 days of runtime with 1 CPU and 20&nbsp;GB
+              memory, and is restricted to transfer commands specifically — "running compute work through
+              it is a misuse."
+            </p>
+            <p class="placeholder-note">
+              Mjolnir explicitly documents this partition/QoS for transfer commands such as
+              <code>rsync</code>, <code>scp</code>, and <code>sftp</code> — it does not list
+              <code>wget</code> by name. Using <code>wget</code> here is <strong>our</strong> reasonable
+              extension of that documented transfer pattern — it is a plain network-transfer command, not
+              compute — rather than an example shown verbatim in the documentation. Worth knowing if you
+              ever need to justify it.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>
+              <strong>Stage 1</strong> — on the login node, download the smallest run
+              (<code>SRR32500061</code>, library <code>GH4</code>, ~1.6&nbsp;GB) into its own
+              subdirectory, and verify it against its MD5. <strong>Stage 2</strong> — use your saved
+              filereport TSV from Exercise 7 to build a script that loops over all 13 runs, giving each
+              its own subdirectory, without concatenating anything. <strong>Stage 3</strong> — wrap that
+              script as a Slurm batch job using the <code>filetransfer</code> partition/QoS.
+              <strong>Stage 4</strong> — submit it with <code>sbatch</code> so the full download runs
+              independently while you continue with later exercises.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>The <code>fastq_ftp</code> field from ENA is given without a URL scheme — you need to prepend <code>https://</code> yourself. The <code>filetransfer</code> QoS needs its own <code>#SBATCH</code> directives, the same pattern you wrote in Module 00 — just with <code>--partition=filetransfer --qos=filetransfer</code> in place of <code>cpuqueue</code>/<code>normal</code>.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="mkdir -p raw_reads/great_auk/SRR32500061
+cd raw_reads/great_auk/SRR32500061
+wget https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR325/061/SRR32500061/SRR32500061.fastq.gz
+echo '1172900a7bc06532a413ab4df56ee794  SRR32500061.fastq.gz' | md5sum -c -
+cd ../../../
+
+cat > download_all.sh <<'EOF'
+#!/bin/bash
+tail -n +2 metadata/ena_filereport.tsv | while IFS=$'\t' read -r run exp lib layout plat rc bc url md5 bytes; do
+  mkdir -p raw_reads/great_auk/$run
+  wget -q -O raw_reads/great_auk/$run/$(basename $url) https://$url
+  echo $md5  raw_reads/great_auk/$run/$(basename $url) | md5sum -c -
+done
+EOF
+
+cat > download_all.sbatch <<'EOF'
+#!/bin/bash
+#SBATCH --job-name=great_auk_download
+#SBATCH --partition=filetransfer
+#SBATCH --qos=filetransfer
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=20G
+#SBATCH --time=1-00:00:00
+#SBATCH --output=raw_reads/great_auk/download-%j.out
+#SBATCH --error=raw_reads/great_auk/download-%j.err
+
+bash download_all.sh
+EOF
+
+sbatch download_all.sbatch"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button># Stage 1 — smallest run first, by hand, on the login node (ordinary transfer)
+mkdir -p raw_reads/great_auk/SRR32500061
+cd raw_reads/great_auk/SRR32500061
+wget https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR325/061/SRR32500061/SRR32500061.fastq.gz
+echo '1172900a7bc06532a413ab4df56ee794  SRR32500061.fastq.gz' | md5sum -c -
+cd ../../../
+
+# Stage 2 — build the full loop from your saved filereport TSV
+cat > download_all.sh &lt;&lt;'EOF'
+#!/bin/bash
+tail -n +2 metadata/ena_filereport.tsv | while IFS=$'\t' read -r run exp lib layout plat rc bc url md5 bytes; do
+  mkdir -p raw_reads/great_auk/$run
+  wget -q -O raw_reads/great_auk/$run/$(basename $url) https://$url
+  echo $md5  raw_reads/great_auk/$run/$(basename $url) | md5sum -c -
+done
+EOF
+
+# Stage 3 — wrap it for Mjolnir's dedicated large-transfer QoS (max 4 days, 1 CPU, 20GB — transfer only)
+cat > download_all.sbatch &lt;&lt;'EOF'
+#!/bin/bash
+#SBATCH --job-name=great_auk_download
+#SBATCH --partition=filetransfer
+#SBATCH --qos=filetransfer
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=20G
+#SBATCH --time=1-00:00:00
+#SBATCH --output=raw_reads/great_auk/download-%j.out
+#SBATCH --error=raw_reads/great_auk/download-%j.err
+
+bash download_all.sh
+EOF
+
+# Stage 4 — submit, rather than running the full download directly on the login node
+sbatch download_all.sbatch</div>
+                <p class="placeholder-note">Adjust the <code>read -r</code> variable list if you requested a different field order in Exercise 7 — the names must line up with your TSV's actual column order.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul><li><a href="https://mjolnir-ucph.dk/docs/storage/data-transfer/" target="_blank" rel="noopener">Data transfer</a></li></ul>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Stage 1's single small file ran directly on the login node; the full 96.5&nbsp;GB download goes through Slurm instead. What actually changed between the two — is it the duration, the data volume, something Mjolnir defines explicitly, or some combination? Why does Mjolnir bother with a <em>separate</em> QoS for this rather than just telling you to use <code>cpuqueue</code> like any other job?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m2-ex09" data-role="complete-checkbox" /><label for="complete-m2-ex09">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m2-ex10" data-exercise-id="m2-ex10">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">10</span><h3>Organise and verify the raw data</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              Module 01 already created an empty <code>raw_reads/</code> directory alongside
+              <code>reference_genomes/</code> — this is where it finally gets used. Verification should be
+              streaming and safe: checking a 27&nbsp;GB file shouldn't require fully decompressing it onto
+              disk.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>
+              Confirm all 13 runs are present as their own subdirectories under
+              <code>raw_reads/great_auk/</code>, that each file's size matches what the manifest/filereport
+              reported, that each file passes a gzip integrity check, and — connecting back to Exercise 5 —
+              peek at the first couple of real reads from one file.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p><code>gzip -t</code> tests integrity without writing any decompressed output. <code>zcat file.gz | head -n 8</code> streams and decompresses on the fly, safely, even for the largest file here.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="ls -lh raw_reads/great_auk/*/
+for f in raw_reads/great_auk/*/*.fastq.gz; do gzip -t "$f" && echo "OK: $f"; done
+zcat raw_reads/great_auk/SRR32500061/SRR32500061.fastq.gz | head -n 8"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>ls -lh raw_reads/great_auk/*/
+for f in raw_reads/great_auk/*/*.fastq.gz; do gzip -t "$f" && echo "OK: $f"; done
+zcat raw_reads/great_auk/SRR32500061/SRR32500061.fastq.gz | head -n 8</div>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Does the real read identifier line match the anatomy from Exercise 5? If one file failed its gzip integrity check, what would that suggest — a still-incomplete download, a truly corrupt file, or something else — and how would you tell the difference?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m2-ex10" data-role="complete-checkbox" /><label for="complete-m2-ex10">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m2-ex11" data-exercise-id="m2-ex11">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">11</span><h3>Build the raw-read manifest</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>Same approach as Module 01's genome manifest, applied to raw reads this time. Here the data are fixed, verified facts you already looked up in Exercise 7 — this exercise is about recording them correctly, not discovering them again.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Create <code>metadata/raw_reads_manifest.tsv</code> with one row per run, covering: species, specimen_id, sample_accession, experiment_accession, run_accession, library_name, platform, library_layout, read_length, fastq_1, file_size_1, md5_1, source, download_date, notes.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show completed manifest (real, verified values)</summary>
+              <div class="reveal-body">
+                <p class="placeholder-note">All values below are real, verified against ENA directly — only <code>download_date</code> is left for you to fill in with the actual date you downloaded.</p>
+                <div class="comparison-table-wrap">
+                  <table class="comparison-table">
+                    <thead><tr><th>Library</th><th>Run</th><th>Experiment</th><th>FASTQ</th><th>Size</th><th>MD5</th></tr></thead>
+                    <tbody>
+                      <tr><th>G1</th><td>SRR32500060</td><td>SRX27812613</td><td>SRR32500060.fastq.gz</td><td>6.81 GB</td><td><code>180bd5bd...fc8c</code></td></tr>
+                      <tr><th>G2</th><td>SRR32500059</td><td>SRX27812614</td><td>SRR32500059.fastq.gz</td><td>10.70 GB</td><td><code>d9269c79...161d50</code></td></tr>
+                      <tr><th>G3</th><td>SRR32500058</td><td>SRX27812615</td><td>SRR32500058.fastq.gz</td><td>4.45 GB</td><td><code>01eba84f...0d280</code></td></tr>
+                      <tr><th>G4</th><td>SRR32500068</td><td>SRX27812605</td><td>SRR32500068.fastq.gz</td><td>3.90 GB</td><td><code>41ba280f...191ece</code></td></tr>
+                      <tr><th>GH1</th><td>SRR32500064</td><td>SRX27812609</td><td>SRR32500064.fastq.gz</td><td>3.55 GB</td><td><code>8b77df5f...772687</code></td></tr>
+                      <tr><th>GH2</th><td>SRR32500063</td><td>SRX27812610</td><td>SRR32500063.fastq.gz</td><td>7.65 GB</td><td><code>b2fdf436...9aea2c80</code></td></tr>
+                      <tr><th>GH3</th><td>SRR32500062</td><td>SRX27812611</td><td>SRR32500062.fastq.gz</td><td>2.49 GB</td><td><code>58bfc5be...c46c0827</code></td></tr>
+                      <tr><th>GH4</th><td>SRR32500061</td><td>SRX27812612</td><td>SRR32500061.fastq.gz</td><td>1.64 GB</td><td><code>1172900a...56ee794</code></td></tr>
+                      <tr><th>lib_12</th><td>SRR32500070</td><td>SRX27812603</td><td>SRR32500070.fastq.gz</td><td>9.03 GB</td><td><code>815bec12...e046e16069</code></td></tr>
+                      <tr><th>lib_15</th><td>SRR32500069</td><td>SRX27812604</td><td>SRR32500069.fastq.gz</td><td>10.58 GB</td><td><code>9c8fb1ec...97779f176</code></td></tr>
+                      <tr><th>lib_20</th><td>SRR32500065</td><td>SRX27812608</td><td>SRR32500065.fastq.gz</td><td>5.70 GB</td><td><code>75ae45d8...56020d1b</code></td></tr>
+                      <tr><th>lib2_13</th><td>SRR32500067</td><td>SRX27812606</td><td>SRR32500067.fastq.gz</td><td>2.65 GB</td><td><code>7de15591...9478241</code></td></tr>
+                      <tr><th>lib2_17</th><td>SRR32500066</td><td>SRX27812607</td><td>SRR32500066.fastq.gz</td><td>27.36 GB</td><td><code>9d4ef672...e983894</code></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p>
+                  For every row: species = <em>Pinguinus impennis</em>; specimen_id = <code>NHMD153070</code>;
+                  sample_accession = <code>SAMN47047800</code>; platform = Illumina HiSeq 4000;
+                  library_layout = SINGLE; read_length ≈ 101 bp; source = ENA (<code>PRJNA1228327</code>).
+                </p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>If someone asked in six months "did you use all 13 Great Auk runs, or only some of them, and how do you know?" — could this manifest answer that on its own? Separately: why record <code>library_name</code> as well as <code>run_accession</code>, when the run accession alone is the "real" unique identifier?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Download date, and any notes on the manifest…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m2-ex11" data-role="complete-checkbox" /><label for="complete-m2-ex11">Mark this exercise complete</label></div>
+        </section>
+
+        <div class="card summary-card">
+          <h2>Module 02 summary</h2>
+          <p>
+            We now know what the raw Great Auk data are, where they came from, how the 13 libraries and
+            runs relate to one specimen, and that the downloaded files are intact. We have not modified
+            the reads yet.
+          </p>
+          <p style="margin-bottom:0;">
+            <strong>Looking ahead — Module 03: Raw-read QC and ancient-DNA preprocessing.</strong>
+            FastQC/MultiQC, read-length distributions, adapter contamination, trimming, ancient DNA
+            fragmentation and damage patterns, and duplicate handling all belong there — none of it happens
+            in this module.
+          </p>
         </div>
 
         <div class="module-footer">
-          <a href="01-reference-genome.html" class="btn btn-secondary">← Module 01: Reference Genome</a>
-          <a href="../index.html" class="btn btn-secondary">Back to Home</a>
+          <a href="../index.html" class="btn btn-secondary">← Back to Home</a>
           <a href="03-raw-read-qc.html" class="btn btn-primary">Module 03: Raw Read QC →</a>
         </div>
 
@@ -129,5 +698,6 @@
   <script src="../js/storage.js"></script>
   <script src="../js/icons.js"></script>
   <script src="../js/app.js"></script>
+  <script src="../js/progress.js"></script>
 </body>
 </html>

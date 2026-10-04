@@ -1485,6 +1485,45 @@ details.reveal .reveal-body {
   text-decoration: underline;
 }
 
+/* ---------- FASTQ anatomy (annotated 4-line record) ---------- */
+
+.fastq-anatomy {
+  background: var(--navy-deep);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem 1rem;
+  margin: 0.75rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  overflow-x: auto;
+}
+
+.fastq-line {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.2rem 0;
+  white-space: nowrap;
+}
+
+.fastq-line + .fastq-line {
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.fastq-line-label {
+  color: #8fb3c9;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fastq-line-content {
+  color: #e7f1f7;
+}
+
+.fastq-line-content .qual-high { color: #8fe3b8; }
+.fastq-line-content .qual-low { color: #e39a8f; }
+
 /* ---------- Concept chain (short causal-chain diagrams) ---------- */
 
 .concept-chain {

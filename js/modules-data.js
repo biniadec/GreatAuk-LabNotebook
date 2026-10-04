@@ -49,10 +49,14 @@
       slug: "02-raw-sequencing-data",
       number: "02",
       title: "Raw Sequencing Data",
-      status: "placeholder",
+      status: "active",
       summary:
-        "Obtain and organise the raw sequencing reads for the samples used in this project.",
-      exerciseIds: [],
+        "Understand what the Great Auk's raw sequencing data actually represent, then find, download, and document them from ENA.",
+      exerciseIds: [
+        "m2-ex01", "m2-ex02", "m2-ex03", "m2-ex04", "m2-ex05",
+        "m2-ex06", "m2-ex07", "m2-ex08", "m2-ex09", "m2-ex10",
+        "m2-ex11",
+      ],
     },
     {
       id: 3,

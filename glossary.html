@@ -39,7 +39,7 @@
           <span class="nav-icon" data-icon="module-01"></span><span class="nav-number">01</span> Reference Genome
         </a>
         <a href="modules/02-raw-sequencing-data.html" class="nav-link" data-nav="module-02">
-          <span class="nav-icon" data-icon="module-02"></span><span class="nav-number">02</span> Raw Sequencing Data<span class="nav-tag">soon</span>
+          <span class="nav-icon" data-icon="module-02"></span><span class="nav-number">02</span> Raw Sequencing Data
         </a>
         <a href="modules/03-raw-read-qc.html" class="nav-link" data-nav="module-03">
           <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">03</span> Raw Read QC<span class="nav-tag">soon</span>
@@ -105,6 +105,11 @@
         </details>
 
         <details class="glossary-term">
+          <summary>BioSample</summary>
+          <div class="glossary-term-body">The NCBI/ENA database record (accession prefix <code>SAMN</code> or <code>SAMEA</code>) describing a biological sample or specimen used for sequencing. One BioSample can be linked to several sequencing libraries and runs — it describes the source, not any single sequencing experiment.</div>
+        </details>
+
+        <details class="glossary-term">
           <summary>BUSCO</summary>
           <div class="glossary-term-body">Benchmarking Universal Single-Copy Orthologs — a tool and completeness metric reporting what proportion of a fixed set of genes expected in nearly every member of a lineage are found intact in a given assembly. A proxy for how much real, unbroken biology the assembly actually contains.</div>
         </details>
@@ -130,8 +135,18 @@
         </details>
 
         <details class="glossary-term">
+          <summary>ENA</summary>
+          <div class="glossary-term-body">The European Nucleotide Archive — EMBL-EBI's database of nucleotide sequencing data, including raw reads, assemblies, and their associated metadata. Mirrors much of the same data held by NCBI's SRA.</div>
+        </details>
+
+        <details class="glossary-term">
           <summary>FASTA</summary>
           <div class="glossary-term-body">A plain-text format for representing one or more sequences. Each sequence begins with a header line starting with <code>&gt;</code>, followed by the sequence itself on the following line(s).</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>FASTQ</summary>
+          <div class="glossary-term-body">A plain-text format for representing sequencing reads together with per-base quality scores. Each read is exactly four lines: an identifier line starting with <code>@</code>, the called sequence, a separator line (<code>+</code>), and a quality string the same length as the sequence. Almost always distributed as <code>.fastq.gz</code>.</div>
         </details>
 
         <details class="glossary-term">
@@ -165,8 +180,28 @@
         </details>
 
         <details class="glossary-term">
+          <summary>Paired-end sequencing</summary>
+          <div class="glossary-term-body">A sequencing design where each DNA fragment is read from both ends, producing two files per run — R1 and R2. R1 and R2 are mates describing the same physical fragment, not independent datasets, and their read order must stay synchronized between the two files.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Phred quality score</summary>
+          <div class="glossary-term-body">A per-base confidence value assigned during base calling, encoded as a single ASCII character in a FASTQ quality line. Higher values indicate the sequencer was more confident in that base call.</div>
+        </details>
+
+        <details class="glossary-term">
           <summary>Project directory (Mjolnir)</summary>
           <div class="glossary-term-body">On Mjolnir, the shared location <code>/projects/&lt;project&gt;/</code> where a research project's data lives, with a standard internal layout including a <code>people/&lt;KU-ID&gt;/</code> folder for each member's own working files — distinct from your personal, size-limited home directory.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>R1 / R2</summary>
+          <div class="glossary-term-body">The conventional names for the two FASTQ files produced by a paired-end sequencing run — R1 from one end of each fragment, R2 from the other. Read <em>n</em> in R1 and read <em>n</em> in R2 are mates and must stay in the same order across both files.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Read</summary>
+          <div class="glossary-term-body">A single sequence produced by a sequencer for one DNA fragment (or one end of it), represented as one four-line record in a FASTQ file.</div>
         </details>
 
         <details class="glossary-term">
@@ -185,8 +220,23 @@
         </details>
 
         <details class="glossary-term">
+          <summary>Run accession</summary>
+          <div class="glossary-term-body">The ENA/SRA accession (prefix <code>SRR</code> or <code>ERR</code>) identifying one actual execution of sequencing on a library, and the FASTQ file(s) it produced. A library's experiment accession (<code>SRX</code>/<code>ERX</code>) can in principle have more than one run accession under it.</div>
+        </details>
+
+        <details class="glossary-term">
           <summary>Scaffold</summary>
           <div class="glossary-term-body">A sequence built by ordering and orienting multiple contigs, with gaps of estimated length (often represented as runs of <code>N</code>) between them where the exact sequence is unknown.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Sequencing library</summary>
+          <div class="glossary-term-body">A prepared, adapter-ligated collection of DNA molecules ready for sequencing, built from a sample. A single specimen can yield several distinct libraries (different extractions, protocols, or sequencing batches) — more libraries does not automatically mean more individuals were sampled.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Single-end sequencing</summary>
+          <div class="glossary-term-body">A sequencing design where each fragment is read from only one end, producing a single FASTQ file per run. Common for ancient DNA, where fragments are often already shorter than a single read.</div>
         </details>
 
         <footer class="site-footer">
