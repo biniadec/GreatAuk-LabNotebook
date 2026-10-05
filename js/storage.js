@@ -93,4 +93,5 @@
   global.GreatAuk = global.GreatAuk || {};
   global.GreatAuk.ProgressStore = ProgressStore;
   global.GreatAuk.STORAGE_KEYS = STORAGE_KEYS;
+  global.GreatAuk.LocalStorageAdapter = LocalStorageAdapter;
 })(window);

@@ -43,9 +43,12 @@
         checkbox.checked = isComplete;
         setExerciseVisualState(el, isComplete);
         checkbox.addEventListener("change", async () => {
+          if (saveStatus) saveStatus.textContent = "Saving…";
           await store.setExerciseComplete(id, checkbox.checked);
           setExerciseVisualState(el, checkbox.checked);
           updateModuleProgressBar();
+          // Status text is finished by the "greatauk:sync-status" listener
+          // below once the background Supabase attempt actually resolves.
         });
       }
 
@@ -57,12 +60,8 @@
           clearTimeout(debounceTimer);
           debounceTimer = setTimeout(async () => {
             await store.setExerciseNotes(id, textarea.value);
-            if (saveStatus) {
-              saveStatus.textContent = "Saved";
-              setTimeout(() => {
-                if (saveStatus.textContent === "Saved") saveStatus.textContent = "";
-              }, 1500);
-            }
+            // Status text is finished by the "greatauk:sync-status" listener
+            // below once the background Supabase attempt actually resolves.
           }, 500);
         });
       }
@@ -70,6 +69,19 @@
 
     updateModuleProgressBar();
   }
+
+  // Fired by sync-adapter.js once a change has actually reached Supabase
+  // (or definitively failed to and been queued) — keeps this file ignorant
+  // of Supabase itself, same as everything else in ProgressStore's design.
+  window.addEventListener("greatauk:sync-status", (event) => {
+    const { exerciseId, status } = (event && event.detail) || {};
+    if (!exerciseId) return;
+    const saveStatus = document.querySelector(
+      `[data-exercise-id="${exerciseId}"] [data-role="notes-status"]`
+    );
+    if (!saveStatus) return;
+    saveStatus.textContent = status === "synced" ? "Saved & synced" : "Saved locally — waiting to sync";
+  });
 
   function setExerciseVisualState(el, isComplete) {
     el.classList.toggle("is-complete", isComplete);
