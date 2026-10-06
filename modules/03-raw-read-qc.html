@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Module 03 — Raw Read QC | Great Auk Lab Notebook</title>
-  <meta name="description" content="Assess the quality of raw reads before any processing is applied." />
+  <meta name="description" content="Inspect the real Great Auk FASTQ files with FastQC and MultiQC, and diagnose what the raw data look like before anything is changed." />
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 <body data-active-nav="module-03">
@@ -42,7 +42,7 @@
           <span class="nav-icon" data-icon="module-02"></span><span class="nav-number">02</span> Raw Sequencing Data
         </a>
         <a href="../modules/03-raw-read-qc.html" class="nav-link" data-nav="module-03">
-          <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">03</span> Raw Read QC<span class="nav-tag">soon</span>
+          <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">03</span> Raw Read QC
         </a>
         <a href="../modules/04-preprocessing.html" class="nav-link" data-nav="module-04">
           <span class="nav-icon" data-icon="module-04"></span><span class="nav-number">04</span> Pre-processing<span class="nav-tag">soon</span>
@@ -90,34 +90,541 @@
         <p class="breadcrumb"><a href="../index.html">Home</a> / Module 03</p>
 
         <header class="module-header">
-          <div class="module-eyebrow">Module 03 of 09</div>
+          <div class="module-eyebrow">Module 03 of 10</div>
           <h1>Raw Read QC</h1>
-          <p class="module-intro">Assess the quality of raw reads before any processing is applied.</p>
+          <p class="module-intro">
+            This module answers one question: <strong>what do the raw Great Auk reads actually look
+            like, before we change anything?</strong> It is diagnostic, not corrective. You will run
+            FastQC and MultiQC, open and read their real HTML reports, and write a QC diagnosis — but you
+            will not trim, filter, merge, map, or otherwise modify a single FASTQ file. That's Module 04.
+          </p>
         </header>
 
-        <div class="card placeholder-module">
-          <span class="status-badge placeholder">Coming soon</span>
-          <h2 style="font-size:1.1rem;">This module hasn't been developed yet</h2>
-          <p style="color:var(--text-muted); max-width:620px;">
-            This module will cover running and interpreting quality control reports on raw sequencing reads (commonly with tools such as FastQC), and recognising issues like adapter contamination, low-quality bases, and GC content anomalies before any trimming is done.
-          </p>
-          <p class="placeholder-note">
-            Detailed exercises, concepts, and commands for this module will be added once the
-            scientific workflow for this stage has been finalised with your supervisor — following
-            the same concept / task / hint / solution / check-yourself structure used in
-            <a href="01-reference-genome.html">Module 01</a>.
-          </p>
+        <div class="card objectives-card">
+          <h2>Learning objectives</h2>
+          <ul>
+            <li>Tell FASTA and FASTQ apart confidently, by structure, not just by filename</li>
+            <li>Explain what a Phred quality score means, without the maths overwhelming the concept</li>
+            <li>Explain what FastQC does — and does not do — to a FASTQ file</li>
+            <li>Run FastQC on a real Great Auk run, interactively, and read its HTML report</li>
+            <li>Interpret the major FastQC panels biologically, not as a pass/fail scoreboard</li>
+            <li>Distinguish FastQC's surface patterns from confirmed ancient-DNA damage</li>
+            <li>Run FastQC and MultiQC across all 13 libraries reproducibly</li>
+            <li>Compare libraries and write a QC diagnosis that justifies later preprocessing choices</li>
+          </ul>
+        </div>
 
-          <div class="placeholder-list">
-            <div class="placeholder-list-item"><span class="dot"></span> Concept &amp; learning objectives — to be added</div>
-            <div class="placeholder-list-item"><span class="dot"></span> Guided exercises — to be added</div>
-            <div class="placeholder-list-item"><span class="dot"></span> Lab notebook prompts — to be added</div>
+        <div class="module-progress-bar" data-role="module-progress">
+          <div class="progress-label"><span data-role="module-progress-label">0 of 10 exercises complete</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:0%"></div></div>
+        </div>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m3-ex01" data-exercise-id="m3-ex01">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">01</span><h3>FASTA vs FASTQ</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
           </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p><strong>FASTA and FASTQ are file formats, not analysis methods</strong> — worth saying plainly, since the names and the letters FASTA/FASTQ are easy to blur.</p>
+            <div class="comparison-table-wrap">
+              <table class="comparison-table">
+                <thead><tr><th>FASTA</th><th>FASTQ</th></tr></thead>
+                <tbody>
+                  <tr><th>Stores</th><td>Sequence only</td><td>Sequence + per-base quality</td></tr>
+                  <tr><th>Record length</th><td>Header + sequence (any number of lines)</td><td>Exactly 4 lines per read</td></tr>
+                  <tr><th>Typically represents</th><td>A reference genome, assembly, contig, scaffold, chromosome, or consensus sequence</td><td>One sequencing read</td></tr>
+                  <tr><th>Common extensions</th><td><code>.fa</code>, <code>.fasta</code>, <code>.fna</code></td><td><code>.fastq</code>, <code>.fq</code> (usually <code>.gz</code>)</td></tr>
+                  <tr><th>In this project</th><td>The razorbill reference genome</td><td>The Great Auk raw reads</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>A FASTA record can represent something enormous — an entire chromosome. A FASTQ record is almost always small — one read, a few dozen to a few hundred bases.</p>
+            <pre class="command-block" style="white-space:pre;">&gt;scaffold_12
+ACTGACTGACTGGGTTCAGCTAGCATCGATCGTAGCTAGCATCGATCG...</pre>
+            <div class="fastq-anatomy">
+              <div class="fastq-line"><span class="fastq-line-label">1 · ID</span><span class="fastq-line-content">@read_001</span></div>
+              <div class="fastq-line"><span class="fastq-line-label">2 · Sequence</span><span class="fastq-line-content">ACTGACTG</span></div>
+              <div class="fastq-line"><span class="fastq-line-label">3 · Separator</span><span class="fastq-line-content">+</span></div>
+              <div class="fastq-line"><span class="fastq-line-label">4 · Quality</span><span class="fastq-line-content"><span class="qual-high">IIIHHHGF</span></span></div>
+            </div>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Classify each of the following as FASTA or FASTQ, and write down <em>how you know</em> — extension, structure, or both:</p>
+            <ul>
+              <li><code>Alca_torda_genomic.fna</code></li>
+              <li><code>SRR32500061.fastq.gz</code></li>
+              <li><code>reference.fa</code></li>
+              <li>the 4-line record shown above</li>
+              <li>the <code>&gt;scaffold_12</code> record shown above</li>
+            </ul>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>Extensions are a useful clue (same as Module 01's <code>file</code> command lesson) but can be wrong or missing. The structural tell is absolute: does it have a per-base quality line or not?</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show model answer</summary>
+              <div class="reveal-body">
+                <p><code>Alca_torda_genomic.fna</code> — FASTA (extension + it's a reference genome). <code>SRR32500061.fastq.gz</code> — FASTQ (extension + it's raw sequencing data). <code>reference.fa</code> — FASTA. The 4-line record — FASTQ (has a quality line). The <code>&gt;scaffold_12</code> record — FASTA (header line, no quality line).</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Why can FastQC analyze a FASTQ file but would have nothing meaningful to say about a reference FASTA's sequencing quality?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Your classifications and reasoning…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m3-ex01" data-role="complete-checkbox" /><label for="complete-m3-ex01">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m3-ex02" data-exercise-id="m3-ex02">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">02</span><h3>What does read quality mean?</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>Each base call gets a <strong>Phred quality score</strong> — higher means a lower estimated probability that base is wrong. It's per-base, which is exactly what FASTQ's quality line (line 4) encodes, one character per base of line 2.</p>
+            <div class="comparison-table-wrap">
+              <table class="comparison-table">
+                <thead><tr><th>Phred score</th><th>Approx. error probability</th><th>Approx. accuracy</th></tr></thead>
+                <tbody>
+                  <tr><th>Q10</th><td>1 in 10</td><td>90%</td></tr>
+                  <tr><th>Q20</th><td>1 in 100</td><td>99%</td></tr>
+                  <tr><th>Q30</th><td>1 in 1,000</td><td>99.9%</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="placeholder-note">Sequencing quality is not the same thing as biological usefulness. A low-quality base might still be biologically real; a high-quality base can still come from contamination or an artifact. Phred scores tell you about measurement confidence, not biological importance.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Look at the quality line from Exercise 1 (<code>IIIHHHGF</code>). Without calculating anything precisely, which end of the read looks higher quality, and which looks lower? (Hint: later letters in this range are generally higher quality than earlier ones in standard Phred+33 encoding.)</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Why isn't a low Phred score automatically a <em>biological</em> problem, as opposed to a measurement one?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m3-ex02" data-role="complete-checkbox" /><label for="complete-m3-ex02">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m3-ex03" data-exercise-id="m3-ex03">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">03</span><h3>What does FastQC actually do?</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>FastQC is a <strong>diagnostic</strong> tool: it reads a FASTQ file, summarizes its properties, and reports them — it never modifies the file itself.</p>
+            <div class="concept-chain">
+              <div class="concept-chain-step">One FASTQ file</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">FastQC reads and summarizes it (never modifies it)</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">An HTML report + a .zip of the same data, with a pass/warn/fail flag per module</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">Your biological interpretation</div>
+            </div>
+            <p>You'll meet these modules properly in Exercise 6 — no need to memorize them now: Basic Statistics, Per base sequence quality, Per sequence quality scores, Per base sequence content, Per sequence GC content, Sequence Length Distribution, Sequence Duplication Levels, Overrepresented sequences, Adapter Content.</p>
+            <div class="callout-warning">
+              <strong>A FastQC flag ≠ automatic failure.</strong> FastQC's pass/warn/fail thresholds were calibrated against typical modern sequencing libraries. Historical and ancient DNA can validly trigger warnings or failures that don't mean the data is unusable — you'll see this directly in Exercises 6–7.
+            </div>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Before running anything, predict: which one or two of the modules listed above do you expect might show a warning for ~170-year-old museum DNA, and why? (You'll check this prediction in Exercise 7.)</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Does FastQC ever conclude that an entire dataset is unusable, or does it only ever flag individual modules?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Your predictions for which modules might warn, and why…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m3-ex03" data-role="complete-checkbox" /><label for="complete-m3-ex03">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m3-ex04" data-exercise-id="m3-ex04">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">04</span><h3>Run FastQC on one real library</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              For a single quick exploratory run like this one, an <strong>interactive Slurm job</strong>
+              is more convenient than writing a whole batch script for one command — it gives you a live
+              shell directly on a compute node. Mjolnir's documentation gives this verified pattern for
+              starting one:
+            </p>
+            <pre class="command-block" style="white-space:pre;">srun --partition=cpuqueue --qos=normal --nodes=1 --cpus-per-task=2 --mem-per-cpu=2G --time=01:00:00 --pty bash</pre>
+            <p class="placeholder-note">The specific resource numbers (2 CPUs, 2&nbsp;GB per CPU, 1 hour) are a modest teaching allocation chosen for this exercise — Mjolnir's docs don't prescribe particular values for FastQC specifically, just this general pattern for requesting an interactive session.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>
+              Start an interactive session, check whether <code>fastqc</code> is available, load it, create
+              an output directory, and run FastQC on <code>SRR32500061</code> — the smallest run, already on
+              disk from Module 02.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>FastQC's <code>-o</code> output directory must already exist — it won't create one for you.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="srun --partition=cpuqueue --qos=normal --nodes=1 --cpus-per-task=2 --mem-per-cpu=2G --time=01:00:00 --pty bash
+
+module avail fastqc
+module load fastqc/<version>
+
+mkdir -p analysis/raw_qc/fastqc
+fastqc -o analysis/raw_qc/fastqc raw_reads/great_auk/SRR32500061/SRR32500061.fastq.gz
+
+exit"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button># request an interactive session
+srun --partition=cpuqueue --qos=normal --nodes=1 --cpus-per-task=2 --mem-per-cpu=2G --time=01:00:00 --pty bash
+
+# once you have a shell on a compute node
+module avail fastqc
+module load fastqc/&lt;version&gt;
+
+mkdir -p analysis/raw_qc/fastqc
+fastqc -o analysis/raw_qc/fastqc raw_reads/great_auk/SRR32500061/SRR32500061.fastq.gz
+
+# leave the interactive session when done
+exit</div>
+                <p class="placeholder-note">Replace <code>&lt;version&gt;</code> with whatever <code>module avail fastqc</code> actually shows you.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Why does this single-file, exploratory run make sense as an interactive job rather than a batch script? What would you lose by submitting it with <code>sbatch</code> and walking away instead?</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul><li><a href="https://mjolnir-ucph.dk/docs/job-submission/interactive-jobs/" target="_blank" rel="noopener">Interactive jobs</a></li></ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m3-ex04" data-role="complete-checkbox" /><label for="complete-m3-ex04">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m3-ex05" data-exercise-id="m3-ex05">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">05</span><h3>Open and inspect the FastQC HTML report</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>
+              FastQC produced two things: <code>SRR32500061_fastqc.html</code> (a fully self-contained
+              report — every plot is embedded directly in the HTML, so this one file is all you need to
+              view it) and <code>SRR32500061_fastqc.zip</code> (the same data in parsed form, which should
+              <strong>stay on Mjolnir</strong> — Exercise 9's MultiQC step reads directly from files like
+              this one).
+            </p>
+            <p>
+              Mjolnir is remote, so you can't just double-click the HTML file where it sits — you need to
+              copy it onto your own computer first. <code>scp</code> ("secure copy") does exactly this,
+              over the same SSH connection you already use to log in.
+            </p>
+            <p>
+              The command has the shape <code>scp &lt;username&gt;@&lt;mjolnir-host&gt;:/full/path/to/file .</code>:
+            </p>
+            <ul>
+              <li><code>&lt;username&gt;@&lt;mjolnir-host&gt;:</code> — the remote server (your KU-ID and the same host you SSH into)</li>
+              <li><code>/full/path/to/file</code> — where the file lives on Mjolnir</li>
+              <li><code>.</code> — "here" — the current directory on <strong>your own computer</strong></li>
+            </ul>
+            <p class="placeholder-note">
+              This only matters for small result files like HTML reports — never copy the large raw FASTQ
+              files back to your laptop this way.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>
+              Run <code>scp</code> to copy <code>SRR32500061_fastqc.html</code> from Mjolnir to your own
+              computer, then open it in a browser.
+            </p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p><strong>Run this command from your own computer's terminal, not from inside your Mjolnir SSH session</strong> — <code>scp</code> needs to start from the machine you want the file to end up on.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="scp <KU-ID>@mjolnirgate.unicph.domain:/full/path/to/analysis/raw_qc/fastqc/SRR32500061_fastqc.html ."><button class="copy-btn" type="button" aria-label="Copy command">Copy</button># run from your own computer's terminal — not on Mjolnir
+scp &lt;KU-ID&gt;@mjolnirgate.unicph.domain:/full/path/to/analysis/raw_qc/fastqc/SRR32500061_fastqc.html .</div>
+                <p class="placeholder-note">Replace <code>/full/path/to/...</code> with the real absolute path <code>pwd</code> gives you on Mjolnir. Once it's downloaded, open the file directly — double-click it, or drag it into a browser window.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>If you want the FastQC HTML file to end up on your laptop, where should you actually run the <code>scp</code> command — your laptop's terminal, or your Mjolnir SSH session? Separately: why is it enough to copy only the <code>.html</code> file, and not the <code>.zip</code>, just to look at the plots?</p>
+          </div>
+          <div class="exercise-block further-reading">
+            <span class="block-label doc">Mjolnir documentation</span>
+            <ul><li><a href="https://mjolnir-ucph.dk/docs/storage/data-transfer/" target="_blank" rel="noopener">Data transfer</a></li></ul>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m3-ex05" data-role="complete-checkbox" /><label for="complete-m3-ex05">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m3-ex06" data-exercise-id="m3-ex06">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">06</span><h3>Interpret the FastQC plots</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>For each panel in your real report, ask the same four questions: what does it measure? What pattern do you actually see? Is that pattern necessarily a problem? Would you act on it immediately, or investigate further?</p>
+            <div class="comparison-table-wrap">
+              <table class="comparison-table">
+                <thead><tr><th>Panel</th><th>What it measures</th><th>How to interpret it in historical DNA</th></tr></thead>
+                <tbody>
+                  <tr><th>Basic Statistics</th><td>Total sequences, sequence length, GC%</td><td>Raw read length reflects the sequencing setup, not necessarily the original DNA-fragment length. A ~101-bp read can come from a shorter molecule if sequencing continues into adapter sequence.</td></tr>
+                  <tr><th>Per base sequence quality</th><td>Box plots of quality by position along the read</td><td>Quality often declines toward the end of Illumina reads, but this is not specific to historical DNA. Interpret the profile before deciding whether any bases need trimming.</td></tr>
+                  <tr><th>Per sequence quality scores</th><td>Distribution of each read's average quality</td><td>A lower-quality subset may indicate technical variation among reads; it is not by itself an ancient-DNA signature.</td></tr>
+                  <tr><th>Per base sequence content</th><td>A/C/G/T proportions by position</td><td>End-position biases can reflect fragmentation and library-preparation effects. FastQC alone cannot tell whether a pattern represents ancient-DNA damage.</td></tr>
+                  <tr><th>Per sequence GC content</th><td>Distribution of per-read GC%</td><td>Shifts, broadening, or extra peaks can have several causes, including mixed sequence sources or technical bias; FastQC alone cannot identify the cause.</td></tr>
+                  <tr><th>Sequence Length Distribution</th><td>Spread of read lengths</td><td>In these raw reads, lengths may be nearly uniform because sequencing was performed to a fixed read length. This does not mean the original DNA molecules were equally long. Length distributions become especially informative after adapter trimming.</td></tr>
+                  <tr><th>Sequence Duplication Levels</th><td>How often identical reads recur</td><td>High sequence duplication can be consistent with low library complexity and substantial amplification of low-input historical DNA. FastQC sequence duplication is not the same as identifying PCR duplicates after mapping.</td></tr>
+                  <tr><th>Overrepresented sequences</th><td>Specific sequences appearing unusually often</td><td>Adapter sequence is one possible cause, but other recurrent sequences can also be overrepresented; inspect what FastQC identifies rather than assuming.</td></tr>
+                  <tr><th>Adapter Content</th><td>Detected adapter sequence by position</td><td>Short DNA inserts can cause sequencing to continue into the adapter. This is particularly relevant for fragmented historical DNA and is a key observation for deciding on adapter trimming.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="callout-warning">
+              <strong>Read length ≠ molecule/insert length.</strong> This distinction matters for these ~101-bp Great Auk reads: a short historical-DNA insert can still yield a full-length sequencing read through adapter read-through.
+            </div>
+            <div class="callout-warning">
+              Don't treat FastQC's red/orange/green icons as a verdict. Read the <em>plot</em>, not just the icon.
+            </div>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Open your own <code>SRR32500061_fastqc.html</code> and, for at least four of the panels above, write down what you actually observe and your answer to all four questions.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Pick one panel where your report shows a warning or fail. Is that necessarily a problem? What would you want to check before deciding either way?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Your panel-by-panel observations…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m3-ex06" data-role="complete-checkbox" /><label for="complete-m3-ex06">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m3-ex07" data-exercise-id="m3-ex07">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">07</span><h3>What can ancient DNA make look "weird"?</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>Several real, well-documented features of historical/ancient DNA can make FastQC plots look unusual: short fragments; <strong>adapter read-through</strong> (when the DNA fragment is shorter than the sequencing read, the read runs past the fragment into adapter sequence); unusual base composition near read ends; high duplication from limited library complexity; and damage-associated substitutions concentrated near molecule termini.</p>
+            <div class="callout-warning">
+              <strong>FastQC does not diagnose authentic ancient-DNA damage.</strong> It can show you a surface pattern — for example, unusual base composition near read ends — that is <em>consistent with</em> damage. It cannot confirm genuine deamination. That requires dedicated tools (e.g. mapDamage) applied to <em>mapped</em> reads, which comes later in this project.
+            </div>
+            <p>Keep these three separate: what FastQC can actually show you (a pattern); what you can only hypothesize from it (a possible cause); and what requires real downstream testing (confirmation).</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Revisit your Exercise 3 predictions. Which modules actually showed a warning or fail? Which of your predictions were right, and which weren't?</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>If your report shows an unusual base-composition pattern near the read ends, is that proof of ancient DNA damage? What would you actually need to do to test that hypothesis properly?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Which predictions held up, and which didn't…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m3-ex07" data-role="complete-checkbox" /><label for="complete-m3-ex07">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m3-ex08" data-exercise-id="m3-ex08">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">08</span><h3>Run FastQC on all 13 Great Auk libraries</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>Now that you understand one report, scale up — the same way Module 00 taught you to move from an interactive exploration to a reproducible batch job. FastQC can take many input files at once and process them in parallel with <code>-t</code>, which is simpler and more honest than writing a 13-iteration shell loop.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Write and submit a batch script that runs FastQC on all 13 Great Auk FASTQ files in one call, writing everything into the same <code>analysis/raw_qc/fastqc/</code> directory.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label hint">Hint</span>
+            <p>FastQC's own filename-based naming (e.g. <code>SRR32500061_fastqc.html</code>) already keeps the 13 outputs distinguishable in one flat directory — no need for per-run subfolders.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="cat > fastqc_all.sbatch <<'EOF'
+#!/bin/bash
+#SBATCH --job-name=fastqc_all
+#SBATCH --partition=cpuqueue
+#SBATCH --qos=normal
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem-per-cpu=500M
+#SBATCH --time=01:00:00
+#SBATCH --output=analysis/raw_qc/fastqc_all-%j.out
+#SBATCH --error=analysis/raw_qc/fastqc_all-%j.err
+
+module purge
+module load fastqc/<version>
+
+mkdir -p analysis/raw_qc/fastqc
+fastqc -t 8 -o analysis/raw_qc/fastqc raw_reads/great_auk/*/*.fastq.gz
+EOF
+
+sbatch fastqc_all.sbatch"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>cat > fastqc_all.sbatch &lt;&lt;'EOF'
+#!/bin/bash
+#SBATCH --job-name=fastqc_all
+#SBATCH --partition=cpuqueue
+#SBATCH --qos=normal
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem-per-cpu=500M
+#SBATCH --time=01:00:00
+#SBATCH --output=analysis/raw_qc/fastqc_all-%j.out
+#SBATCH --error=analysis/raw_qc/fastqc_all-%j.err
+
+module purge
+module load fastqc/&lt;version&gt;
+
+mkdir -p analysis/raw_qc/fastqc
+fastqc -t 8 -o analysis/raw_qc/fastqc raw_reads/great_auk/*/*.fastq.gz
+EOF
+
+sbatch fastqc_all.sbatch</div>
+                <p class="placeholder-note"><code>-t 8</code> processes up to 8 files simultaneously — all 13 will still complete in one job, just with a short queue of 5 once the first 8 are underway.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Why does one <code>fastqc</code> call with <code>-t 8</code> handling all 13 files make more sense here than either 13 separate commands or 13 separate job submissions?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m3-ex08" data-role="complete-checkbox" /><label for="complete-m3-ex08">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m3-ex09" data-exercise-id="m3-ex09">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">09</span><h3>Summarise all libraries with MultiQC</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>FastQC analyzes one FASTQ at a time. <strong>MultiQC</strong> collates many FastQC outputs — reading the <code>.zip</code> files, not the HTML — into a single comparative report.</p>
+            <div class="concept-chain">
+              <div class="concept-chain-step">13 individual FastQC outputs (.zip files)</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">MultiQC scans and aggregates them</div>
+              <div class="concept-chain-arrow">↓</div>
+              <div class="concept-chain-step">One comparative HTML report, all 13 libraries side by side</div>
+            </div>
+            <p>MultiQC itself is lightweight, but since you'll already be inside a real analysis job from Exercise 8, it makes sense to add it as a second command in the <em>same</em> batch script rather than hopping back to the login node for one more step of the same workflow.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Check that <code>multiqc</code> is available, then add it to your Exercise 8 script (or a short follow-up job) to summarise <code>analysis/raw_qc/fastqc/</code> into <code>analysis/raw_qc/multiqc/</code>. <code>scp</code> the resulting report down and open it, the same way you did in Exercise 5.</p>
+          </div>
+          <div class="exercise-block">
+            <details class="reveal">
+              <summary>Show command</summary>
+              <div class="reveal-body">
+                <div class="command-block" data-command="module load multiqc/<version>
+mkdir -p analysis/raw_qc/multiqc
+multiqc analysis/raw_qc/fastqc -o analysis/raw_qc/multiqc"><button class="copy-btn" type="button" aria-label="Copy command">Copy</button>module load multiqc/&lt;version&gt;
+mkdir -p analysis/raw_qc/multiqc
+multiqc analysis/raw_qc/fastqc -o analysis/raw_qc/multiqc</div>
+                <p class="placeholder-note">Produces <code>multiqc_report.html</code> — also self-contained, same <code>scp</code> approach as Exercise 5.</p>
+              </div>
+            </details>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Why does MultiQC need the <code>.zip</code> files FastQC produced, rather than the <code>.html</code> files?</p>
+          </div>
+          <div class="exercise-block"><span class="block-label notes">Notes / questions</span><textarea class="notes-textarea" data-role="notes" placeholder="Write any notes or questions for your supervisor here…"></textarea><div class="notes-save-status" data-role="notes-status"></div></div>
+          <div class="completion-row"><input type="checkbox" id="complete-m3-ex09" data-role="complete-checkbox" /><label for="complete-m3-ex09">Mark this exercise complete</label></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="exercise" id="m3-ex10" data-exercise-id="m3-ex10">
+          <div class="exercise-header">
+            <div class="exercise-title"><span class="exercise-number">10</span><h3>Compare libraries and write a QC diagnosis</h3></div>
+            <span class="exercise-complete-badge">✓ Complete</span>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Concept</span>
+            <p>The library names fall into groups — <code>G</code>, <code>GH</code>, <code>lib</code>, <code>lib2</code> — but exactly like Module 02 Exercise 8, don't infer what these groupings mean beyond what the data actually show you. Use the MultiQC report to look for patterns, not to confirm a story you've already decided on.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label">Task</span>
+            <p>Using the real MultiQC report, compare read counts, sequence lengths, quality profiles, GC content, duplication, and adapter content across all 13 libraries. Then ask:</p>
+            <ul>
+              <li>Do libraries with similar names cluster visually in the report?</li>
+              <li>Are there obvious outliers?</li>
+              <li>Which patterns are consistent across all 13 libraries?</li>
+              <li>Which differ, and between which libraries?</li>
+              <li>What would you want to investigate further before preprocessing?</li>
+            </ul>
+            <p>Finish with a short written <strong>QC diagnosis</strong>: what looks good, what looks unusual, what may be expected for historical DNA specifically, what potentially needs action, and what you cannot yet conclude.</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label check">Check yourself</span>
+            <p>Which single library would you want to look at individually before deciding how to preprocess all 13 together, and why?</p>
+          </div>
+          <div class="exercise-block">
+            <span class="block-label notes">Notes / questions</span>
+            <textarea class="notes-textarea" data-role="notes" placeholder="What looks good:
+What looks unusual:
+What may be expected for historical DNA:
+What potentially needs action:
+What I cannot yet conclude:"></textarea>
+            <div class="notes-save-status" data-role="notes-status"></div>
+          </div>
+          <div class="completion-row"><input type="checkbox" id="complete-m3-ex10" data-role="complete-checkbox" /><label for="complete-m3-ex10">Mark this exercise complete</label></div>
+        </section>
+
+        <div class="card summary-card">
+          <h2>Module 03 summary</h2>
+          <p>
+            We have now inspected the raw reads without altering them. We know what the major QC
+            patterns look like across the 13 Great Auk libraries, and can use those observations to
+            decide what preprocessing is actually justified.
+          </p>
+          <p style="margin-bottom:0;">
+            <strong>Looking ahead — Module 04: Preprocessing raw historical-DNA reads.</strong>
+            Adapter trimming, read trimming/filtering, minimum length thresholds, single-end ancient-DNA
+            considerations, and producing cleaned FASTQ files while preserving the raw originals all
+            belong there — none of it happens in this module.
+          </p>
         </div>
 
         <div class="module-footer">
-          <a href="02-raw-sequencing-data.html" class="btn btn-secondary">← Module 02: Raw Sequencing Data</a>
-          <a href="../index.html" class="btn btn-secondary">Back to Home</a>
+          <a href="../index.html" class="btn btn-secondary">← Back to Home</a>
           <a href="04-preprocessing.html" class="btn btn-primary">Module 04: Pre-processing →</a>
         </div>
 
@@ -132,5 +639,6 @@
   <script src="../js/sync-adapter.js"></script>
   <script src="../js/icons.js"></script>
   <script src="../js/app.js"></script>
+  <script src="../js/progress.js"></script>
 </body>
 </html>

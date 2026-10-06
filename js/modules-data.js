@@ -63,10 +63,13 @@
       slug: "03-raw-read-qc",
       number: "03",
       title: "Raw Read QC",
-      status: "placeholder",
+      status: "active",
       summary:
-        "Assess the quality of raw reads before any processing is applied.",
-      exerciseIds: [],
+        "Inspect the real Great Auk FASTQ files with FastQC and MultiQC, and diagnose what the raw data look like before anything is changed.",
+      exerciseIds: [
+        "m3-ex01", "m3-ex02", "m3-ex03", "m3-ex04", "m3-ex05",
+        "m3-ex06", "m3-ex07", "m3-ex08", "m3-ex09", "m3-ex10",
+      ],
     },
     {
       id: 4,

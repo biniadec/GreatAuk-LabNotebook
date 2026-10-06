@@ -42,7 +42,7 @@
           <span class="nav-icon" data-icon="module-02"></span><span class="nav-number">02</span> Raw Sequencing Data
         </a>
         <a href="modules/03-raw-read-qc.html" class="nav-link" data-nav="module-03">
-          <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">03</span> Raw Read QC<span class="nav-tag">soon</span>
+          <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">03</span> Raw Read QC
         </a>
         <a href="modules/04-preprocessing.html" class="nav-link" data-nav="module-04">
           <span class="nav-icon" data-icon="module-04"></span><span class="nav-number">04</span> Pre-processing<span class="nav-tag">soon</span>
@@ -105,6 +105,16 @@
         </details>
 
         <details class="glossary-term">
+          <summary>Adapter</summary>
+          <div class="glossary-term-body">A short, known synthetic DNA sequence ligated onto fragments during library preparation so they can bind to the sequencer and be identified. Not part of the biological sample itself.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Adapter read-through</summary>
+          <div class="glossary-term-body">When a DNA fragment is shorter than the sequencing read length, the read continues past the fragment's end into adapter sequence. Common with short, degraded (e.g. ancient/historical) DNA, and detected by FastQC's Adapter Content panel.</div>
+        </details>
+
+        <details class="glossary-term">
           <summary>BioSample</summary>
           <div class="glossary-term-body">The NCBI/ENA database record (accession prefix <code>SAMN</code> or <code>SAMEA</code>) describing a biological sample or specimen used for sequencing. One BioSample can be linked to several sequencing libraries and runs — it describes the source, not any single sequencing experiment.</div>
         </details>
@@ -135,6 +145,11 @@
         </details>
 
         <details class="glossary-term">
+          <summary>Duplication / library complexity</summary>
+          <div class="glossary-term-body">The proportion of sequencing reads that are identical (or near-identical) to each other. High duplication can mean a sample was sequenced far deeper than its library's actual molecular diversity ("complexity") supports — a common issue with low-input material such as historical or ancient DNA, not only a sign of over-sequencing.</div>
+        </details>
+
+        <details class="glossary-term">
           <summary>ENA</summary>
           <div class="glossary-term-body">The European Nucleotide Archive — EMBL-EBI's database of nucleotide sequencing data, including raw reads, assemblies, and their associated metadata. Mirrors much of the same data held by NCBI's SRA.</div>
         </details>
@@ -147,6 +162,16 @@
         <details class="glossary-term">
           <summary>FASTQ</summary>
           <div class="glossary-term-body">A plain-text format for representing sequencing reads together with per-base quality scores. Each read is exactly four lines: an identifier line starting with <code>@</code>, the called sequence, a separator line (<code>+</code>), and a quality string the same length as the sequence. Almost always distributed as <code>.fastq.gz</code>.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>FastQC</summary>
+          <div class="glossary-term-body">A diagnostic tool that reads a FASTQ file and reports summary statistics and quality patterns (per-base quality, GC content, duplication, adapter content, and more) as an HTML report. It never modifies the file it analyses, and its pass/warn/fail flags are heuristics calibrated on typical modern libraries — not an automatic verdict on whether a dataset is usable.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>GC content</summary>
+          <div class="glossary-term-body">The proportion of a sequence's bases that are G or C rather than A or T. FastQC reports this per read; an unusual or shifted distribution can have several possible causes (sample composition, contamination, bias), not one single explanation.</div>
         </details>
 
         <details class="glossary-term">
@@ -172,6 +197,11 @@
         <details class="glossary-term">
           <summary>Metadata</summary>
           <div class="glossary-term-body">Data about data — for a genome assembly, this includes things like the submitting organisation, sequencing technology used, assembly date, and quality statistics, rather than the sequence itself.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>MultiQC</summary>
+          <div class="glossary-term-body">A tool that scans a directory of FastQC (and other tool) outputs and aggregates them into a single comparative HTML report — reading the parsed <code>.zip</code>/log files each tool produces, not their HTML reports.</div>
         </details>
 
         <details class="glossary-term">

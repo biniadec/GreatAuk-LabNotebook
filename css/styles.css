@@ -1365,6 +1365,22 @@ details.reveal .reveal-body {
   font-style: italic;
 }
 
+/* ---------- Callout (recurring emphasis, e.g. "flag ≠ failure") ---------- */
+
+.callout-warning {
+  background: var(--warning-light);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.1rem;
+  margin: 0.85rem 0;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.callout-warning strong {
+  color: var(--warning);
+}
+
 /* ---------- Comparison tables (e.g. assembly quality comparisons) ---------- */
 
 .comparison-table-wrap {

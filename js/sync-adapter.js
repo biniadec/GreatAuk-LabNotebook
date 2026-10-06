@@ -138,6 +138,7 @@
         exercise_id: r.exercise_id,
         completed: r.completed,
         notes: r.notes,
+        student_label: "Luigi",
       }));
       const { error } = await client.from(TABLE).upsert(payload, { onConflict: "user_id,exercise_id" });
       if (error) throw error;
