@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Supervisor View — Great Auk Lab Notebook</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <div class="supervisor-shell">
+
+    <div class="supervisor-header">
+      <h1>Supervisor View — Great Auk Lab Notebook</h1>
+      <button type="button" class="btn btn-secondary btn-small" data-role="sign-out-btn" hidden>Sign out</button>
+    </div>
+
+    <!-- Login form: shown when no session exists -->
+    <section class="card supervisor-login-card" data-role="login-view" hidden>
+      <h2 style="font-size:1.05rem;">Instructor sign in</h2>
+      <form data-role="login-form">
+        <div class="form-field">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" name="email" autocomplete="username" required />
+        </div>
+        <div class="form-field">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" autocomplete="current-password" required />
+        </div>
+        <div class="form-error" data-role="login-error"></div>
+        <button type="submit" class="btn btn-primary" data-role="login-submit">Sign in</button>
+      </form>
+    </section>
+
+    <!-- Access denied: shown when authenticated but not in public.instructors -->
+    <section class="card access-denied-card" data-role="denied-view" hidden>
+      <h2 style="font-size:1.05rem;">Access denied</h2>
+      <p>This Supabase account is signed in but is not authorized as an instructor for this course.</p>
+    </section>
+
+    <!-- Main supervisor view: shown once authorized -->
+    <section data-role="main-view" hidden>
+
+      <div class="identity-picker" data-role="identity-picker" hidden>
+        <div data-role="identity-note"></div>
+        <label for="identity-select" style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-muted);margin:0.6rem 0 0.3rem;">Viewing identity:</label>
+        <select id="identity-select" data-role="identity-select"></select>
+      </div>
+
+      <p class="supervisor-meta" data-role="identity-label"></p>
+
+      <div class="supervisor-filters">
+        <select data-role="filter-module" aria-label="Filter by module">
+          <option value="all">All modules</option>
+        </select>
+        <select data-role="filter-completion" aria-label="Filter by completion">
+          <option value="all">Completed + incomplete</option>
+          <option value="completed">Completed only</option>
+          <option value="incomplete">Incomplete only</option>
+        </select>
+        <select data-role="filter-answer" aria-label="Filter by answer presence">
+          <option value="all">Has answer + no answer</option>
+          <option value="has-answer">Has answer only</option>
+          <option value="no-answer">No answer only</option>
+        </select>
+      </div>
+
+      <div data-role="modules-container"></div>
+
+      <p class="supervisor-empty-state" data-role="no-data-message" hidden>No exercise_progress rows found yet.</p>
+
+    </section>
+
+  </div>
+
+  <script src="js/modules-data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/supervisor.js"></script>
+</body>
+</html>
