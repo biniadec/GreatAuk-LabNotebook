@@ -38,9 +38,19 @@
     noDataMessage: document.querySelector('[data-role="no-data-message"]'),
   };
 
+  const LUIGI_LABEL = "Luigi";
+  const MERGED_KEY = "__merged_luigi__";
+
   // identities: Map<user_id, { user_id, student_label, rows: Map<exercise_id, row> }>
+  // built only from non-Luigi rows; Luigi's rows are always handled through
+  // the merged view below instead of as a per-identity entry.
   let identities = new Map();
-  let selectedUserId = null;
+  // luigiExercises: Map<exercise_id, { primary: row, versions: row[] }> where
+  // versions is every row for that exercise_id across all Luigi-labeled
+  // identities, sorted newest-first (versions[0] === primary).
+  let luigiExercises = new Map();
+  let luigiIdentityCount = 0;
+  let selectedKey = null; // MERGED_KEY, a user_id, or null
   // exerciseContentCache: Map<exercise_id, { number, title, blocks: [{label, html}] }>
   let exerciseContentCache = new Map();
   let activeModules = [];
@@ -149,15 +159,40 @@
     return data || [];
   }
 
+  // Non-Luigi rows only: each distinct user_id stays its own separate entry.
   function groupByIdentity(rows) {
     const map = new Map();
     for (const row of rows) {
+      if (row.student_label === LUIGI_LABEL) continue;
       if (!map.has(row.user_id)) {
         map.set(row.user_id, { user_id: row.user_id, student_label: row.student_label, rows: new Map() });
       }
       map.get(row.user_id).rows.set(row.exercise_id, row);
     }
     return map;
+  }
+
+  // All student_label === "Luigi" rows, regardless of which anonymous
+  // user_id wrote them, collapsed into one logical student. Grouped by
+  // exercise_id; when the same exercise has rows from more than one
+  // identity, the newest updated_at wins as the primary/displayed row and
+  // the rest are kept as viewable (never discarded) earlier versions.
+  function buildLuigiExercises(rows) {
+    const byExercise = new Map();
+    const luigiUserIds = new Set();
+    for (const row of rows) {
+      if (row.student_label !== LUIGI_LABEL) continue;
+      luigiUserIds.add(row.user_id);
+      if (!byExercise.has(row.exercise_id)) byExercise.set(row.exercise_id, []);
+      byExercise.get(row.exercise_id).push(row);
+    }
+    const result = new Map();
+    for (const [exId, exRows] of byExercise) {
+      exRows.sort((a, b) => (b.updated_at || "").localeCompare(a.updated_at || ""));
+      result.set(exId, { primary: exRows[0], versions: exRows });
+    }
+    luigiIdentityCount = luigiUserIds.size;
+    return result;
   }
 
   function latestUpdate(identity) {
@@ -169,55 +204,32 @@
   }
 
   function renderIdentityPicker() {
-    const list = Array.from(identities.values());
-    const luigiIdentities = list.filter((i) => i.student_label === "Luigi");
+    const otherList = Array.from(identities.values());
+    const hasLuigi = luigiExercises.size > 0;
 
-    if (list.length <= 1) {
+    const entries = [];
+    if (hasLuigi) entries.push({ key: MERGED_KEY, label: LUIGI_LABEL, count: luigiExercises.size, isMerged: true });
+    otherList.forEach((i) => entries.push({ key: i.user_id, label: i.student_label || "Unlabeled identity", count: i.rows.size, isMerged: false }));
+
+    if (entries.length <= 1) {
       el.identityPicker.hidden = true;
-      selectedUserId = list.length === 1 ? list[0].user_id : null;
+      selectedKey = entries.length === 1 ? entries[0].key : null;
       return;
     }
 
     el.identityPicker.hidden = false;
+    el.identityNote.innerHTML = `<p class="supervisor-meta">More than one identity was found. Luigi's anonymous identities are always shown merged as one entry below; any other identity is kept separate.</p>`;
 
-    if (luigiIdentities.length > 1) {
-      const items = luigiIdentities
-        .map((i) => {
-          const count = i.rows.size;
-          const updated = latestUpdate(i);
-          return `<li><code>${shortId(i.user_id)}…</code> — ${count} row(s), last updated ${updated ? escapeHtml(updated) : "never"}</li>`;
-        })
-        .join("");
-      el.identityNote.innerHTML = `
-        <div class="callout-warning">
-          <strong>More than one anonymous identity is labeled "Luigi".</strong>
-          These are separate Supabase users. Their data is shown separately below and is never merged — pick one at a time.
-          <ul class="identity-list">${items}</ul>
-        </div>`;
-    } else {
-      el.identityNote.innerHTML = `<p class="supervisor-meta">Multiple identities were found. Select one to view below.</p>`;
-    }
-
-    // sort by most recently updated first
-    list.sort((a, b) => {
-      const au = latestUpdate(a) || "";
-      const bu = latestUpdate(b) || "";
-      return bu.localeCompare(au);
-    });
-
-    el.identitySelect.innerHTML = list
-      .map((i) => {
-        const label = i.student_label ? escapeHtml(i.student_label) : "Unlabeled identity";
-        return `<option value="${i.user_id}">${label} — ${shortId(i.user_id)}… (${i.rows.size} rows)</option>`;
-      })
+    el.identitySelect.innerHTML = entries
+      .map((e) => `<option value="${e.key}">${escapeHtml(e.label)}${e.isMerged ? " (merged)" : ""} — ${e.count} exercise row(s)</option>`)
       .join("");
 
-    selectedUserId = list[0].user_id;
-    el.identitySelect.value = selectedUserId;
+    selectedKey = hasLuigi ? MERGED_KEY : entries[0].key;
+    el.identitySelect.value = selectedKey;
   }
 
   el.identitySelect.addEventListener("change", () => {
-    selectedUserId = el.identitySelect.value;
+    selectedKey = el.identitySelect.value;
     renderModules();
   });
 
@@ -307,29 +319,76 @@
 
   // ---- rendering ------------------------------------------------------------
 
+  // Returns Map<exercise_id, { primary: row, versions: row[] }> for whatever
+  // is currently selected, so rendering never needs to care whether it's
+  // looking at the merged Luigi view or a single other identity.
+  function getActiveExerciseMap() {
+    if (selectedKey === MERGED_KEY) return luigiExercises;
+    if (selectedKey && identities.has(selectedKey)) {
+      const map = new Map();
+      for (const [exId, row] of identities.get(selectedKey).rows) {
+        map.set(exId, { primary: row, versions: [row] });
+      }
+      return map;
+    }
+    return new Map();
+  }
+
+  function renderVersionHistory(entry) {
+    const older = entry.versions.slice(1);
+    if (older.length === 0) return "";
+    const items = older
+      .map((v) => {
+        const notes = v.notes ? v.notes.trim() : "";
+        const notesHtml = notes ? `<div class="readonly-notes">${escapeHtml(notes)}</div>` : `<div class="readonly-notes is-empty">No answer in this version.</div>`;
+        const updated = v.updated_at ? new Date(v.updated_at).toLocaleString() : "—";
+        return `
+          <div class="version-entry">
+            <p class="supervisor-meta">Identity <code>${shortId(v.user_id)}…</code> — ${v.completed ? "marked complete" : "not marked complete"} — ${escapeHtml(updated)}</p>
+            ${notesHtml}
+          </div>`;
+      })
+      .join("");
+    return `
+      <details class="reveal version-history">
+        <summary>Show ${older.length} earlier version(s)</summary>
+        <div class="reveal-body">${items}</div>
+      </details>`;
+  }
+
   function renderModules() {
     const filters = getFilters();
-    const identity = selectedUserId ? identities.get(selectedUserId) : null;
+    const exerciseMap = getActiveExerciseMap();
+    const isMerged = selectedKey === MERGED_KEY;
 
-    el.identityLabel.textContent = identity
-      ? `Showing progress for: ${identity.student_label || "Unlabeled identity"} — ${shortId(identity.user_id)}…`
-      : "";
+    if (isMerged) {
+      el.identityLabel.textContent =
+        luigiIdentityCount > 1
+          ? `Showing progress for: Luigi (merged from ${luigiIdentityCount} anonymous identities)`
+          : `Showing progress for: Luigi`;
+    } else if (selectedKey && identities.has(selectedKey)) {
+      const identity = identities.get(selectedKey);
+      el.identityLabel.textContent = `Showing progress for: ${identity.student_label || "Unlabeled identity"} — ${shortId(identity.user_id)}…`;
+    } else {
+      el.identityLabel.textContent = "";
+    }
 
-    const rowsMap = identity ? identity.rows : new Map();
     const modulesToShow = filters.module === "all" ? activeModules : activeModules.filter((m) => String(m.id) === filters.module);
 
     let html = "";
-    let anyExerciseShown = false;
 
     for (const mod of modulesToShow) {
       const total = mod.exerciseIds.length;
-      const completedCount = mod.exerciseIds.filter((id) => rowsMap.get(id) && rowsMap.get(id).completed).length;
+      const completedCount = mod.exerciseIds.filter((id) => {
+        const entry = exerciseMap.get(id);
+        return entry && entry.primary.completed;
+      }).length;
 
       const exerciseRowsHtml = mod.exerciseIds
         .map((exId) => {
-          const row = rowsMap.get(exId);
+          const entry = exerciseMap.get(exId);
+          const row = entry ? entry.primary : null;
           if (!passesFilters(row, filters)) return "";
-          anyExerciseShown = true;
 
           const content = exerciseContentCache.get(exId);
           const number = content ? content.number : "";
@@ -350,16 +409,21 @@
             : `<div class="readonly-notes is-empty">No answer yet.</div>`;
           const updated = row && row.updated_at ? new Date(row.updated_at).toLocaleString() : "—";
 
+          const hasVersions = entry && entry.versions.length > 1;
+          const versionBadge = hasVersions ? `<span class="version-badge">Multiple saved versions</span>` : "";
+          const versionHistoryHtml = hasVersions ? renderVersionHistory(entry) : "";
+
           return `
             <section class="exercise${isComplete ? " is-complete" : ""}">
               <div class="exercise-header">
-                <div class="exercise-title"><span class="exercise-number">${escapeHtml(number)}</span><h3>${escapeHtml(title)}</h3></div>
+                <div class="exercise-title"><span class="exercise-number">${escapeHtml(number)}</span><h3>${escapeHtml(title)}</h3>${versionBadge}</div>
                 <span class="exercise-complete-badge">✓ Complete</span>
               </div>
               ${blocksHtml}
               <p class="supervisor-response-label">Luigi's response:</p>
               ${notesHtml}
               <p class="supervisor-meta">Last updated: ${escapeHtml(updated)}</p>
+              ${versionHistoryHtml}
             </section>`;
         })
         .join("");
@@ -375,7 +439,7 @@
     }
 
     el.modulesContainer.innerHTML = html;
-    el.noDataMessage.hidden = identities.size > 0;
+    el.noDataMessage.hidden = identities.size > 0 || luigiExercises.size > 0;
   }
 
   // ---- orchestration --------------------------------------------------------
@@ -384,6 +448,7 @@
     try {
       const rows = await fetchProgressRows();
       identities = groupByIdentity(rows);
+      luigiExercises = buildLuigiExercises(rows);
       renderIdentityPicker();
 
       if (exerciseContentCache.size === 0) {

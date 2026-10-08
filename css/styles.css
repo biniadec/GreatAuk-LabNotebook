@@ -1929,3 +1929,61 @@ footer.site-footer {
   color: var(--text-muted);
   padding: 2rem 1rem;
 }
+
+/* ---------- Merged Luigi view: multiple saved versions ---------- */
+
+.version-badge {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--warning);
+  background: var(--warning-light);
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.version-history {
+  margin-top: 0.8rem;
+}
+
+.version-entry {
+  border-left: 2px solid var(--border);
+  padding-left: 0.9rem;
+  margin: 0.7rem 0;
+}
+
+.version-entry:first-child {
+  margin-top: 0.7rem;
+}
+
+.version-badge {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--warning);
+  background: var(--warning-light);
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.version-history {
+  margin-top: 0.8rem;
+}
+
+.version-entry {
+  border-left: 2px solid var(--border);
+  padding-left: 0.9rem;
+  margin: 0.7rem 0;
+}
+
+.version-entry:first-child {
+  margin-top: 0.7rem;
+}
