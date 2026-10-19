@@ -33,24 +33,34 @@
       </form>
     </section>
 
-    <!-- Access denied: shown when authenticated but not in public.instructors -->
+    <!-- Access denied: shown when authenticated but neither admin nor a teacher of any project -->
     <section class="card access-denied-card" data-role="denied-view" hidden>
       <h2 style="font-size:1.05rem;">Access denied</h2>
-      <p>This Supabase account is signed in but is not authorized as an instructor for this course.</p>
+      <p>This account is signed in but is not authorized as a teacher or administrator for any project.</p>
     </section>
 
     <!-- Main supervisor view: shown once authorized -->
     <section data-role="main-view" hidden>
 
-      <div class="identity-picker" data-role="identity-picker" hidden>
-        <div data-role="identity-note"></div>
-        <label for="identity-select" style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-muted);margin:0.6rem 0 0.3rem;">Viewing identity:</label>
-        <select id="identity-select" data-role="identity-select"></select>
+      <p class="supervisor-meta" data-role="role-label"></p>
+
+      <div class="identity-picker" data-role="project-picker" hidden>
+        <label for="project-select" style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-muted);margin:0 0 0.3rem;">Project:</label>
+        <select id="project-select" data-role="project-select"></select>
       </div>
 
-      <p class="supervisor-meta" data-role="identity-label"></p>
+      <div data-role="teachers-note" class="supervisor-meta" hidden></div>
 
-      <div class="supervisor-filters">
+      <div data-role="roster-container"></div>
+
+      <div class="identity-picker" data-role="student-picker" hidden>
+        <label for="student-select" style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-muted);margin:0 0 0.3rem;">Viewing student:</label>
+        <select id="student-select" data-role="student-select"></select>
+      </div>
+
+      <p class="supervisor-meta" data-role="student-label"></p>
+
+      <div class="supervisor-filters" data-role="filters-row" hidden>
         <select data-role="filter-module" aria-label="Filter by module">
           <option value="all">All modules</option>
         </select>
@@ -68,13 +78,14 @@
 
       <div data-role="modules-container"></div>
 
-      <p class="supervisor-empty-state" data-role="no-data-message" hidden>No exercise_progress rows found yet.</p>
+      <p class="supervisor-empty-state" data-role="no-data-message" hidden></p>
 
     </section>
 
   </div>
 
   <script src="js/modules-data.js"></script>
+  <script src="js/projects-data.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/supabase-client.js"></script>
   <script src="js/supervisor.js"></script>
