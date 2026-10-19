@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Sign in — Great Auk Lab Notebook</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <div class="auth-page-shell">
+    <h1>Great Auk Lab Notebook</h1>
+
+    <section class="card">
+      <h2 style="font-size:1.05rem;">Sign in</h2>
+      <form data-role="login-form">
+        <div class="form-field">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" name="email" autocomplete="username" required />
+        </div>
+        <div class="form-field">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" autocomplete="current-password" required />
+        </div>
+        <div class="form-error" data-role="login-error"></div>
+        <button type="submit" class="btn btn-primary" data-role="login-submit">Sign in</button>
+      </form>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

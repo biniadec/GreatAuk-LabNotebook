@@ -1942,34 +1942,6 @@ footer.site-footer {
   background: var(--warning-light);
   padding: 0.12rem 0.5rem;
   border-radius: 999px;
-  margin-left: 0.5rem;
-  vertical-align: middle;
-}
-
-.version-history {
-  margin-top: 0.8rem;
-}
-
-.version-entry {
-  border-left: 2px solid var(--border);
-  padding-left: 0.9rem;
-  margin: 0.7rem 0;
-}
-
-.version-entry:first-child {
-  margin-top: 0.7rem;
-}
-
-.version-badge {
-  display: inline-block;
-  font-size: 0.66rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--warning);
-  background: var(--warning-light);
-  padding: 0.12rem 0.5rem;
-  border-radius: 999px;
   margin-left: 0.4rem;
   vertical-align: middle;
 }
@@ -1986,4 +1958,70 @@ footer.site-footer {
 
 .version-entry:first-child {
   margin-top: 0.7rem;
+}
+
+/* =========================================================
+   Auth gate, login/not-enrolled pages, sidebar account/project UI
+   ========================================================= */
+
+/* Hidden by default on every page using the shared app-shell layout;
+   auth-guard.js adds body.auth-ready once a real (non-anonymous) session
+   is confirmed. Prevents a flash of content before a redirect-to-login
+   check completes. Scoped with :not() rather than editing .app-shell's
+   own rule, so the base layout rule stays untouched. */
+body:not(.auth-ready) .app-shell {
+  display: none !important;
+}
+
+.sidebar-account {
+  padding-top: 0.9rem;
+}
+
+.sidebar-account-name {
+  font-size: 0.78rem;
+  color: rgba(238, 245, 250, 0.75);
+  margin: 0 0 0.6rem;
+  overflow-wrap: break-word;
+}
+
+.sidebar-account .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.sidebar-project-switcher {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.sidebar-project-switcher a {
+  font-size: 0.74rem;
+  color: rgba(238, 245, 250, 0.7);
+  text-decoration: none;
+}
+
+.sidebar-project-switcher a:hover,
+.sidebar-project-switcher a.is-active {
+  color: var(--white);
+  text-decoration: underline;
+}
+
+/* Standalone pages (login, not-enrolled) that don't use the sidebar shell */
+.auth-page-shell {
+  max-width: 400px;
+  margin: 3.5rem auto;
+  padding: 0 1.5rem;
+  text-align: center;
+}
+
+.auth-page-shell h1 {
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+}
+
+.auth-page-shell .card {
+  padding: 2rem 1.75rem;
+  text-align: left;
 }

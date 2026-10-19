@@ -22,6 +22,7 @@
             <span class="brand-subtitle">Genomics</span>
           </span>
         </a>
+        <div class="sidebar-project-switcher" data-role="project-switcher" hidden></div>
       </div>
 
       <div class="sidebar-section">
@@ -76,6 +77,13 @@
         <a href="glossary.html" class="nav-link" data-nav="glossary">
           <span class="nav-icon" data-icon="glossary"></span> Glossary
         </a>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section sidebar-account">
+        <p class="sidebar-account-name" data-role="account-name"></p>
+        <button type="button" class="btn btn-secondary btn-small" data-role="sign-out-btn">Sign out</button>
       </div>
 
       <div class="sidebar-footer">
@@ -197,6 +205,9 @@
     </main>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/auth-guard.js"></script>
   <script src="js/icons.js"></script>
   <script src="js/app.js"></script>
 </body>

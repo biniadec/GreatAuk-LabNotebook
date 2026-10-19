@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Thylacine RNA — Lab Notebook</title>
+  <meta name="description" content="Thylacine RNA project — content in development." />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>body:not(.auth-ready) .auth-page-shell { display: none; }</style>
+</head>
+<body>
+
+  <div class="auth-page-shell" style="max-width:480px;">
+    <h1>Thylacine RNA</h1>
+
+    <section class="card" style="text-align:center;">
+      <p>
+        This project's exercises haven't been built yet — they'll be designed together with Emilio,
+        using his real datasets and workflows, the same way every exercise in Great Auk Comparative
+        Genomics was built from verified, real material rather than invented content.
+      </p>
+      <p class="supervisor-meta" data-role="account-name" style="margin-top:1rem;"></p>
+      <div style="display:flex; gap:0.6rem; justify-content:center; margin-top:0.75rem;">
+        <a class="btn btn-secondary" href="../index.html">Go to Great Auk</a>
+        <button type="button" class="btn btn-secondary" data-role="sign-out-btn">Sign out</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    window.GreatAuk = window.GreatAuk || {};
+    window.GreatAuk.REQUIRED_PROJECT = "thylacine-rna";
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/supabase-client.js"></script>
+  <script src="../js/auth-guard.js"></script>
+  <script>
+    window.GreatAuk.authReady.then(() => {
+      document.body.classList.add("auth-ready");
+    });
+  </script>
+</body>
+</html>

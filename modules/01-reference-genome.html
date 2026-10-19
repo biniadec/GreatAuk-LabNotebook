@@ -22,6 +22,7 @@
             <span class="brand-subtitle">Genomics</span>
           </span>
         </a>
+        <div class="sidebar-project-switcher" data-role="project-switcher" hidden></div>
       </div>
 
       <div class="sidebar-section">
@@ -76,6 +77,13 @@
         <a href="../glossary.html" class="nav-link" data-nav="glossary">
           <span class="nav-icon" data-icon="glossary"></span> Glossary
         </a>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section sidebar-account">
+        <p class="sidebar-account-name" data-role="account-name"></p>
+        <button type="button" class="btn btn-secondary btn-small" data-role="sign-out-btn">Sign out</button>
       </div>
 
       <div class="sidebar-footer">
@@ -893,6 +901,11 @@ cat metadata/genome_manifest.tsv</div>
   <script src="../js/modules-data.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../js/supabase-client.js"></script>
+  <script>
+    window.GreatAuk = window.GreatAuk || {};
+    window.GreatAuk.REQUIRED_PROJECT = "great-auk";
+  </script>
+  <script src="../js/auth-guard.js"></script>
   <script src="../js/storage.js"></script>
   <script src="../js/sync-adapter.js"></script>
   <script src="../js/icons.js"></script>

@@ -1,10 +1,10 @@
 /**
  * sync-adapter.js
  *
- * Makes Supabase the authoritative, shared copy of Luigi's progress while
- * keeping localStorage as an instant local cache/offline fallback — without
- * changing ProgressStore's public API, and without progress.js or home.js
- * needing to know Supabase exists at all.
+ * Makes Supabase the authoritative, shared copy of a signed-in student's
+ * progress while keeping localStorage as an instant local cache/offline
+ * fallback — without changing ProgressStore's public API, and without
+ * progress.js or home.js needing to know Supabase exists at all.
  *
  * How it fits in: storage.js defines ProgressStore with a plain
  * LocalStorageAdapter. This file defines a HybridAdapter with the exact
@@ -13,23 +13,32 @@
  * make (store.setExerciseComplete, store.getExerciseNotes, ...) is
  * unchanged — only what happens underneath is new.
  *
- * Session: an anonymous Supabase session is restored (or silently created)
- * on first use. The Supabase JS client persists that session's refresh
- * token in this browser's localStorage and keeps it alive indefinitely —
- * there is no separate "login" step and nothing for Luigi to see.
+ * Session: this file assumes auth-guard.js has already run on this page
+ * and confirmed a real, permanent (non-anonymous) session exists — it
+ * awaits `window.GreatAuk.authReady` before doing anything, reusing the
+ * session/membership/display-name auth-guard already resolved rather than
+ * querying again. There is no anonymous sign-in here at all; if no real
+ * session is present (shouldn't happen given the guard, but defensive),
+ * this falls back to localStorage-only, same as any other Supabase outage.
+ *
+ * Every localStorage key this file touches (completion map, notes map,
+ * pending-sync queue, one-time-migration flag) is scoped by both the
+ * signed-in user's id and the current project's slug, so two different
+ * students' answers — or the same student's progress in two different
+ * projects — never collide in the same browser.
  *
  * On first read in a page load:
- *  - if Supabase already has rows for this user, they overwrite the local
- *    cache (Supabase is authoritative);
- *  - if Supabase has no rows yet but localStorage has existing progress
- *    (e.g. from before this feature existed), that local data is pushed up
- *    once as the seed, then Supabase takes over from there.
+ *  - if Supabase already has rows for this user+project, they overwrite the
+ *    local cache (Supabase is authoritative);
+ *  - if Supabase has no rows yet but localStorage has existing progress for
+ *    this scoped key, that local data is pushed up once as the seed.
  *
  * On every write:
  *  - localStorage is updated immediately (so the UI never waits on the
  *    network — this is what progress.js's "Saved" status reflects);
  *  - the changed exercise row(s) are upserted to Supabase in the
- *    background;
+ *    background, tagged with the real project_id and the student's real
+ *    display name (never a hardcoded label);
  *  - anything that fails to sync (offline, transient error) is kept in a
  *    small local retry queue and re-attempted on the next write or page
  *    load, so nothing is silently lost.
@@ -38,8 +47,6 @@
 (function (global) {
   "use strict";
 
-  const PENDING_KEY = "greatauk_sync_pending_v1";
-  const MIGRATED_KEY = "greatauk_sync_migrated_v1";
   const TABLE = "exercise_progress";
 
   function getLocalAdapter() {
@@ -54,6 +61,10 @@
     return global.GreatAuk.supabase;
   }
 
+  function currentProjectSlug() {
+    return global.GreatAuk.REQUIRED_PROJECT || "great-auk";
+  }
+
   // ---- in-memory state for this page load ------------------------------
 
   // { [exerciseId]: { completed: bool, notes: string } } — the merged,
@@ -63,8 +74,9 @@
   let mergedState = {};
   let sessionPromise = null;
   let loadPromise = null;
+  let projectIdPromise = null;
 
-  // ---- session ----------------------------------------------------------
+  // ---- session / project / display name ----------------------------------
 
   async function ensureSession() {
     if (sessionPromise) return sessionPromise;
@@ -72,13 +84,12 @@
       const client = getClient();
       if (!client) return null;
       try {
-        const { data, error: getErr } = await client.auth.getSession();
-        if (getErr) throw getErr;
-        if (data && data.session) return data.session;
-
-        const { data: signInData, error: signInErr } = await client.auth.signInAnonymously();
-        if (signInErr) throw signInErr;
-        return signInData.session;
+        if (global.GreatAuk.authReady) await global.GreatAuk.authReady;
+        const { data, error } = await client.auth.getSession();
+        if (error) throw error;
+        const session = data && data.session;
+        if (!session || session.user.is_anonymous) return null;
+        return session;
       } catch (err) {
         console.warn("[GreatAuk] Supabase session unavailable — using localStorage only.", err);
         return null;
@@ -87,14 +98,56 @@
     return sessionPromise;
   }
 
+  async function ensureProjectId() {
+    if (projectIdPromise) return projectIdPromise;
+    projectIdPromise = (async () => {
+      const slug = currentProjectSlug();
+      try {
+        if (global.GreatAuk.authReady) await global.GreatAuk.authReady;
+        const memberships = global.GreatAuk.currentMemberships || [];
+        const match = memberships.find((m) => m.projects && m.projects.slug === slug);
+        if (match) return match.project_id;
+
+        const client = getClient();
+        const { data, error } = await client.from("projects").select("id").eq("slug", slug).maybeSingle();
+        if (error) throw error;
+        return data ? data.id : null;
+      } catch (err) {
+        console.warn("[GreatAuk] Could not resolve project id.", err);
+        return null;
+      }
+    })();
+    return projectIdPromise;
+  }
+
+  function currentDisplayName() {
+    return global.GreatAuk.currentDisplayName || null;
+  }
+
+  // ---- scoped localStorage keys ------------------------------------------
+
+  async function scopedKey(baseKey) {
+    const session = await ensureSession();
+    const uid = session ? session.user.id : "anonymous";
+    return `${baseKey}::${uid}::${currentProjectSlug()}`;
+  }
+
   // ---- pending (retry) queue --------------------------------------------
 
+  async function pendingKey() {
+    return scopedKey("greatauk_sync_pending_v1");
+  }
+
+  async function migratedKey() {
+    return scopedKey("greatauk_sync_migrated_v1");
+  }
+
   async function readPending() {
-    return (await getLocalAdapter().read(PENDING_KEY)) || {};
+    return (await getLocalAdapter().read(await pendingKey())) || {};
   }
 
   async function writePending(pending) {
-    await getLocalAdapter().write(PENDING_KEY, pending);
+    await getLocalAdapter().write(await pendingKey(), pending);
   }
 
   async function queuePending(rows) {
@@ -133,12 +186,16 @@
       return false;
     }
     try {
+      const projectId = await ensureProjectId();
+      if (!projectId) throw new Error("Could not resolve current project id");
+      const displayName = currentDisplayName();
       const payload = rows.map((r) => ({
         user_id: session.user.id,
         exercise_id: r.exercise_id,
         completed: r.completed,
         notes: r.notes,
-        student_label: "Luigi",
+        student_label: displayName,
+        project_id: projectId,
       }));
       const { error } = await client.from(TABLE).upsert(payload, { onConflict: "user_id,exercise_id" });
       if (error) throw error;
@@ -170,12 +227,15 @@
         const session = await ensureSession();
         const local = getLocalAdapter();
         const keys = getKeys();
+        const completionKey = await scopedKey(keys.COMPLETION);
+        const notesKey = await scopedKey(keys.NOTES);
 
         if (!session) {
-          // No Supabase session available (disabled, offline, blocked) —
-          // fall back to local data exactly as the plain adapter would.
-          const completion = (await local.read(keys.COMPLETION)) || {};
-          const notes = (await local.read(keys.NOTES)) || {};
+          // No real session available (shouldn't happen given auth-guard,
+          // but defensive) — fall back to local data exactly as the plain
+          // adapter would.
+          const completion = (await local.read(completionKey)) || {};
+          const notes = (await local.read(notesKey)) || {};
           for (const id of Object.keys(completion)) {
             mergedState[id] = { completed: true, notes: notes[id] || "" };
           }
@@ -187,14 +247,16 @@
 
         const client = getClient();
         try {
+          const projectId = await ensureProjectId();
           const { data, error } = await client
             .from(TABLE)
             .select("exercise_id,completed,notes")
-            .eq("user_id", session.user.id);
+            .eq("user_id", session.user.id)
+            .eq("project_id", projectId);
           if (error) throw error;
 
           if (data && data.length > 0) {
-            // Supabase already has rows for this identity — authoritative.
+            // Supabase already has rows for this user+project — authoritative.
             const completionMap = {};
             const notesMap = {};
             for (const row of data) {
@@ -202,15 +264,17 @@
               if (row.completed) completionMap[row.exercise_id] = true;
               if (row.notes) notesMap[row.exercise_id] = row.notes;
             }
-            await local.write(keys.COMPLETION, completionMap);
-            await local.write(keys.NOTES, notesMap);
+            await local.write(completionKey, completionMap);
+            await local.write(notesKey, notesMap);
           } else {
-            // Supabase is empty for this identity. One-time migration of
-            // whatever is already in localStorage, if anything.
-            const alreadyMigrated = await local.read(MIGRATED_KEY);
+            // Supabase is empty for this user+project. One-time migration of
+            // whatever is already in this scoped slice of localStorage, if
+            // anything.
+            const migKey = await migratedKey();
+            const alreadyMigrated = await local.read(migKey);
             if (!alreadyMigrated) {
-              const localCompletion = (await local.read(keys.COMPLETION)) || {};
-              const localNotes = (await local.read(keys.NOTES)) || {};
+              const localCompletion = (await local.read(completionKey)) || {};
+              const localNotes = (await local.read(notesKey)) || {};
               const ids = new Set([...Object.keys(localCompletion), ...Object.keys(localNotes)]);
               if (ids.size > 0) {
                 const rows = Array.from(ids).map((id) => ({
@@ -221,13 +285,13 @@
                 await upsertRows(session, rows);
                 for (const row of rows) mergedState[row.exercise_id] = { completed: row.completed, notes: row.notes };
               }
-              await local.write(MIGRATED_KEY, true);
+              await local.write(migKey, true);
             }
           }
         } catch (err) {
           console.warn("[GreatAuk] Could not load Supabase progress — using local cache only.", err);
-          const completion = (await local.read(keys.COMPLETION)) || {};
-          const notes = (await local.read(keys.NOTES)) || {};
+          const completion = (await local.read(completionKey)) || {};
+          const notes = (await local.read(notesKey)) || {};
           for (const id of Object.keys(completion)) {
             mergedState[id] = { completed: true, notes: notes[id] || "" };
           }
@@ -256,16 +320,19 @@
   const HybridAdapter = {
     async read(key) {
       await loadMergedStateOnce();
-      return getLocalAdapter().read(key);
+      const scoped = await scopedKey(key);
+      return getLocalAdapter().read(scoped);
     },
 
     async write(key, value) {
       const keys = getKeys();
       await loadMergedStateOnce();
 
+      const scoped = await scopedKey(key);
+
       // Always write local first — this is what progress.js's "Saved"
       // status is timed against, so it stays fast and offline-safe.
-      await getLocalAdapter().write(key, value);
+      await getLocalAdapter().write(scoped, value);
 
       // Work out which exercise_id(s) this write actually changed, using
       // mergedState as the "last known" baseline, then merge in each row's
