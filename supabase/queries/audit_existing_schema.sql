@@ -1,18 +1,17 @@
 -- ============================================================================
 -- audit_existing_schema.sql
 --
--- READ-ONLY. Run this FIRST, before applying 0001, and before trusting
--- anything in 0001's "ASSUMED CURRENT STATE" comment block. Everything
--- about exercise_progress and instructors prior to this branch was set up
--- ad hoc in the SQL editor across several earlier sessions, never version-
--- controlled — the assumed-state comment in 0001 was reconstructed from
--- project history (commit messages, prior conversation), not from
--- inspecting the live schema directly. This query closes that gap.
+-- READ-ONLY. This is the query that produced 0001's "CONFIRMED CURRENT
+-- STATE" comment block — kept here as a durable, re-runnable record, and in
+-- case the live schema changes again before 0001 is actually applied.
+-- Everything about exercise_progress and instructors prior to this branch
+-- was set up ad hoc in the SQL editor across several earlier sessions,
+-- never version-controlled; this query is what replaced an earlier,
+-- reconstructed-from-history guess with the real, confirmed structure.
 --
--- Compare its output against 0001's assumed-state comment; if anything
--- differs (a column type, a constraint, a policy's actual expression, an
--- extra trigger nobody wrote down), fix 0001 to match reality before
--- running it, not after.
+-- If re-running this ever shows something different from what 0001's
+-- "CONFIRMED CURRENT STATE" comment currently says, fix 0001 to match
+-- reality before applying it, not after.
 -- ============================================================================
 
 -- 1. RLS policies currently defined on the two existing tables — exact

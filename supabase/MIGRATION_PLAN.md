@@ -4,37 +4,44 @@ Status: **draft, nothing applied**. This document describes what the migration f
 do and how the account migration and app-code changes would proceed once reviewed and approved.
 Nothing in this document has been run against the live database or deployed to GitHub Pages.
 
-## 0. Security review fixes applied in this revision
+## 0. Security review fixes applied across revisions
 
-A review of the first version of this package (commit `2de2754`) found seven issues, all addressed
-below. If you're re-reading this plan after the first pass, this section is the delta:
+**First review** (of commit `2de2754`) found three issues:
 
 1. **Recursive RLS** — policies on `profiles` querying `profiles`, and a policy on
    `project_memberships` querying `project_memberships`, from within their own `USING` clauses.
    Replaced with `SECURITY DEFINER` helper functions (pinned `search_path`, least-privilege `EXECUTE`
    grants) — see section 1a.
 2. **Privilege escalation** — the original "Users can update own profile" policy let a student set
-   their own `role` to `'admin'`, since `USING`/`WITH CHECK` only restrict which *row*, never which
-   *column*. Fixed with a column-level `GRANT` restricting self-service updates to `display_name`
-   only — enforced by Postgres independently of, and prior to, RLS. See section 1a.
+   their own `role` to `'admin'`. Fixed with a column-level `GRANT` restricting self-service updates
+   to `display_name` only — enforced by Postgres independently of, and prior to, RLS. See section 1a.
 3. **Backward compatibility** — the original `NOT NULL project_id` column had no default, which
-   would have broken every write from the still-unmodified live sync adapter (it doesn't send
-   `project_id`). Fixed with a `SECURITY DEFINER` default function so legacy inserts keep working
-   unchanged during the transition. See section 3.
-4. **Migration copy safety** — the original copy script used a blanket
-   `DISABLE TRIGGER USER` (disables *everything*, not just whatever might touch `updated_at`) and a
-   silent `ON CONFLICT ... DO NOTHING` (would silently skip rows without any visible sign). Replaced
-   with an inspect-first, fail-loud approach. See section 2.
-5. **Account identity / `student_label`** — found that Luigi's 21 genuine Module 00 rows have a
-   **NULL** `student_label` (they predate that column existing at all). This is a real, currently-live
-   gap: `supervisor.js` on `main` today filters on `student_label = 'Luigi'` exactly, so it is
-   silently missing those 21 rows right now, in production — not just a migration concern. See
-   section 4a.
-6. **RLS tests** — `queries/rls_tests.sql` added, proving (not just asserting) the four required
-   guarantees directly against the real policies.
-7. **Legacy policy audit** — `queries/audit_existing_schema.sql` added: a read-only inspection of the
-   actual live policies/grants/triggers/columns, since the "ASSUMED CURRENT STATE" in `0001` was
-   reconstructed from project history, not from direct inspection.
+   would have broken every write from the still-unmodified live sync adapter. Fixed with a
+   `SECURITY DEFINER` default function. See section 3.
+
+That revision also added `queries/rls_tests.sql` (proving, not asserting, four required guarantees)
+and `queries/audit_existing_schema.sql` (a read-only inspection of the live schema, replacing
+reconstructed assumptions).
+
+**Second review**, now backed by the completed audit's actual output, found three more:
+
+4. **No enforcement that a write's `project_id` matches real membership** — any authenticated session
+   could write any `project_id` for its own `user_id`, with nothing checking it against
+   `project_memberships` at all. Fixed with two new `RESTRICTIVE` policies (section 4b) that require
+   real membership, with an explicit, narrowly-scoped legacy allowance so Luigi's current anonymous
+   writes (and anyone else not yet enrolled) keep working unchanged.
+5. **Unnecessarily broad grants** — `anon`/`authenticated` both hold `TRUNCATE` and `TRIGGER` on
+   `exercise_progress`, confirmed by the audit, almost certainly a Studio-UI table-creation default
+   rather than anything the app needs. Revoked in section 4c.
+6. **The relabel/retire script's `UPDATE`s would stomp preserved timestamps** — the audit confirmed
+   the exact trigger (`set_exercise_progress_updated_at`, `BEFORE UPDATE`) that would fire on those
+   statements and overwrite `updated_at` to `now()` for no reason. Fixed in
+   `relabel_and_retire_luigi_anonymous.sql` by disabling that one, now-confirmed-named trigger around
+   just those two statements.
+
+Also acted on in this pass: `queries/rls_tests.sql` expanded with project-boundary and legacy-write
+tests (section 7), and every "assumed" reference in `0001` replaced with the confirmed, audited
+schema (section 1).
 
 ## 1. What the schema migration adds
 
@@ -47,18 +54,23 @@ below. If you're re-reading this plan after the first pass, this section is the 
   insert that omits it, then made `not null`.
 - A set of `SECURITY DEFINER` helper functions (`is_admin`, `_is_teacher_for_project`,
   `_is_student_in_project`, `is_teacher_of_student_in_project`,
-  `shares_any_project_as_teacher_student`, `default_great_auk_project_id`) that every policy below
-  calls into, instead of any policy querying its own table (or another RLS-protected table) directly
-  from within its own check. See section 1a for the full reasoning and the exact privilege model.
+  `shares_any_project_as_teacher_student`, `is_student_for_project`, `has_any_project_membership`,
+  `default_great_auk_project_id`) that every policy below calls into, instead of any policy querying
+  its own table (or another RLS-protected table) directly from within its own check. See section 1a.
 - A new, **additive** teacher-read policy on `exercise_progress`, scoped to only the students who
   share a project with that teacher — this is what satisfies "teachers can only access students
-  belonging to their assigned projects."
+  belonging to their assigned projects" for reads.
 - A new admin-read policy, unconditional, on `profiles`, `projects`, `project_memberships`, and
   `exercise_progress` — this is what satisfies "the administrator can access everything."
+- Two new `RESTRICTIVE` policies enforcing project membership on `exercise_progress` **writes**
+  (`INSERT`/`UPDATE`), with an explicit legacy allowance — see section 4b.
+- A `REVOKE` of the `TRUNCATE`/`TRIGGER` privileges that `anon`/`authenticated` currently hold on
+  `exercise_progress` — see section 4c.
 
 Nothing existing is renamed, dropped, or altered in place except the one `alter table ... add
-column` / backfill / `set not null` sequence on `exercise_progress`, which only adds a column and
-fills it in — no existing column, row, or policy is touched.
+column` / backfill / `set not null` sequence on `exercise_progress`, and the 4c grant revocation
+(which the app never uses either privilege for) — no existing column, row, read policy, or write
+policy's *existing* behavior is touched; the new write policies only ever add a requirement on top.
 
 ## 1a. Why helper functions, and the exact privilege model
 
@@ -84,9 +96,10 @@ Every function applies the same security properties:
   these as a lower-privileged role, or the bypass stops working.
 - `EXECUTE` revoked from `public`, granted only to `authenticated` (never `anon` — not used by this
   app; every real session here, including anonymous sign-ins, already carries role `authenticated`).
-- The two lowest-level checks (`is_admin`, `_is_teacher_for_project`) only ever answer a question
-  about the *caller* (`auth.uid()`) — they take no "which user" argument, so there's nothing to probe
-  about anyone else by calling them directly.
+- Most functions (`is_admin`, `_is_teacher_for_project`, `is_student_for_project`,
+  `has_any_project_membership`) only ever answer a question about the *caller* (`auth.uid()`) — they
+  take no "which user" argument, so there's nothing to probe about anyone else by calling them
+  directly.
 - `_is_student_in_project` **does** answer a question about another, specific user (needed for "is
   this other `user_id` a student in a project I teach"). This one is deliberately **not** granted
   `EXECUTE` to `authenticated` at all — it's only ever called from inside the two combined functions
@@ -95,9 +108,9 @@ Every function applies the same security properties:
   Only the already-authorization-scoped combined functions
   (`is_teacher_of_student_in_project`, `shares_any_project_as_teacher_student`) are exposed.
 
-This is a stricter design than the review strictly asked for (it only named the recursion problem),
-but it's the natural extension of the same fix: once you're routing authorization checks through
-functions anyway, it costs nothing extra to also close the "enumerate arbitrary users via a
+This is a stricter design than the first review strictly asked for (it only named the recursion
+problem), but it's the natural extension of the same fix: once you're routing authorization checks
+through functions anyway, it costs nothing extra to also close the "enumerate arbitrary users via a
 directly-callable function" gap, so it's included here rather than left for later.
 
 ## 2. Transferring Luigi's progress to a permanent account
@@ -113,28 +126,31 @@ automated regression testing, not additional genuine work.
 
 Sequencing, each step gated on the one before it:
 
-1. Run `queries/audit_existing_schema.sql` (read-only) and reconcile its output against `0001`'s
-   "ASSUMED CURRENT STATE" comment before trusting it.
+1. Run `queries/audit_existing_schema.sql` (read-only) — **done**; its output is what `0001`'s
+   "CONFIRMED CURRENT STATE" comment now reflects directly, replacing the earlier reconstructed
+   assumption.
 2. Apply `migrations/0001_multi_user_platform.sql` (profiles/projects/project_memberships/
-   `project_id`/helper functions).
+   `project_id`/helper functions/write-enforcement policies/grant restriction).
 3. Create Luigi's new permanent account via the Supabase Dashboard (Authentication → Users → Add
    user — the same method already used for the instructor account; not SQL, since `auth.users` is
    managed by Supabase Auth itself, not something to insert into directly).
 4. Run `queries/setup_luigi_profile_membership.sql` (sets his real display name, enrolls him in the
    Great Auk project) — the account's `profiles` row already exists by this point, created
    automatically by the new trigger.
-5. Run `queries/migrate_luigi_copy.sql`'s STEP 0 and STEP 1 (both read-only) and read their output.
-   STEP 0 checks whether any trigger would interfere with the preserved timestamps; STEP 1 confirms
-   the destination has no pre-existing conflicting rows. Only then run STEP 2, the actual copy —
-   copies (does not move) all 25 rows from `d303c036-37ce-4723-876d-c207c706cf5c`, keyed on `user_id`
-   only (not `student_label` — see section 4a for why that matters), preserving `completed`, `notes`,
-   and `updated_at` exactly. The original rows are untouched.
+5. Run `queries/migrate_luigi_copy.sql`'s STEP 0 and STEP 1 (both read-only), then STEP 2, the actual
+   copy — copies (does not move) all 25 rows from `d303c036-37ce-4723-876d-c207c706cf5c`, keyed on
+   `user_id` only (not `student_label` — see section 4a for why that matters), preserving
+   `completed`, `notes`, and `updated_at` exactly. The original rows are untouched. No trigger-related
+   precaution is needed for this step specifically — the audit confirmed the one trigger on this
+   table is `BEFORE UPDATE` only, so a plain `INSERT` is unaffected.
 6. Run `queries/verify_luigi_migration.sql` — row count, a full field-by-field comparison, and an
    explicit check on the Exercise 04 genuine-but-incomplete case.
 7. Only once (6) passes AND Luigi has logged into the new account on the live, tested app and
    confirmed his progress/notes appear correctly: run
    `queries/relabel_and_retire_luigi_anonymous.sql`, which relabels the copy to `"Luigi"` and retires
-   (relabels, does not delete) the original anonymous rows out of that grouping.
+   (relabels, does not delete) the original anonymous rows out of that grouping — with the
+   `set_exercise_progress_updated_at` trigger deliberately disabled around just those two statements,
+   so the relabeling itself doesn't overwrite the very timestamps step 5 preserved (see section 4a).
 
 The copied rows are deliberately given a distinct transitional label rather than `"Luigi"` — see
 section 4a below for why.
@@ -146,16 +162,13 @@ the original anonymous rows completely inert and untouched throughout testing �
 required, with no fallback-less single identity being converted in place while you're still testing
 whether the new login flow actually works.
 
-**On the copy's safety (revised):** the previous version wrapped STEP 2 in a blanket
-`DISABLE TRIGGER USER`, which would have silently disabled *any* trigger on the table, not just one
-that happens to touch `updated_at` — too broad a tool for a problem that might not even exist. It
-also used `ON CONFLICT ... DO NOTHING`, which would silently skip a row that happened to already
-exist at the destination, with no visible sign anything was skipped. Both are fixed: STEP 0 tells you
-definitively, by reading the trigger's actual definition, whether disabling anything is even
-necessary (and names the one trigger to disable, surgically, if so — never all of them); STEP 1
-checks in advance, read-only, whether a conflict would occur; and STEP 2 itself has no
-`ON CONFLICT` clause at all, so a real conflict (which should never legitimately happen against a
-brand-new account) fails loudly with a constraint-violation error instead of silently vanishing.
+**On the copy's safety:** the first revision of this script used a blanket `DISABLE TRIGGER USER` and
+a silent `ON CONFLICT ... DO NOTHING`, both replaced: STEP 1 checks in advance, read-only, whether a
+conflict would occur, and STEP 2 itself has no `ON CONFLICT` clause at all, so a real conflict (which
+should never legitimately happen against a brand-new account) fails loudly with a
+constraint-violation error instead of silently vanishing. The trigger question itself turned out to
+be moot for this specific step once confirmed by audit (BEFORE UPDATE only, doesn't fire on INSERT) —
+it *does* matter for the later relabel/retire step, handled there instead (see step 7 above).
 
 ## 3. Backward compatibility: the live site must keep working during the transition
 
@@ -171,8 +184,7 @@ projects WHERE slug = 'great-auk'` would run under the *inserting session's own*
 session with no `project_memberships` row yet (every current anonymous session, and every brand-new
 account before enrollment) sees zero rows under the "Members can read their own projects" policy on
 `projects`, so the default would resolve to `NULL` and the `NOT NULL` constraint would fail anyway,
-defeating the purpose. The `SECURITY DEFINER` function bypasses exactly that, resolving the Great Auk
-project's id reliably regardless of the inserting session's own enrollment state. The column stays
+defeating the purpose. The `SECURITY DEFINER` function bypasses exactly that. The column stays
 `NOT NULL` — it's just never actually `NULL` by omission anymore, legacy or otherwise.
 
 ## 4. Making localStorage user-specific
@@ -207,8 +219,8 @@ transition doesn't depend on it being done first.
 
 ## 4a. Identity: `user_id` + `project_memberships`, not `student_label`
 
-**Found during this review, and important beyond just this migration**: Luigi's 21 genuine Module 00
-rows have a **NULL** `student_label` — they predate that column/field being added to the write path
+**Found during review, and important beyond just this migration**: Luigi's 21 genuine Module 00 rows
+have a **NULL** `student_label` — they predate that column/field being added to the write path
 entirely (it was introduced partway through this project, after Module 00 was already built and
 tested). `supervisor.js` as it exists on `main` **today** groups and displays rows by filtering
 `student_label = 'Luigi'` exactly — meaning it is currently, silently, missing all 21 of those rows in
@@ -228,15 +240,67 @@ This also explains why `migrate_luigi_copy.sql`'s copy is keyed on `user_id` onl
 `student_label`) — it has to be, or the 21 NULL-labeled Module 00 rows would be silently left behind,
 repeating the exact gap this section just described.
 
-**Avoiding a duplicate "Luigi" in the supervisor view during the transition** (unchanged from before):
-the current supervisor view merges every row sharing a `student_label` into one logical student,
-newest-`updated_at`-wins per exercise. A straight copy produces rows with *identical* `updated_at`
-timestamps to the originals (deliberately preserved), so labeling the copy `"Luigi"` immediately would
-make the merge logic's tie-break arbitrary, with no reliable way to tell which "version" you were
-looking at while verifying the copy. The copied rows instead carry a distinct transitional label
+**Avoiding a duplicate "Luigi" in the supervisor view during the transition**: the current supervisor
+view merges every row sharing a `student_label` into one logical student, newest-`updated_at`-wins per
+exercise. A straight copy produces rows with *identical* `updated_at` timestamps to the originals
+(deliberately preserved), so labeling the copy `"Luigi"` immediately would make the merge logic's
+tie-break arbitrary, with no reliable way to tell which "version" you were looking at while verifying
+the copy. The copied rows instead carry a distinct transitional label
 (`"Luigi (migrated copy — pending verification)"`), so the supervisor view shows old and new side by
 side during testing; only `relabel_and_retire_luigi_anonymous.sql`, once everything is verified,
 relabels the copy to `"Luigi"` and retires the original out of that grouping.
+
+**Preserving timestamps through the relabel itself**: the audit confirmed the exact trigger —
+`set_exercise_progress_updated_at`, `BEFORE UPDATE`, calling `set_updated_at()` — that fires on any
+`UPDATE` to this table. Both statements in the relabel/retire step are `UPDATE`s (changing only
+`student_label`), so without precaution this trigger would stamp `updated_at` to `now()` on all 25+25
+rows for no real reason — the activity being recorded didn't change, only its label did. The script
+disables that one, specifically-named trigger around just those two statements and re-enables it
+immediately after — not a blanket disable of every trigger, and only because the exact name is now
+confirmed rather than guessed.
+
+## 4b. Enforcing project membership on writes, with a legacy allowance
+
+Today, nothing stops an authenticated session from writing (for its own `user_id`) any `project_id` at
+all — the existing `INSERT`/`UPDATE` policies on `exercise_progress` only check `auth.uid() =
+user_id`, with no membership requirement. Harmless while there's exactly one project and no real
+accounts, but once a second project and real enrollments exist, a student should only be able to write
+progress for a project they're actually enrolled in.
+
+Added as two `RESTRICTIVE` policies (Postgres **AND**s restrictive policies with the permissive ones
+already in place, rather than OR-ing — the only way to genuinely narrow what's allowed without
+touching the existing policies at all, which stay completely untouched). Each requires **either**:
+
+- the writer holds a `'student'` `project_memberships` row for exactly the `project_id` being
+  written, **or**
+- the writer holds *no* `project_memberships` row at all yet, and the `project_id` being written is
+  the default Great Auk project.
+
+The second branch is the explicit legacy allowance: Luigi's current anonymous identity (and anyone
+else not yet enrolled) has no `project_memberships` row, so their writes — which always resolve to
+the Great Auk project, either via the column default or because that's the only project in their
+experience of the app today — continue to succeed exactly as before. The moment an account *does* get
+a `project_memberships` row (i.e. is actually onboarded), the legacy branch no longer applies to them
+and they're held to the real membership check — which is also a genuine tightening over today's
+behavior, where even a not-yet-enrolled session could technically write an arbitrary `project_id` with
+nothing stopping it. `queries/rls_tests.sql` TEST 5/6 prove the legacy allowance works and is scoped
+to the default project only; TEST 7/7b prove an enrolled student is confined to their own project.
+
+## 4c. Restricting unnecessary grants
+
+Confirmed by audit: `anon` and `authenticated` both hold `TRUNCATE` and `TRIGGER` on
+`exercise_progress` — almost certainly a Supabase Studio table-creation default, not anything
+deliberately granted for this app. Neither privilege is meaningfully row-scoped by RLS (`TRUNCATE`
+empties the whole table regardless of any policy; `TRIGGER` lets a role create/alter triggers on it),
+so both are pure excess attack surface. The app only ever issues `SELECT`/`INSERT`/`UPDATE` (upsert)
+against this table — revoking these changes no current behavior.
+
+The new tables in this migration (`profiles`, `projects`, `project_memberships`) were never exposed to
+this risk in the first place — created via plain `CREATE TABLE` (not the Studio UI), which grants
+nothing to `anon`/`authenticated` automatically; only the explicit `GRANT` statements in this migration
+apply. Whether the same bloat is present on `instructors` wasn't part of the confirmed audit findings
+(only `exercise_progress` was explicitly reported) — `queries/audit_existing_schema.sql`'s grants query
+already covers both tables, so re-running it would show it rather than it being assumed here.
 
 ## 5. Reusing supervisor auth for student login
 
@@ -269,38 +333,40 @@ This branch currently contains the schema migration, a prepared (not-yet-recomme
 retirement migration, read-only audit/identification/investigation queries, an RLS test script, the
 Luigi account-migration scripts (profile/membership setup, copy, verify, relabel-and-retire), and this
 plan. No application code (`js/*.js`, `*.html`) has been changed. Specifically **not** yet done,
-pending your review:
+pending your review — and per your note, the next things to start once this revision is approved:
 
 - The `supervisor.js` NULL-`student_label` bug described in section 4a (currently live on `main`,
   independent of this migration's timeline).
 - `sync-adapter.js` changes (localStorage key scoping, `project_id`-aware upsert `onConflict` key,
   removing the hardcoded `student_label: "Luigi"`).
-- A student login page/flow (mandatory, not optional — see section 5).
+- **The student login page/flow** (mandatory, not optional — see section 5) — next up after this
+  revision is approved and the actual Supabase migration runs.
 - `supervisor.js`/`supervisor.html` changes to become project-aware and to identify students by
   `user_id`/`project_memberships` rather than `student_label` (see section 4a).
 - Any actual Thylacine RNA course content — the schema can host a second project, but building its
   modules/exercises is a separate, much larger content task, not part of this migration.
 
-## 7. RLS review: do the three required guarantees actually hold?
+## 7. RLS review: do the required guarantees actually hold?
 
-- **"Students can only access their own progress."** Unchanged from today — the original
-  `auth.uid() = user_id` policy on `exercise_progress` is untouched, for both read and write. Still
-  holds. `queries/rls_tests.sql` TEST 2 proves this directly.
-- **"Teachers only access their assigned projects."** Holds for the *new* policy added in `0001`
-  (`"Teachers can read progress of their project's students"`), now routed through
-  `is_teacher_of_student_in_project()`, which checks both a shared teacher-membership on the exact
-  `project_id` of the row *and* the target user's own student-membership on that same project.
-  `queries/rls_tests.sql` TEST 3/3b proves both the negative (unrelated student, denied) and positive
-  (own project's student, allowed) cases. It does **not yet fully hold** as a platform-wide guarantee,
-  because the *old* `instructors`-based policy still grants unconditional, unscoped read access to
-  whoever is in the `instructors` table — see risk #2 below. Complete only once `0002` is run.
+- **"Students can only access their own progress."** Unchanged from today for reads — the original
+  `auth.uid() = user_id` policy on `exercise_progress` is untouched. `queries/rls_tests.sql` TEST 2
+  proves this directly. Writes are now additionally scoped by project membership (see below).
+- **"Teachers only access their assigned projects."** Holds for reads via the new policy routed
+  through `is_teacher_of_student_in_project()`. `rls_tests.sql` TEST 3/3b prove both the negative and
+  positive cases. **Not yet fully a platform-wide guarantee**, because the *old* `instructors`-based
+  policy still grants unconditional, unscoped read access to whoever is in the `instructors` table —
+  see risk #2 below. Complete only once `0002` is run. For **writes**, now also holds directly:
+  `rls_tests.sql` TEST 7/7b prove an enrolled student can't write into a project they're not a member
+  of, and can write within their own.
 - **"The administrator can access everything."** Holds via the new unconditional admin-read policies,
-  gated on `is_admin()`. `queries/rls_tests.sql` TEST 4 proves an admin can read a project they aren't
-  a member of. Requires an actual `profiles` row with `role = 'admin'` to exist for whichever account
-  should have that access — not created automatically for anyone; promoting an account is a manual
+  gated on `is_admin()`. `rls_tests.sql` TEST 4 proves an admin can read a project they aren't a member
+  of. Requires an actual `profiles` row with `role = 'admin'`; promoting an account is a manual
   `update profiles set role = 'admin' where user_id = '...'` after this migration is applied.
 - **"Students cannot change their own role."** Not one of the original three, but explicitly tested
-  anyway (`rls_tests.sql` TEST 1) since it was the privilege-escalation bug found in this review.
+  anyway (`rls_tests.sql` TEST 1) since it was the privilege-escalation bug found in the first review.
+- **"Legacy (not-yet-enrolled) writes keep working, scoped to the default project only."** New
+  guarantee from this revision, proven by `rls_tests.sql` TEST 5 (succeeds into the default project)
+  and TEST 6 (fails into any other project).
 
 ## 8. Risks and decisions to address before proceeding
 
@@ -312,10 +378,8 @@ pending your review:
 2. **The old `instructors`-based "read everything" policy still exists and still works, and is not
    actually project-scoped.** `0002_retire_legacy_instructor_policy.sql` is prepared to retire it, but
    must only be run *after* confirming your own account has working read access through the new model
-   (a `profiles` row with `role = 'admin'`, or a `project_memberships` row with `role = 'teacher'` for
-   Great Auk) — running it first risks locking the current supervisor view out of its own data. It
-   also depends on confirming the old policy's exact name first — `queries/audit_existing_schema.sql`
-   confirms it directly, rather than relying on what's assumed in the file.
+   — running it first risks locking the current supervisor view out of its own data. Its exact name is
+   confirmed directly by `queries/audit_existing_schema.sql`'s first query, not assumed.
 3. **Who enrolls whom.** `project_memberships` has no insert policy for students or teachers —
    enrollment is SQL-editor-only (by you) for now, confirmed acceptable for the initial rollout.
 4. **`exercise_progress`'s upsert conflict key.** It's currently `(user_id, exercise_id)`. Once a
@@ -325,13 +389,21 @@ pending your review:
    practical safeguard, and revisiting whether the conflict key should become `(user_id, project_id,
    exercise_id)` when the `sync-adapter.js` changes are actually implemented.
 5. **The live `supervisor.js` NULL-`student_label` bug** (section 4a) exists independent of this
-   migration and affects production right now. Worth prioritizing on its own timeline, not
-   necessarily bundled with the rest of this rollout.
+   migration and affects production right now. Worth prioritizing on its own timeline.
 6. **Sequencing discipline matters more than usual here.** Each step in section 2 explicitly depends
-   on the one before it having succeeded (audit → schema → account → profile/membership → inspect →
-   copy → verify → only then relabel/retire). Running them out of order, or running the relabel/retire
-   step before Luigi has actually tested the new account live, is the main way this could go wrong.
-7. **The helper functions are a stricter design than the review literally asked for** (see section
-   1a's closing note on `_is_student_in_project` not being directly callable) — flagging this as an
-   explicit design choice made along the way, not something requested verbatim, in case it should be
+   on the one before it having succeeded (audit → schema → account → profile/membership → copy →
+   verify → only then relabel/retire). Running them out of order, or running the relabel/retire step
+   before Luigi has actually tested the new account live, is the main way this could go wrong.
+7. **The helper functions are a stricter design than the first review literally asked for** (see
+   section 1a's closing note on `_is_student_in_project` not being directly callable) — an explicit
+   design choice made along the way, not something requested verbatim, in case it should be
    reconsidered.
+8. **The legacy write-allowance is a transitional mechanism, not a permanent feature.** Once every
+   active student has been migrated to a real, enrolled account, the "no membership → default project
+   allowed" branch of the two `RESTRICTIVE` policies in section 4b has no legitimate purpose left —
+   worth revisiting (and potentially removing, in a later migration) once onboarding is complete,
+   rather than leaving an open-ended bypass indefinitely.
+9. **The `instructors` table's own grants weren't part of the confirmed audit findings** (only
+   `exercise_progress`'s were explicitly reported) — section 4c's `TRUNCATE`/`TRIGGER` revocation is
+   scoped to `exercise_progress` only for that reason. Worth a follow-up check on `instructors` too,
+   using the same already-available audit query, before assuming it's fine.

@@ -10,6 +10,18 @@
 --            — without this, TEST 3 passing could just mean the policy is
 --            too strict / broken, not correctly scoped.
 --   TEST 4: an admin can read a project they are not a member of.
+--   TEST 5: a not-yet-enrolled ("legacy") session — no project_memberships
+--           row at all, same as Luigi's current anonymous identity — CAN
+--           still insert progress into the default Great Auk project.
+--   TEST 6: that same legacy session CANNOT insert progress into a
+--           different (non-default) project — the legacy allowance is
+--           scoped to the default project only, not a blanket bypass.
+--   TEST 7: an enrolled student CANNOT insert/update progress for a
+--           project they aren't a member of, even though it's a real
+--           project (cross-project write isolation).
+--   TEST 7b: (sanity check) that same enrolled student CAN update their own
+--            progress within their own enrolled project — without this,
+--            TEST 7 passing could mean the write policy is too strict.
 --
 -- SAFE TO RUN: everything happens inside one transaction that ends in
 -- ROLLBACK (never COMMIT), so no permanent change is made to the database
@@ -25,15 +37,15 @@
 -- column-grant fixes) has actually been applied — it tests the real,
 -- applied policies, not this file's own copy of their logic.
 --
--- PREREQUISITE: four real auth.users UUIDs. profiles/project_memberships/
+-- PREREQUISITE: five real auth.users UUIDs. profiles/project_memberships/
 -- exercise_progress all foreign-key to auth.users(id), so these can't be
--- fully synthetic. Easiest: create four throwaway accounts via Dashboard >
+-- fully synthetic. Easiest: create five throwaway accounts via Dashboard >
 -- Authentication > Users > Add user (e.g. test-student-a@…,
--- test-student-b@…, test-teacher@…, test-admin@…), note their UUIDs, fill
--- them in below. Delete those Dashboard users afterward if you don't want
--- them lingering — nothing this script itself writes needs that cleanup,
--- since it all rolls back, but the auth.users rows themselves are outside
--- this transaction's control.
+-- test-student-b@…, test-teacher@…, test-admin@…, test-legacy@…), note
+-- their UUIDs, fill them in below. Delete those Dashboard users afterward
+-- if you don't want them lingering — nothing this script itself writes
+-- needs that cleanup, since it all rolls back, but the auth.users rows
+-- themselves are outside this transaction's control.
 -- ============================================================================
 
 begin;
@@ -44,6 +56,7 @@ declare
   test_student_b uuid := '<TEST_STUDENT_B_UUID>';
   test_teacher   uuid := '<TEST_TEACHER_UUID>';
   test_admin     uuid := '<TEST_ADMIN_UUID>';
+  test_legacy    uuid := '<TEST_LEGACY_UUID>';
   great_auk_id   uuid;
   thylacine_id   uuid;
   result         boolean;
@@ -63,7 +76,12 @@ begin
     (test_student_a, 'Test Student A', 'student'),
     (test_student_b, 'Test Student B', 'student'),
     (test_teacher,   'Test Teacher',   'teacher'),
-    (test_admin,     'Test Admin',     'admin')
+    (test_admin,     'Test Admin',     'admin'),
+    (test_legacy,    'Test Legacy',    'student')
+    -- test_legacy deliberately gets a profiles row (exactly as the real
+    -- auto-provisioning trigger would give any new signup) but NO
+    -- project_memberships row below — this is what makes it stand in for
+    -- Luigi's current, not-yet-enrolled anonymous identity in TEST 5/6.
   on conflict (user_id) do update set display_name = excluded.display_name, role = excluded.role;
 
   insert into public.project_memberships (project_id, user_id, role) values
@@ -153,6 +171,68 @@ begin
     raise exception 'TEST 4 FAILED: admin could not read a project they are not a member of';
   else
     raise notice 'TEST 4 PASSED: admin can read all projects';
+  end if;
+
+  ----------------------------------------------------------------------
+  -- TEST 5: a not-yet-enrolled ("legacy") session CAN still insert
+  -- progress into the default Great Auk project — proves Luigi's current
+  -- anonymous writes keep working after this migration.
+  ----------------------------------------------------------------------
+  perform set_config('request.jwt.claims', json_build_object('sub', test_legacy, 'role', 'authenticated')::text, true);
+
+  begin
+    insert into public.exercise_progress (user_id, exercise_id, completed, notes, project_id)
+    values (test_legacy, 'rls-test-legacy-ex01', true, 'Legacy fixture answer', great_auk_id);
+    raise notice 'TEST 5 PASSED: legacy (unenrolled) session can write into the default project';
+  exception
+    when insufficient_privilege then
+      raise exception 'TEST 5 FAILED: legacy session could not write into the default project — this would break Luigi''s current anonymous saving';
+  end;
+
+  ----------------------------------------------------------------------
+  -- TEST 6: that same legacy session CANNOT insert progress into a
+  -- different, non-default project — the legacy allowance is scoped to
+  -- the default project only, not a blanket bypass of the new check.
+  ----------------------------------------------------------------------
+  begin
+    insert into public.exercise_progress (user_id, exercise_id, completed, notes, project_id)
+    values (test_legacy, 'rls-test-legacy-ex02', true, 'Should not be allowed', thylacine_id);
+    raise exception 'TEST 6 FAILED: legacy session was able to write into a non-default project';
+  exception
+    when insufficient_privilege then
+      raise notice 'TEST 6 PASSED: legacy session cannot write into a non-default project (insufficient_privilege)';
+  end;
+
+  ----------------------------------------------------------------------
+  -- TEST 7 / 7b: an enrolled student cannot write progress for a project
+  -- they aren't a member of, but CAN write within their own project.
+  -- test_student_a is enrolled in great_auk_id only (see fixtures above).
+  ----------------------------------------------------------------------
+  perform set_config('request.jwt.claims', json_build_object('sub', test_student_a, 'role', 'authenticated')::text, true);
+
+  begin
+    insert into public.exercise_progress (user_id, exercise_id, completed, notes, project_id)
+    values (test_student_a, 'rls-test-a-ex02', true, 'Should not be allowed', thylacine_id);
+    raise exception 'TEST 7 FAILED: enrolled student was able to write progress for a project they are not a member of';
+  exception
+    when insufficient_privilege then
+      raise notice 'TEST 7 PASSED: enrolled student cannot write progress for an unrelated project (insufficient_privilege)';
+  end;
+
+  update public.exercise_progress
+  set notes = 'Updated within own enrolled project'
+  where user_id = test_student_a and exercise_id = 'rls-test-a-ex01';
+
+  select exists (
+    select 1 from public.exercise_progress
+    where user_id = test_student_a and exercise_id = 'rls-test-a-ex01'
+      and notes = 'Updated within own enrolled project'
+  ) into result;
+
+  if not result then
+    raise exception 'TEST 7b FAILED: enrolled student could NOT update their own progress within their own enrolled project (policy too strict / broken)';
+  else
+    raise notice 'TEST 7b PASSED: enrolled student can update their own progress within their own enrolled project';
   end if;
 
   raise notice 'ALL TESTS PASSED';

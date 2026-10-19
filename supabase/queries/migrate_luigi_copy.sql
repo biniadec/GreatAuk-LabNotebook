@@ -28,13 +28,19 @@
 -- exist. It also used `on conflict (user_id, exercise_id) do nothing`,
 -- which would silently skip any row that happened to already exist at the
 -- destination, with no visible sign that anything was skipped. Both are
--- fixed below: STEP 0 tells you definitively whether a trigger would even
--- interfere before you decide to do anything about it, and STEP 2 has no
--- on-conflict clause at all — a real conflict now fails loudly with a
--- constraint-violation error (which should never legitimately happen,
--- since the destination is a brand-new account), rather than silently
--- vanishing. STEP 1 checks for that possibility explicitly, in advance,
--- read-only.
+-- fixed below. STEP 2 has no on-conflict clause at all — a real conflict
+-- now fails loudly with a constraint-violation error (which should never
+-- legitimately happen, since the destination is a brand-new account),
+-- rather than silently vanishing. STEP 1 checks for that possibility
+-- explicitly, in advance, read-only.
+--
+-- CONFIRMED via a live read-only audit (not reconstructed/assumed): the
+-- only user-defined trigger on exercise_progress is
+-- `set_exercise_progress_updated_at`, a BEFORE UPDATE trigger. It does not
+-- fire on INSERT at all, so STEP 2 below (a plain INSERT) is unaffected —
+-- no trigger-disabling is needed for the copy itself. (The equivalent
+-- concern DOES apply to the later relabeling step, which uses UPDATE —
+-- see relabel_and_retire_luigi_anonymous.sql, which handles it.)
 --
 -- Deliberately uses a distinct, clearly-transitional student_label instead
 -- of "Luigi" — NOT a final choice, a safety measure for the verification
@@ -49,27 +55,20 @@
 -- deliberate step — see relabel_and_retire_luigi_anonymous.sql.
 -- ============================================================================
 
--- ---- STEP 0 (read-only): does any trigger on exercise_progress fire on
--- INSERT and risk overwriting updated_at? tgtype encodes this as a bitmask
--- (bit 2 = INSERT, bit 1 = BEFORE); the `pg_get_triggerdef` output is the
--- easiest way to just read it directly.
+-- ---- STEP 0 (read-only, optional): re-confirms the trigger fact above
+-- directly, in case anything about the schema has changed since the audit.
 
 select tgname, tgenabled, pg_get_triggerdef(oid) as definition
 from pg_trigger
 where tgrelid = 'public.exercise_progress'::regclass
   and not tgisinternal;
 
--- If this returns nothing, or returns only a trigger whose definition
--- clearly says `BEFORE UPDATE` (not INSERT), no trigger will interfere and
--- STEP 2 can run as-is. If it returns a trigger that fires on INSERT and
--- unconditionally sets NEW.updated_at, note its exact name — you may need
--- to disable that ONE specific trigger (not all of them) around STEP 2:
---   alter table public.exercise_progress disable trigger <exact_name>;
---   -- ... run STEP 2 ...
---   alter table public.exercise_progress enable trigger <exact_name>;
--- Either way, verify_luigi_migration.sql's timestamp_matches column is the
--- actual proof after the fact — treat STEP 0 as advance information, not
--- as the final word.
+-- Expected result: exactly one row, `set_exercise_progress_updated_at`,
+-- `BEFORE UPDATE`. If this differs from that (a new trigger, or this one
+-- now also covering INSERT), stop and reassess before running STEP 2 —
+-- don't assume the reasoning above still applies.
+-- verify_luigi_migration.sql's timestamp_matches column is the actual
+-- proof after the fact regardless.
 
 
 -- ---- STEP 1 (read-only): does the destination already have a row for any

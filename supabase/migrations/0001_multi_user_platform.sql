@@ -5,31 +5,40 @@
 -- multiple teachers, and multiple projects (initially "Great Auk" and
 -- "Thylacine RNA"), on top of the existing single-student setup.
 --
--- REVISION NOTE: this file was revised after a security review of the first
--- version flagged several real issues, all fixed here:
---   1. Recursive/self-referential RLS policies (profiles policies querying
---      profiles; project_memberships' teacher policy querying
---      project_memberships) replaced with SECURITY DEFINER helper functions
---      — see section 0 below.
---   2. The original "Users can update own profile" policy let a student set
---      their own role to 'admin'. Fixed with a column-level GRANT (see
---      section 1) so self-service updates can only ever touch display_name,
---      enforced independently of and prior to any RLS check.
---   3. The original NOT NULL project_id column had no default, which would
---      have broken every write from the still-unmodified live sync adapter
---      (it doesn't send project_id). Fixed with a SECURITY DEFINER default
---      function so legacy inserts keep working unchanged during the
---      transition (see section 4).
+-- REVISION NOTE (second pass): the first revision fixed recursive RLS,
+-- profile privilege escalation, and the project_id backward-compatibility
+-- break. A follow-up review, now backed by a completed read-only audit of
+-- the live database (queries/audit_existing_schema.sql), found three more
+-- real issues, all fixed in this revision:
+--   4. No enforcement at all that a write's project_id actually matches the
+--      writer's project_memberships — any authenticated session could
+--      write any project_id for their own user_id. Fixed with two new
+--      RESTRICTIVE policies (section 4b) that require real membership,
+--      while explicitly preserving a legacy allowance for not-yet-enrolled
+--      sessions (i.e. Luigi's current anonymous identity, and anyone else
+--      before enrollment) to keep writing into the default Great Auk
+--      project exactly as today.
+--   5. `anon`/`authenticated` hold TRUNCATE and TRIGGER on
+--      exercise_progress — broad, unused-by-the-app privileges, almost
+--      certainly a Studio-UI table-creation default rather than anything
+--      deliberately granted. Revoked in section 4c; the app never issues
+--      either operation, so this changes no current behavior.
+--   6. The relabel/retire script's UPDATEs would have been caught by the
+--      now-confirmed `set_exercise_progress_updated_at` BEFORE UPDATE
+--      trigger, silently overwriting preserved historical timestamps.
+--      Fixed in relabel_and_retire_luigi_anonymous.sql, not this file.
+--
+-- (The first revision's three fixes — recursive RLS, profile privilege
+-- escalation, project_id default — remain below, unchanged from that pass.)
 --
 -- NOT YET RUN AGAINST THE LIVE DATABASE. This file is reviewed and executed
 -- manually by Binia, in the Supabase SQL editor, only when she decides to
--- proceed. Run queries/audit_existing_schema.sql FIRST and reconcile its
--- output against the "ASSUMED CURRENT STATE" below before applying this.
--- It is written to be additive and backward-compatible:
+-- proceed. It is written to be additive and backward-compatible:
 --
 --   - It does not touch, rename, or drop any existing table, column, row,
 --     or policy (exercise_progress, instructors, and their current RLS
---     policies/grants are all left exactly as they are).
+--     policies/grants are all left exactly as they are, except the explicit
+--     TRUNCATE/TRIGGER revocation in section 4c, which the app does not use).
 --   - It does not disable anonymous authentication.
 --   - It does not create any student or teacher accounts.
 --   - Anonymous auth (Luigi's current invisible flow) keeps working exactly
@@ -37,39 +46,40 @@
 --     Luigi to do anything, and his existing writes keep succeeding even
 --     before the app code is updated to send project_id explicitly.
 --
--- ASSUMED CURRENT STATE (reconstructed from this project's history, not
--- re-derived from a prior migration file, since none existed before this
--- one — every earlier schema change was run ad hoc in the SQL editor).
--- CONFIRM THIS against queries/audit_existing_schema.sql's actual output
--- before relying on it:
+-- CONFIRMED CURRENT STATE (from a completed read-only audit —
+-- queries/audit_existing_schema.sql — not reconstructed from history; this
+-- replaces what was previously an assumption in an earlier revision of
+-- this file):
 --
 --   create table public.exercise_progress (
---     id uuid primary key default gen_random_uuid(),
+--     id uuid not null default gen_random_uuid() primary key,
 --     user_id uuid not null references auth.users(id),
 --     exercise_id text not null,
 --     completed boolean not null default false,
---     notes text,
---     student_label text,
+--     notes text not null default '',
 --     updated_at timestamptz not null default now(),
+--     student_label text null,
 --     unique (user_id, exercise_id)
 --   );
---   -- RLS enabled; policies: students read/write their own rows only
---   -- (auth.uid() = user_id for select/insert/update).
+--   -- RLS enabled; students hold SELECT, INSERT, and UPDATE policies, each
+--   -- checking auth.uid() = user_id. An instructor-allowlist SELECT policy
+--   -- grants read access to every row, unscoped by project (see 0002).
+--   -- Trigger: set_exercise_progress_updated_at, BEFORE UPDATE, calling
+--   -- set_updated_at() — confirmed to fire on UPDATE only, not INSERT.
+--   -- Grants: anon and authenticated both currently hold TRUNCATE and
+--   -- TRIGGER on this table in addition to the privileges actually used —
+--   -- addressed in section 4c.
 --
 --   create table public.instructors (
---     user_id uuid primary key references auth.users(id) on delete cascade
+--     user_id uuid not null primary key references auth.users(id)
 --   );
 --   -- RLS enabled; policy: a user can read their own instructors row.
---   -- Additional policy on exercise_progress: any row's SELECT is also
---   -- allowed when auth.uid() exists in instructors (used by
---   -- supervisor.html today to read every row, unscoped by project).
 --
--- This migration leaves both of the above completely alone, and adds the
--- new tables/columns/policies described below alongside them. A SEPARATE,
--- later, deliberate migration (0002) retires the flat "any instructor sees
--- everything" policy in favor of the project-scoped teacher policy added
--- here — see MIGRATION_PLAN.md for the reasoning and the sequencing risk
--- around that cutover.
+-- This migration leaves both of the above completely alone (besides the
+-- 4c grant revocation), and adds the new tables/columns/policies described
+-- below alongside them. A SEPARATE, later, deliberate migration (0002)
+-- retires the flat "any instructor sees everything" policy in favor of the
+-- project-scoped teacher policy added here — see MIGRATION_PLAN.md.
 --
 -- KNOWN DATA NOTE (found during this review, relevant to anyone reading
 -- exercise_progress going forward): Luigi's 21 genuine Module 00 rows have
@@ -269,6 +279,41 @@ revoke all on function public.shares_any_project_as_teacher_student(uuid) from p
 grant execute on function public.shares_any_project_as_teacher_student(uuid) to authenticated;
 
 
+-- Two more self-only checks (answer a question about the CALLER only, same
+-- as is_admin/_is_teacher_for_project above — nothing to probe about
+-- anyone else), used by the write-enforcement policies in section 4b.
+
+create or replace function public.is_student_for_project(pid uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select exists (
+    select 1 from public.project_memberships
+    where user_id = auth.uid() and project_id = pid and role = 'student'
+  );
+$$;
+
+revoke all on function public.is_student_for_project(uuid) from public;
+grant execute on function public.is_student_for_project(uuid) to authenticated;
+
+
+create or replace function public.has_any_project_membership()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select exists (select 1 from public.project_memberships where user_id = auth.uid());
+$$;
+
+revoke all on function public.has_any_project_membership() from public;
+grant execute on function public.has_any_project_membership() to authenticated;
+
+
 -- ----------------------------------------------------------------------------
 -- 1a. profiles policies and grants.
 -- ----------------------------------------------------------------------------
@@ -446,6 +491,84 @@ create policy "Teachers can read progress of their project's students"
 create policy "Admins can read all progress rows"
   on public.exercise_progress for select
   using (public.is_admin());
+
+
+-- ----------------------------------------------------------------------------
+-- 4b. Enforce project membership on writes, with a legacy allowance.
+--
+-- Today, nothing stops an authenticated session from writing (for its own
+-- user_id) any project_id at all — the existing INSERT/UPDATE policies only
+-- check auth.uid() = user_id, with no membership requirement. That's fine
+-- while there's exactly one project and no real accounts, but once a
+-- second project and real enrollments exist, a student should only be able
+-- to write progress for a project they're actually enrolled in.
+--
+-- This is added as a RESTRICTIVE policy (Postgres ANDs restrictive policies
+-- with the permissive ones already in place, rather than OR-ing — the only
+-- way to genuinely narrow what's allowed without touching the existing
+-- policies at all, which stay completely untouched). It requires EITHER:
+--   (a) the writer holds a 'student' project_memberships row for exactly
+--       the project_id being written, OR
+--   (b) the writer holds NO project_memberships row at all yet, AND the
+--       project_id being written is the default Great Auk project.
+--
+-- (b) is the explicit legacy allowance: Luigi's current anonymous identity
+-- (and anyone else not yet enrolled) has no project_memberships row, so
+-- their writes — which always resolve to the Great Auk project, either
+-- via the column default or because that's the only project that exists
+-- in their experience of the app today — continue to succeed exactly as
+-- before. The moment an account DOES get a project_memberships row (i.e.
+-- is actually onboarded), (b) no longer applies to them and they're held
+-- to the real membership check in (a) — this is also a genuine tightening
+-- over today's behavior, where even a NOT-yet-enrolled session could
+-- technically write an arbitrary project_id with nothing stopping it.
+create policy "Writes require project membership, with a legacy allowance"
+  on public.exercise_progress
+  as restrictive
+  for insert
+  with check (
+    public.is_student_for_project(project_id)
+    or (not public.has_any_project_membership() and project_id = public.default_great_auk_project_id())
+  );
+
+create policy "Updates require project membership, with a legacy allowance"
+  on public.exercise_progress
+  as restrictive
+  for update
+  using (
+    public.is_student_for_project(project_id)
+    or (not public.has_any_project_membership() and project_id = public.default_great_auk_project_id())
+  )
+  with check (
+    public.is_student_for_project(project_id)
+    or (not public.has_any_project_membership() and project_id = public.default_great_auk_project_id())
+  );
+
+
+-- ----------------------------------------------------------------------------
+-- 4c. Restrict unnecessary grants.
+--
+-- Confirmed by audit: anon and authenticated both hold TRUNCATE and
+-- TRIGGER on exercise_progress — almost certainly a Supabase Studio
+-- table-creation default, not anything deliberately granted for this app.
+-- Neither privilege is meaningfully row-scoped by RLS (TRUNCATE empties the
+-- whole table regardless of any policy; TRIGGER lets a role create/alter
+-- triggers on it), so both are pure excess attack surface. The app only
+-- ever issues SELECT/INSERT/UPDATE (upsert) against this table — revoking
+-- these changes no current behavior.
+-- ----------------------------------------------------------------------------
+
+revoke truncate, trigger on public.exercise_progress from anon, authenticated;
+
+-- Note: the new tables in this migration (profiles, projects,
+-- project_memberships) were never exposed to this risk in the first place
+-- — they were created via plain `create table` (not the Studio UI), which
+-- grants nothing to anon/authenticated automatically; only the explicit
+-- `grant select ...` / `grant update (...) ...` statements above apply.
+-- If the same TRUNCATE/TRIGGER bloat turns out to also be present on
+-- `instructors`, queries/audit_existing_schema.sql's grants query (which
+-- already covers both tables) will show it — not assumed here without
+-- that confirmation.
 
 
 -- ----------------------------------------------------------------------------
