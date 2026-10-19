@@ -67,7 +67,7 @@
     const links = [];
 
     memberships.forEach((m) => {
-      if (!m.projects || m.role !== "student") return;
+      if (!m.projects || (m.role !== "student" && m.role !== "teacher")) return;
       const slug = m.projects.slug;
       const href = PROJECT_HOME_PAGES[slug];
       if (!href || seen.has(slug)) return;
@@ -117,27 +117,35 @@
     }
     const myMemberships = memberships || [];
 
+    let displayName = session.user.email || "Signed in";
+    let profileRole = "student";
+    try {
+      const { data: profile } = await client
+        .from("profiles")
+        .select("display_name, role")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+      if (profile && profile.display_name) displayName = profile.display_name;
+      if (profile && profile.role) profileRole = profile.role;
+    } catch (err) {
+      console.warn("[GreatAuk] Could not load profile.", err);
+    }
+
     const requiredProject = global.GreatAuk.REQUIRED_PROJECT;
     if (requiredProject) {
-      const hasAccess = myMemberships.some(
-        (m) => m.role === "student" && m.projects && m.projects.slug === requiredProject
-      );
+      // A global admin, or a teacher of this specific project, can preview
+      // student-facing content too — the enrollment gate exists to keep
+      // students out of projects they're not in, not to lock out the
+      // people responsible for the project itself.
+      const hasAccess =
+        profileRole === "admin" ||
+        myMemberships.some(
+          (m) => (m.role === "student" || m.role === "teacher") && m.projects && m.projects.slug === requiredProject
+        );
       if (!hasAccess) {
         window.location.replace(notEnrolledUrl());
         return;
       }
-    }
-
-    let displayName = session.user.email || "Signed in";
-    try {
-      const { data: profile } = await client
-        .from("profiles")
-        .select("display_name")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
-      if (profile && profile.display_name) displayName = profile.display_name;
-    } catch (err) {
-      console.warn("[GreatAuk] Could not load profile.", err);
     }
 
     global.GreatAuk.currentUser = session.user;
