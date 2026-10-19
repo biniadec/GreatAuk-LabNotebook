@@ -24,52 +24,67 @@ fills it in — no existing column, row, or policy is touched.
 
 ## 2. Transferring Luigi's progress to a permanent account
 
-**Recommended approach: upgrade his existing anonymous identity in place, not a data copy.**
+**Decided (supersedes the in-place-upgrade recommendation originally proposed here): create a new,
+separate permanent account and copy his 25 confirmed-genuine records across, rather than upgrading
+his existing anonymous session in place.**
 
-Supabase Auth supports converting an already-signed-in anonymous session directly into a permanent
-one, by calling (from the browser, while his existing anonymous session is active):
+Investigation established that all 25 genuine records (Module 00: 21 completed; Module 01: 4 with
+written answers, 3 completed, one — Exercise 04 — genuine but not marked complete) belong to a single
+identity, `d303c036-37ce-4723-876d-c207c706cf5c`. The other identities found along the way
+(`4c7e0f1a…`, `5b9feb4e…`, and the three from early October) were either empty or test pollution from
+automated regression testing, not additional genuine work. Nothing from those needs preserving.
 
-```js
-await supabase.auth.updateUser({ email: "luigi@...", password: "..." });
-```
+Sequencing, each step gated on the one before it:
 
-This keeps the exact same `auth.users.id` — it does not create a new user and move data across. His
-`exercise_progress` rows already reference that `user_id`, so **zero rows need to be touched**. No
-`UPDATE`, no risk of violating the `(user_id, exercise_id)` uniqueness constraint, no risk of
-overwriting anything. His `updated_at` timestamps, `completed` states, and notes are untouched
-because nothing about them changes.
+1. Apply `migrations/0001_multi_user_platform.sql` (profiles/projects/project_memberships/`project_id`).
+2. Create Luigi's new permanent account via the Supabase Dashboard (Authentication → Users → Add
+   user — the same method already used for the instructor account; not SQL, since `auth.users` is
+   managed by Supabase Auth itself, not something to insert into directly).
+3. Run `queries/setup_luigi_profile_membership.sql` (sets his real display name, enrolls him in the
+   Great Auk project) — the account's `profiles` row already exists by this point, created
+   automatically by the new trigger.
+4. Run `queries/migrate_luigi_copy.sql` — copies (does not move) all 25 rows from
+   `d303c036-37ce-4723-876d-c207c706cf5c` to the new account's `user_id`, preserving `completed`,
+   `notes`, and `updated_at` exactly. The original rows are untouched. See the file itself for the
+   trigger-interference check that should be run first.
+5. Run `queries/verify_luigi_migration.sql` — row count, a full field-by-field comparison, and an
+   explicit check on the Exercise 04 genuine-but-incomplete case.
+6. Only once (5) passes AND Luigi has logged into the new account on the live, tested app and
+   confirmed his progress/notes appear correctly: run
+   `queries/relabel_and_retire_luigi_anonymous.sql`, which relabels the copy to `"Luigi"` and retires
+   (relabels, does not delete) the original anonymous rows out of that grouping.
 
-The practical requirement: Luigi needs to run this from the **same browser** that already holds his
-real anonymous session — the one identified in the read-only query as `4c7e0f1a-a2d1-4ad7-82ba-5010fa209854`
-(1 row, dated 2026-10-05, not part of any duplicate — almost certainly his one genuine saved answer
-so far). As long as that browser's local storage hasn't been cleared, this is a single in-app action,
-not a database operation at all.
+The copied rows are deliberately given a distinct transitional label rather than `"Luigi"` —
+see section 3a below for why.
 
-**Fallback approach (only if his original browser/session is no longer available):**
+**Why a copy instead of the in-place upgrade originally proposed:** the in-place approach (calling
+`supabase.auth.updateUser({ email, password })` on an already-signed-in anonymous session) is still
+technically the simpler operation when it applies cleanly, but you've chosen the explicit new-account
+path instead, which has its own advantage here: it keeps the original anonymous rows completely
+inert and untouched throughout testing (requirement to "preserve the original anonymous records
+until the new account and website have been tested successfully"), rather than converting the one
+identity you'd be testing against in place, with no separate fallback copy if something about the new
+login flow doesn't work as expected.
 
-If his anonymous session can no longer be recovered, the alternative is a manual re-key of his
-existing rows onto a newly created permanent account's `user_id`:
+## 3a. Avoiding a duplicate "Luigi" in the supervisor view during the transition
 
-```sql
-begin;
+The supervisor view already merges every row sharing a `student_label` into one logical student,
+newest-`updated_at`-wins per exercise, with older versions kept in an expandable reveal — this is
+exactly the mechanism built for exactly this kind of duplicate-identity situation. The complication
+here: a straight copy produces rows with **identical** `updated_at` timestamps to the originals (we're
+deliberately preserving them exactly), so if the copies were labeled `"Luigi"` immediately, the merge
+logic's tie-break between two identical timestamps would be arbitrary — there'd be no reliable way to
+tell, while trying to verify the copy, which "version" you were actually looking at.
 
-update exercise_progress
-set user_id = '<new-permanent-account-user_id>'
-where user_id = '<old-anonymous-user_id>';
-
-commit;
-```
-
-This is deliberately **not** included as a ready-to-run file, because it is only safe under specific
-conditions:
-- it must run before the new permanent account has written any rows of its own (otherwise it can
-  collide with the `(user_id, exercise_id)` unique constraint on an exercise he's touched under both
-  identities);
-- it should be preceded by the full export in `queries/identify_luigi_progress.sql` as a backup;
-- the exact old/new UUIDs need to be filled in by hand, which is intentionally not something to
-  automate or run unreviewed.
-
-Prefer the in-place upgrade. Reach for the fallback only if that genuinely isn't possible.
+The fix used throughout the scripts above: the copied rows carry a distinct, obviously-transitional
+label (`"Luigi (migrated copy — pending verification)"`) instead of `"Luigi"` during steps 4–5. The
+supervisor view's identity picker will then show the original anonymous identity and the new copy as
+two clearly separate, clearly named entries side by side — which is actually useful here, since it
+lets you visually compare old vs. new in the same UI you'd normally use, rather than having them
+silently merged where you couldn't confirm the copy worked. Only in step 6, once everything is
+verified, does `relabel_and_retire_luigi_anonymous.sql` relabel the copy to `"Luigi"` and move the
+original out of that grouping — at which point the supervisor view goes back to showing exactly one
+"Luigi," cleanly, with no duplicate versions.
 
 ## 3. Making localStorage user-specific
 
@@ -92,6 +107,16 @@ without reloading would leave stale cached state around from the previous accoun
 sidesteps that entire class of bug rather than requiring careful manual resets of that state, and
 matches how most web apps already handle account switches.
 
+**Specifically for Luigi's own transition**: when he first signs into his new permanent account on
+his usual browser, that browser's existing (unscoped) local cache still holds his anonymous
+identity's data. This turns out not to be a problem in practice, by virtue of the copy already having
+happened server-side first: `HybridAdapter`'s existing "Supabase has no rows yet → migrate up from
+local" branch only triggers when Supabase is *empty* for that `user_id`; since step 4 above copies his
+25 rows to the new account before he ever logs in, Supabase will already be authoritative and non-empty
+the first time he signs in, so his old anonymous local cache is simply overwritten with the correct
+(copied) data rather than read from. The key-scoping change is still the right long-term fix — this
+just means Luigi's own transition doesn't depend on it being done first.
+
 ## 4. Reusing supervisor auth for student login
 
 The Supabase Auth mechanics in `supervisor.js` are already completely generic and directly reusable:
@@ -111,30 +136,47 @@ sign-out button + error display) out of `supervisor.js` into one small reusable 
 about to be used in at least two real places (the supervisor view and the future student login),
 rather than duplicating that logic twice.
 
-**This is also where a real product decision is needed, not just a code question**: introducing
-real student logins changes the site's front door. Today, anyone landing on `index.html` starts
-working immediately with zero friction (invisible anonymous auth). Once permanent accounts exist,
-does the main site:
-
-- (a) require sign-in before any exercise content is shown at all, or
-- (b) keep anonymous-first-use as the default, with an optional "save your progress permanently"
-  upgrade prompt shown later?
-
-This isn't something to decide unilaterally in code — see the decisions list below.
+**Decided**: sign-in is mandatory for all students (not the optional-upgrade alternative this section
+originally raised as an open question) — anonymous auth stays enabled at the database/project level
+(not disabled, as required), but the site's own front door will require a real account going forward.
+This simplifies the future student-login implementation: no anonymous/permanent coexistence logic is
+needed in the student-facing UI itself, since every session is expected to be a real, logged-in
+account from that point on. Accounts and project memberships continue to be managed directly in
+Supabase (Dashboard + SQL) rather than through a built admin interface, for now.
 
 ## 5. Scope boundary: this step vs. the next step
 
-This branch currently contains **only** the schema migration, the read-only identification query,
-and this plan. No application code (`js/*.js`, `*.html`) has been changed. Specifically **not** yet
-done, pending your review of this package:
+This branch currently contains the schema migration, a prepared (not-yet-recommended-to-run) policy
+retirement migration, the read-only identification/investigation queries, the Luigi account-migration
+scripts (profile/membership setup, copy, verify, relabel-and-retire), and this plan. No application
+code (`js/*.js`, `*.html`) has been changed. Specifically **not** yet done, pending your review:
 
 - `sync-adapter.js` changes (localStorage key scoping, `project_id`-aware upsert `onConflict` key,
   removing the hardcoded `student_label: "Luigi"`).
-- A student login page/flow.
+- A student login page/flow (now known to be mandatory, not optional — see section 4).
 - `supervisor.js`/`supervisor.html` changes to become project-aware (currently it assumes a single
   project and a single student unconditionally).
 - Any actual Thylacine RNA course content — the schema can host a second project, but building its
   modules/exercises is a separate, much larger content task, not part of this migration.
+
+## 5a. RLS review: do the three required guarantees actually hold?
+
+- **"Students can only access their own progress."** Unchanged from today — the original
+  `auth.uid() = user_id` policy on `exercise_progress` is untouched by this migration, for both read
+  and write. Still holds.
+- **"Teachers only access their assigned projects."** Holds for the *new* policy added in `0001`
+  (`"Teachers can read progress of their project's students"`), which joins through
+  `project_memberships` on a matching `project_id` on both sides. It does **not yet fully hold** as a
+  platform-wide guarantee, because the *old* `instructors`-based policy from before this migration
+  still grants unconditional, unscoped read access to whoever is in the `instructors` table — see risk
+  #2 below. The guarantee becomes complete only once `0002` is run, after your own access is confirmed
+  under the new model.
+- **"The administrator can access everything."** Holds via the new unconditional admin-read policies
+  on `profiles`, `projects`, `project_memberships`, and `exercise_progress`, gated on
+  `profiles.role = 'admin'`. Requires an actual `profiles` row with `role = 'admin'` to exist for
+  whichever account should have that access — not created automatically for anyone (the trigger
+  defaults every new signup to `role: 'student'`); promoting an account to admin is a manual
+  `update profiles set role = 'admin' where user_id = '...'` after this migration is applied.
 
 ## 6. Risks and decisions to address before proceeding
 
@@ -143,25 +185,28 @@ done, pending your review of this package:
    accumulate a default `profiles` row (`role: 'student'`, `display_name: 'New user'`) the same way
    `exercise_progress` already accumulates stray rows today. Harmless, but worth knowing before you
    see them in the table.
-2. **The old `instructors`-based "read everything" policy still exists and still works.** This
-   migration adds the new project-scoped teacher policy *alongside* it, deliberately not replacing
-   it, so nothing breaks mid-transition. Dropping the old policy is a **separate, later decision** —
-   don't do it until your own account has a working `profiles` row (`role: 'admin'` or `role:
-   'teacher'` with the right `project_memberships` row) and you've confirmed the new policy actually
-   grants you equivalent access. Dropping it first would be able to lock the current supervisor view
-   out of its own data.
+2. **The old `instructors`-based "read everything" policy still exists and still works, and is not
+   actually project-scoped.** `0002_retire_legacy_instructor_policy.sql` is prepared to retire it, but
+   must only be run *after* confirming your own account has working read access through the new
+   model (a `profiles` row with `role = 'admin'`, or a `project_memberships` row with `role =
+   'teacher'` for Great Auk) — running it first risks locking the current supervisor view out of its
+   own data. It also depends on confirming the old policy's exact name first (query included in that
+   file) — it was never saved from when it was originally created in an earlier, ad hoc SQL-editor
+   session.
 3. **Who enrolls whom.** `project_memberships` has no insert policy for students or teachers —
-   enrollment is SQL-editor-only (by you) for now. Decide whether that's acceptable long-term or
-   whether an admin UI for enrollment is a near-term need.
-4. **The front-door UX decision from section 4** — sign-in-required vs. optional-upgrade — affects
-   how much new code the student-login step actually needs, so it's worth deciding before that step
-   starts, not during it.
-5. **`exercise_progress`'s upsert conflict key.** It's currently `(user_id, exercise_id)`. Once a
+   enrollment is SQL-editor-only (by you) for now, confirmed acceptable for the initial rollout.
+4. **`exercise_progress`'s upsert conflict key.** It's currently `(user_id, exercise_id)`. Once a
    second project exists, if its exercises ever reused an `exercise_id` string already used by Great
    Auk for the same user (unlikely given the existing `m0-ex01`-style prefixing convention, but not
    impossible), rows could collide. Recommend keeping distinct ID prefixes per project as the
    practical safeguard, and revisiting whether the conflict key should become `(user_id, project_id,
    exercise_id)` when the `sync-adapter.js` changes are actually implemented.
-6. **Fallback re-key risk.** As noted in section 2, the manual `UPDATE ... set user_id` fallback is
-   only safe before the new account has written anything of its own. If the in-place upgrade path
-   turns out not to be possible, sequence carefully.
+5. **Trigger interference with preserved timestamps.** The copy script's `ALTER TABLE ... DISABLE/
+   ENABLE TRIGGER USER` guards against an `updated_at`-setting trigger firing on `INSERT` and
+   overwriting the preserved timestamps — but whether such a trigger even exists wasn't re-confirmed
+   in this investigation (it predates any version-controlled migration). `migrate_luigi_copy.sql`'s
+   Step 0 query checks this before the copy runs; read its result before proceeding to Step 1.
+6. **Sequencing discipline matters more than usual here.** Each script in section 2 explicitly
+   depends on the one before it having succeeded (schema → account → profile/membership → copy →
+   verify → only then relabel/retire). Running them out of order, or running the relabel/retire step
+   before Luigi has actually tested the new account live, is the main way this could go wrong.
