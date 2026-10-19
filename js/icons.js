@@ -42,6 +42,8 @@
 
     glossary: `<svg viewBox="0 0 24 24" ${stroke}><path d="M8 6h12M8 12h12M8 18h12"/><path d="M3.8 6h.01M3.8 12h.01M3.8 18h.01"/></svg>`,
 
+    dashboard: `<svg viewBox="0 0 24 24" ${stroke}><path d="M4 19a8 8 0 1 1 16 0"/><path d="M12 19V12M12 12l4-3"/></svg>`,
+
     chevronRight: `<svg viewBox="0 0 24 24" ${stroke}><path d="M9 5l7 7-7 7"/></svg>`,
 
     arrowRight: `<svg viewBox="0 0 24 24" ${stroke}><path d="M4.5 12h15M13 5.5 19.5 12 13 18.5"/></svg>`,

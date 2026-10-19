@@ -36,6 +36,8 @@
     loginError: document.querySelector('[data-role="login-error"]'),
     loginSubmit: document.querySelector('[data-role="login-submit"]'),
     deniedView: document.querySelector('[data-role="denied-view"]'),
+    errorView: document.querySelector('[data-role="error-view"]'),
+    errorMessage: document.querySelector('[data-role="error-message"]'),
     mainView: document.querySelector('[data-role="main-view"]'),
     roleLabel: document.querySelector('[data-role="role-label"]'),
     projectPicker: document.querySelector('[data-role="project-picker"]'),
@@ -69,7 +71,7 @@
   }
 
   function showOnly(viewEl) {
-    [el.loginView, el.deniedView, el.mainView].forEach((v) => {
+    [el.loginView, el.deniedView, el.errorView, el.mainView].forEach((v) => {
       if (v) v.hidden = v !== viewEl;
     });
   }
@@ -78,6 +80,20 @@
     const div = document.createElement("div");
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  // Distinct from "Access denied": this is for when we genuinely don't know
+  // whether the account is authorized, because a query failed outright
+  // (database/network error), not because the account was checked and
+  // found lacking. The full error is always logged to the console for
+  // debugging — it never contains credentials, only Postgres/PostgREST
+  // error details (message/code/hint) — while the on-screen text stays
+  // generic, non-technical.
+  function showError(message, err) {
+    if (err) console.error("[Supervisor]", message, err);
+    showOnly(el.errorView);
+    el.errorView.hidden = false;
+    el.errorMessage.textContent = message;
   }
 
   // ---- auth ---------------------------------------------------------------
@@ -90,28 +106,49 @@
       return;
     }
     el.signOutBtn.hidden = false;
-    try {
-      const access = await determineAccess(session);
-      if (access.mode === "denied") {
-        showOnly(el.deniedView);
-        el.deniedView.hidden = false;
-        return;
-      }
-      accessMode = access.mode;
-      availableProjects = access.projects;
-      showOnly(el.mainView);
-      el.mainView.hidden = false;
-      el.roleLabel.textContent =
-        accessMode === "admin"
-          ? "Signed in as administrator — all projects."
-          : "Signed in as teacher.";
 
-      populateProjectPicker();
-      await selectProject(availableProjects[0].id);
+    // Step 1: determine authorization. A thrown error here means a query
+    // genuinely failed (database/network problem) — we don't know the
+    // account's real status, so this is NOT the same as "denied" and must
+    // not be shown as such.
+    let access;
+    try {
+      access = await determineAccess(session);
     } catch (err) {
-      console.error("[Supervisor] Authorization check failed.", err);
+      showError(
+        "We couldn't check your account's authorization right now. This looks like a temporary database or network problem, not a permissions issue — please try reloading.",
+        err
+      );
+      return;
+    }
+
+    if (access.mode === "denied") {
       showOnly(el.deniedView);
       el.deniedView.hidden = false;
+      return;
+    }
+
+    accessMode = access.mode;
+    availableProjects = access.projects;
+    showOnly(el.mainView);
+    el.mainView.hidden = false;
+    el.roleLabel.textContent =
+      accessMode === "admin"
+        ? "Signed in as administrator — all projects."
+        : "Signed in as teacher.";
+
+    populateProjectPicker();
+
+    // Step 2: load the first project's roster/progress. Authorization is
+    // already confirmed at this point — a failure here is a data-loading
+    // problem for this specific project, not a reason to say "denied".
+    try {
+      await selectProject(availableProjects[0].id);
+    } catch (err) {
+      showError(
+        "You're authorized, but we couldn't load this project's data due to a database or network error. Please try reloading.",
+        err
+      );
     }
   }
 
@@ -201,8 +238,15 @@
       .join("");
   }
 
-  el.projectSelect.addEventListener("change", () => {
-    selectProject(el.projectSelect.value);
+  el.projectSelect.addEventListener("change", async () => {
+    try {
+      await selectProject(el.projectSelect.value);
+    } catch (err) {
+      showError(
+        "We couldn't load this project's data due to a database or network error. Please try reloading.",
+        err
+      );
+    }
   });
 
   async function selectProject(projectId) {
@@ -232,18 +276,37 @@
     renderStudentDetail();
   }
 
+  // Looks up display names for a set of user_ids via a plain, separate
+  // query against profiles, joined to the caller's rows by user_id in
+  // JS — NOT via Supabase's embedded-resource select syntax. That syntax
+  // (`project_memberships.select("profiles(display_name)")`) requires a
+  // direct foreign key between the two tables for PostgREST to auto-
+  // discover the join; project_memberships.user_id and profiles.user_id
+  // both reference auth.users independently, with no FK directly linking
+  // the two, so the embed fails outright with PGRST200 ("could not find a
+  // relationship"). Two plain queries, joined here, sidesteps that without
+  // touching the schema.
+  async function fetchDisplayNames(userIds) {
+    if (userIds.length === 0) return new Map();
+    const client = getClient();
+    const { data, error } = await client.from("profiles").select("user_id, display_name").in("user_id", userIds);
+    if (error) throw error;
+    return new Map((data || []).map((p) => [p.user_id, p.display_name]));
+  }
+
   async function renderTeachersNote(projectId) {
     const client = getClient();
-    const { data, error } = await client
+    const { data: memberships, error } = await client
       .from("project_memberships")
-      .select("profiles(display_name)")
+      .select("user_id")
       .eq("project_id", projectId)
       .eq("role", "teacher");
-    if (error) {
-      el.teachersNote.hidden = true;
-      return;
-    }
-    const names = (data || []).map((m) => (m.profiles && m.profiles.display_name) || "Unnamed teacher");
+    if (error) throw error;
+
+    const userIds = (memberships || []).map((m) => m.user_id);
+    const namesByUserId = await fetchDisplayNames(userIds);
+    const names = userIds.map((uid) => namesByUserId.get(uid) || "Unnamed teacher");
+
     el.teachersNote.hidden = false;
     el.teachersNote.textContent = names.length > 0 ? `Teachers for this project: ${names.join(", ")}` : "No teachers assigned to this project yet.";
   }
@@ -253,10 +316,10 @@
   async function loadRosterAndProgress(projectId) {
     const client = getClient();
 
-    const [{ data: rosterRows, error: rosterErr }, { data: progressRows, error: progressErr }] = await Promise.all([
+    const [{ data: membershipRows, error: membershipErr }, { data: progressRows, error: progressErr }] = await Promise.all([
       client
         .from("project_memberships")
-        .select("user_id, profiles(display_name)")
+        .select("user_id")
         .eq("project_id", projectId)
         .eq("role", "student"),
       client
@@ -265,12 +328,15 @@
         .eq("project_id", projectId),
     ]);
 
-    if (rosterErr) throw rosterErr;
+    if (membershipErr) throw membershipErr;
     if (progressErr) throw progressErr;
 
-    roster = (rosterRows || []).map((r) => ({
-      user_id: r.user_id,
-      display_name: (r.profiles && r.profiles.display_name) || "Unnamed student",
+    const studentUserIds = (membershipRows || []).map((m) => m.user_id);
+    const namesByUserId = await fetchDisplayNames(studentUserIds);
+
+    roster = studentUserIds.map((uid) => ({
+      user_id: uid,
+      display_name: namesByUserId.get(uid) || "Unnamed student",
     }));
 
     progressByUser = new Map();

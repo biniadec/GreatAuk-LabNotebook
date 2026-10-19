@@ -58,7 +58,11 @@
     }
   }
 
-  function populateProjectSwitcher(memberships) {
+  // Takes a plain list of {slug, name} projects — for an admin this is
+  // every project (they're not restricted to projects they happen to hold
+  // a membership row in); for everyone else it's derived from their own
+  // student/teacher memberships.
+  function populateProjectSwitcher(projectsList) {
     const el = document.querySelector('[data-role="project-switcher"]');
     if (!el) return;
 
@@ -66,16 +70,12 @@
     const seen = new Set();
     const links = [];
 
-    memberships.forEach((m) => {
-      if (!m.projects || (m.role !== "student" && m.role !== "teacher")) return;
-      const slug = m.projects.slug;
-      const href = PROJECT_HOME_PAGES[slug];
-      if (!href || seen.has(slug)) return;
-      seen.add(slug);
-      const activeClass = slug === currentSlug ? " is-active" : "";
-      links.push(
-        `<a href="${rootPrefix}${href}" data-project-slug="${slug}" class="${activeClass}">${escapeHtml(m.projects.name)}</a>`
-      );
+    projectsList.forEach((p) => {
+      const href = PROJECT_HOME_PAGES[p.slug];
+      if (!href || seen.has(p.slug)) return;
+      seen.add(p.slug);
+      const activeClass = p.slug === currentSlug ? " is-active" : "";
+      links.push(`<a href="${rootPrefix}${href}" data-project-slug="${p.slug}" class="${activeClass}">${escapeHtml(p.name)}</a>`);
     });
 
     if (links.length <= 1) {
@@ -84,6 +84,15 @@
     }
     el.innerHTML = links.join("");
     el.hidden = false;
+  }
+
+  // Dashboard link: visible to a global admin, or anyone holding at least
+  // one 'teacher' project membership. Hidden for everyone else (students).
+  function populateDashboardLink(profileRole, memberships) {
+    const link = document.querySelector('[data-role="dashboard-link"]');
+    if (!link) return;
+    const isTeacherSomewhere = memberships.some((m) => m.role === "teacher");
+    link.hidden = !(profileRole === "admin" || isTeacherSomewhere);
   }
 
   function escapeHtml(str) {
@@ -152,9 +161,27 @@
     global.GreatAuk.currentMemberships = myMemberships;
     global.GreatAuk.currentDisplayName = displayName;
 
+    // An admin can switch between every project, not just ones they
+    // happen to hold a membership row in — fetch the full list for them.
+    // Everyone else sees only the projects they're a student or teacher of.
+    let switcherProjects = myMemberships
+      .filter((m) => m.projects && (m.role === "student" || m.role === "teacher"))
+      .map((m) => m.projects);
+
+    if (profileRole === "admin") {
+      try {
+        const { data: allProjects, error: allProjErr } = await client.from("projects").select("slug, name");
+        if (allProjErr) throw allProjErr;
+        if (allProjects) switcherProjects = allProjects;
+      } catch (err) {
+        console.warn("[GreatAuk] Could not load full project list for admin switcher.", err);
+      }
+    }
+
     document.body.classList.add("auth-ready");
     populateAccountUI(displayName);
-    populateProjectSwitcher(myMemberships);
+    populateProjectSwitcher(switcherProjects);
+    populateDashboardLink(profileRole, myMemberships);
 
     client.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {

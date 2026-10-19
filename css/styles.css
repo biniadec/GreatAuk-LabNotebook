@@ -186,6 +186,13 @@ ul, ol {
   position: relative;
 }
 
+/* Same cascade gotcha as .supervisor-filters: an explicit `display` rule
+   here would otherwise override the [hidden] attribute (used for the
+   role-gated Dashboard link). */
+.nav-link[hidden] {
+  display: none;
+}
+
 .nav-icon {
   width: 18px;
   height: 18px;

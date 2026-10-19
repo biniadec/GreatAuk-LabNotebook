@@ -33,10 +33,21 @@
       </form>
     </section>
 
-    <!-- Access denied: shown when authenticated but neither admin nor a teacher of any project -->
+    <!-- Access denied: shown ONLY when authentication succeeded and we got a
+         real answer back confirming this account has no admin/teacher role.
+         Never shown for a failed query — see error-view below for that. -->
     <section class="card access-denied-card" data-role="denied-view" hidden>
       <h2 style="font-size:1.05rem;">Access denied</h2>
       <p>This account is signed in but is not authorized as a teacher or administrator for any project.</p>
+    </section>
+
+    <!-- Error: shown when a database/network error prevented us from even
+         determining authorization or loading project data — distinct from
+         a genuine denial, so a backend problem is never mistaken for "you
+         don't have access." -->
+    <section class="card access-denied-card" data-role="error-view" hidden>
+      <h2 style="font-size:1.05rem;">Something went wrong</h2>
+      <p data-role="error-message"></p>
     </section>
 
     <!-- Main supervisor view: shown once authorized -->
