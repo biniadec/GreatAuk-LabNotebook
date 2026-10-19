@@ -112,8 +112,19 @@
 -- planned here is to stop identifying students by student_label at all
 -- once real accounts exist, and use user_id + project_memberships instead;
 -- student_label is kept only as inert historical metadata.
+--
+-- ATOMICITY: this entire file is wrapped in an explicit BEGIN/COMMIT below.
+-- Postgres DDL (CREATE TABLE, ALTER TABLE, CREATE POLICY, CREATE FUNCTION,
+-- GRANT/REVOKE) is fully transactional, so if ANY statement in this file
+-- fails for any reason, the explicit BEGIN means everything in it is rolled
+-- back together — never a partially-applied migration (e.g. new tables
+-- created but exercise_progress's new policies missing, or vice versa).
+-- This does not rely on assuming the SQL editor happens to submit the
+-- whole pasted script as one batch; it is enforced by this file itself
+-- regardless of how it's submitted.
 -- ============================================================================
 
+begin;
 
 -- ----------------------------------------------------------------------------
 -- 1. profiles — one row per auth.users row, display name + global role.
@@ -665,3 +676,5 @@ create trigger on_auth_user_created
 -- That is harmless — it is not read or shown anywhere until a real email is
 -- attached — but it does mean `profiles` will accumulate one row per stray
 -- anonymous identity, same as exercise_progress already does today.
+
+commit;

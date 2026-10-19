@@ -62,6 +62,21 @@ Also acted on in this pass: `rls_tests.sql`'s exception-handling itself was revi
 just its test coverage) — see section 7's new note — and a new TEST 8 added, specifically targeting an
 `UPDATE` to an *existing* record's `project_id` (distinct from TEST 7's fresh-`INSERT` case).
 
+**Fourth review**, of that same `UPDATE`-based TEST 8 and of `0001`'s overall transaction safety,
+found two more:
+
+8. **TEST 1 and TEST 8 read "no exception raised" as "the write succeeded," which isn't the same
+   thing.** An `UPDATE` can complete without error yet still have touched zero rows — exactly the
+   silent `USING`-exclusion case documented in section 7 — which would have made both tests report a
+   false failure (flagging a working protection as broken) whenever a blocked write happened to go
+   through the silent path rather than the loud one. Fixed using `GET DIAGNOSTICS ... = ROW_COUNT`
+   to check the actual number of affected rows, not just whether an exception happened.
+9. **`0001` had no explicit transaction wrapper.** Postgres DDL is fully transactional, so wrapping
+   the whole file in `BEGIN`/`COMMIT` costs nothing and removes any dependency on how the SQL editor
+   happens to batch a pasted multi-statement script — if anything in the file fails, now the entire
+   migration rolls back together, by the file's own instruction rather than by assuming the client's
+   submission behavior.
+
 ## 1. What the schema migration adds
 
 - `profiles` — one row per `auth.users` row: `display_name`, `role` (`student` / `teacher` / `admin`).

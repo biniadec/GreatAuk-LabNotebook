@@ -42,6 +42,18 @@
 -- if some future Postgres/Supabase behavior change means a blocked write
 -- raises a different SQLSTATE, or raises nothing at all.
 --
+-- A related trap, specific to the two UPDATE-based "should fail" tests
+-- (TEST 1 and TEST 8): completing without an exception does not by itself
+-- mean the UPDATE touched the targeted row — exactly the silent
+-- USING-exclusion case above would also complete "successfully" with zero
+-- rows affected. Both tests use `GET DIAGNOSTICS ... = ROW_COUNT` to check
+-- the actual number of rows affected, not merely whether an exception was
+-- raised, so a silent zero-row UPDATE is correctly read as "nothing
+-- happened" rather than mistaken for "the write succeeded." TEST 5/6/7 are
+-- plain INSERTs instead, which have no USING clause and therefore no
+-- silent-zero-rows case to guard against — a single-row INSERT either
+-- succeeds outright or raises an error, never silently inserts nothing.
+--
 -- SAFE TO RUN: everything happens inside one transaction that ends in
 -- ROLLBACK (never COMMIT), so no permanent change is made to the database
 -- regardless of outcome — all fixture rows (profiles/project_memberships/
@@ -81,6 +93,7 @@ declare
   thylacine_id    uuid;
   result          boolean;
   write_succeeded boolean;
+  affected_rows   int;
 begin
   select id into great_auk_id from public.projects where slug = 'great-auk';
   select id into thylacine_id from public.projects where slug = 'thylacine-rna';
@@ -133,7 +146,13 @@ begin
   write_succeeded := false;
   begin
     update public.profiles set role = 'admin' where user_id = test_student_a;
-    write_succeeded := true;
+    -- An UPDATE can complete without raising an exception yet still have
+    -- touched zero rows (e.g. if a policy's USING clause silently excluded
+    -- the row rather than raising) — checking actual ROW_COUNT, not just
+    -- "no exception was thrown," is what makes write_succeeded mean what
+    -- it says.
+    get diagnostics affected_rows = row_count;
+    write_succeeded := (affected_rows > 0);
   exception
     when insufficient_privilege then
       write_succeeded := false;
@@ -314,12 +333,22 @@ begin
     update public.exercise_progress
     set project_id = thylacine_id
     where user_id = test_student_a and exercise_id = 'rls-test-a-ex01';
-    write_succeeded := true;
+    -- Same principle as TEST 1: completing without an exception doesn't by
+    -- itself mean the row was touched. ROW_COUNT is the actual signal —
+    -- without checking it, a silent zero-row UPDATE (row excluded by the
+    -- policy's USING clause rather than rejected via WITH CHECK) would be
+    -- wrongly read as "the write succeeded," producing a false failure here
+    -- even though the protection worked, just through the silent path
+    -- rather than the loud one.
+    get diagnostics affected_rows = row_count;
+    write_succeeded := (affected_rows > 0);
   exception
     when insufficient_privilege then
       write_succeeded := false;
   end;
 
+  -- Independently confirms the actual, final project_id — the real proof,
+  -- regardless of which path (loud exception or silent no-op) blocked it.
   select (project_id = thylacine_id) into result
   from public.exercise_progress
   where user_id = test_student_a and exercise_id = 'rls-test-a-ex01';
