@@ -262,8 +262,14 @@
     await loadRosterAndProgress(selectedProject.id);
 
     if (selectedProject.slug === "great-auk") {
+      // activeModules must be set on every visit to this project, not only
+      // the first — switching away (which zeroes it, below) and back must
+      // not leave it empty just because the exercise *content* is already
+      // cached and loadExerciseContent() (the only other place that used to
+      // set it) gets skipped on a cache hit.
+      activeModules = (global.GreatAuk.MODULES || []).filter((m) => m.status === "active" && m.exerciseIds.length > 0);
       if (exerciseContentCache.size === 0) {
-        await loadExerciseContent();
+        await loadExerciseContent(activeModules);
       }
       populateModuleFilter();
       el.filtersRow.hidden = false;
@@ -412,10 +418,7 @@
 
   // ---- exercise content (fetched live from the real module pages) -------
 
-  async function loadExerciseContent() {
-    const modules = (global.GreatAuk.MODULES || []).filter((m) => m.status === "active" && m.exerciseIds.length > 0);
-    activeModules = modules;
-
+  async function loadExerciseContent(modules) {
     await Promise.all(
       modules.map(async (mod) => {
         try {
