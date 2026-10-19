@@ -24,14 +24,10 @@
 -- locking the current supervisor view out of its own data.
 --
 -- The exact policy name below was never saved from when it was originally
--- created in an earlier, ad hoc SQL-editor session — confirm it first:
---
---   select policyname, cmd, qual
---   from pg_policies
---   where tablename = 'exercise_progress';
---
--- and correct the name in the DROP POLICY statement below if it differs
--- from what's assumed here.
+-- created in an earlier, ad hoc SQL-editor session — queries/
+-- audit_existing_schema.sql's first query confirms it directly against the
+-- live database. Correct the name in the DROP POLICY statement below if it
+-- differs from what's assumed here.
 -- ============================================================================
 
 drop policy if exists "Instructors can read all progress rows" on public.exercise_progress;

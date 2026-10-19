@@ -10,6 +10,16 @@
 --      correctly there.
 --
 -- Replace '<NEW_LUIGI_USER_ID>' before running.
+--
+-- Note: this label-based relabeling is a bridge for the CURRENT
+-- supervisor.js, which still groups by student_label (see the finding in
+-- MIGRATION_PLAN.md about Module 00's NULL labels — this update applies
+-- uniformly to all of this user_id's rows regardless of their current
+-- label, so it isn't affected by that gap). Once supervisor.js is rewritten
+-- to identify students by user_id + project_memberships instead (planned,
+-- not yet built), this label juggling stops being load-bearing for access
+-- or display — student_label becomes purely historical metadata, as
+-- intended.
 -- ============================================================================
 
 begin;

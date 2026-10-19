@@ -5,6 +5,11 @@
 -- retiring of the original anonymous records.
 --
 -- Replace '<NEW_LUIGI_USER_ID>' with the new account's UUID before running.
+--
+-- Note: all comparisons below are keyed on user_id only, never
+-- student_label — 21 of the 25 genuine rows (all of Module 00) have a NULL
+-- student_label (they predate that column existing), so any label-based
+-- comparison would silently miss them.
 -- ============================================================================
 
 -- 1. Row count sanity check — both sides must report 25.
