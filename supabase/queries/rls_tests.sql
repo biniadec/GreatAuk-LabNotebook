@@ -16,12 +16,31 @@
 --   TEST 6: that same legacy session CANNOT insert progress into a
 --           different (non-default) project — the legacy allowance is
 --           scoped to the default project only, not a blanket bypass.
---   TEST 7: an enrolled student CANNOT insert/update progress for a
---           project they aren't a member of, even though it's a real
---           project (cross-project write isolation).
+--   TEST 7: an enrolled student CANNOT insert progress for a project they
+--           aren't a member of, even though it's a real project.
 --   TEST 7b: (sanity check) that same enrolled student CAN update their own
 --            progress within their own enrolled project — without this,
 --            TEST 7 passing could mean the write policy is too strict.
+--   TEST 8: an enrolled student CANNOT change an EXISTING record's
+--           project_id to move it into a project they aren't a member of
+--           (distinct from TEST 7: this targets UPDATE on a row that
+--           already passes the policy's USING clause, specifically
+--           exercising WITH CHECK rather than row visibility).
+--
+-- ON EXCEPTION HANDLING (reviewed specifically for this): Postgres treats
+-- an UPDATE whose row fails a RESTRICTIVE policy's USING clause silently —
+-- the row just doesn't match, zero rows affected, no error. It's only when
+-- a row DOES pass USING but then fails WITH CHECK (exactly TEST 8's case),
+-- or when WITH CHECK fails on a fresh INSERT (TEST 6/7, where there's no
+-- USING clause to filter through in the first place), that Postgres raises
+-- a loud `insufficient_privilege` error. Every "should fail" test below
+-- still does NOT rely on that distinction alone, or on an exception being
+-- raised at all — each one independently re-queries the actual data
+-- afterward to confirm the forbidden write didn't persist, regardless of
+-- whether catching `insufficient_privilege` worked as expected. This means
+-- a test here still correctly fails (never silently reports PASSED) even
+-- if some future Postgres/Supabase behavior change means a blocked write
+-- raises a different SQLSTATE, or raises nothing at all.
 --
 -- SAFE TO RUN: everything happens inside one transaction that ends in
 -- ROLLBACK (never COMMIT), so no permanent change is made to the database
@@ -34,8 +53,9 @@
 -- running.
 --
 -- PREREQUISITE: run this only after 0001 (with the helper-function/
--- column-grant fixes) has actually been applied — it tests the real,
--- applied policies, not this file's own copy of their logic.
+-- column-grant/write-enforcement fixes) has actually been applied — it
+-- tests the real, applied policies, not this file's own copy of their
+-- logic.
 --
 -- PREREQUISITE: five real auth.users UUIDs. profiles/project_memberships/
 -- exercise_progress all foreign-key to auth.users(id), so these can't be
@@ -52,14 +72,15 @@ begin;
 
 do $$
 declare
-  test_student_a uuid := '<TEST_STUDENT_A_UUID>';
-  test_student_b uuid := '<TEST_STUDENT_B_UUID>';
-  test_teacher   uuid := '<TEST_TEACHER_UUID>';
-  test_admin     uuid := '<TEST_ADMIN_UUID>';
-  test_legacy    uuid := '<TEST_LEGACY_UUID>';
-  great_auk_id   uuid;
-  thylacine_id   uuid;
-  result         boolean;
+  test_student_a  uuid := '<TEST_STUDENT_A_UUID>';
+  test_student_b  uuid := '<TEST_STUDENT_B_UUID>';
+  test_teacher    uuid := '<TEST_TEACHER_UUID>';
+  test_admin      uuid := '<TEST_ADMIN_UUID>';
+  test_legacy     uuid := '<TEST_LEGACY_UUID>';
+  great_auk_id    uuid;
+  thylacine_id    uuid;
+  result          boolean;
+  write_succeeded boolean;
 begin
   select id into great_auk_id from public.projects where slug = 'great-auk';
   select id into thylacine_id from public.projects where slug = 'thylacine-rna';
@@ -109,13 +130,22 @@ begin
   ----------------------------------------------------------------------
   perform set_config('request.jwt.claims', json_build_object('sub', test_student_a, 'role', 'authenticated')::text, true);
 
+  write_succeeded := false;
   begin
     update public.profiles set role = 'admin' where user_id = test_student_a;
-    raise exception 'TEST 1 FAILED: student was able to update profiles.role';
+    write_succeeded := true;
   exception
     when insufficient_privilege then
-      raise notice 'TEST 1 PASSED: student cannot update profiles.role (insufficient_privilege)';
+      write_succeeded := false;
   end;
+
+  select (role = 'admin') into result from public.profiles where user_id = test_student_a;
+
+  if write_succeeded or result then
+    raise exception 'TEST 1 FAILED: student was able to change profiles.role to admin';
+  else
+    raise notice 'TEST 1 PASSED: student cannot change profiles.role';
+  end if;
 
   ----------------------------------------------------------------------
   -- TEST 2: a student cannot read another student's progress.
@@ -180,28 +210,52 @@ begin
   ----------------------------------------------------------------------
   perform set_config('request.jwt.claims', json_build_object('sub', test_legacy, 'role', 'authenticated')::text, true);
 
+  write_succeeded := false;
   begin
     insert into public.exercise_progress (user_id, exercise_id, completed, notes, project_id)
     values (test_legacy, 'rls-test-legacy-ex01', true, 'Legacy fixture answer', great_auk_id);
-    raise notice 'TEST 5 PASSED: legacy (unenrolled) session can write into the default project';
+    write_succeeded := true;
   exception
     when insufficient_privilege then
-      raise exception 'TEST 5 FAILED: legacy session could not write into the default project — this would break Luigi''s current anonymous saving';
+      write_succeeded := false;
   end;
+
+  select exists (
+    select 1 from public.exercise_progress
+    where user_id = test_legacy and exercise_id = 'rls-test-legacy-ex01' and project_id = great_auk_id
+  ) into result;
+
+  if not (write_succeeded and result) then
+    raise exception 'TEST 5 FAILED: legacy session could not write into the default project — this would break Luigi''s current anonymous saving';
+  else
+    raise notice 'TEST 5 PASSED: legacy (unenrolled) session can write into the default project';
+  end if;
 
   ----------------------------------------------------------------------
   -- TEST 6: that same legacy session CANNOT insert progress into a
   -- different, non-default project — the legacy allowance is scoped to
   -- the default project only, not a blanket bypass of the new check.
   ----------------------------------------------------------------------
+  write_succeeded := false;
   begin
     insert into public.exercise_progress (user_id, exercise_id, completed, notes, project_id)
     values (test_legacy, 'rls-test-legacy-ex02', true, 'Should not be allowed', thylacine_id);
-    raise exception 'TEST 6 FAILED: legacy session was able to write into a non-default project';
+    write_succeeded := true;
   exception
     when insufficient_privilege then
-      raise notice 'TEST 6 PASSED: legacy session cannot write into a non-default project (insufficient_privilege)';
+      write_succeeded := false;
   end;
+
+  select exists (
+    select 1 from public.exercise_progress
+    where user_id = test_legacy and exercise_id = 'rls-test-legacy-ex02'
+  ) into result;
+
+  if write_succeeded or result then
+    raise exception 'TEST 6 FAILED: legacy session was able to write into a non-default project';
+  else
+    raise notice 'TEST 6 PASSED: legacy session cannot write into a non-default project';
+  end if;
 
   ----------------------------------------------------------------------
   -- TEST 7 / 7b: an enrolled student cannot write progress for a project
@@ -210,14 +264,26 @@ begin
   ----------------------------------------------------------------------
   perform set_config('request.jwt.claims', json_build_object('sub', test_student_a, 'role', 'authenticated')::text, true);
 
+  write_succeeded := false;
   begin
     insert into public.exercise_progress (user_id, exercise_id, completed, notes, project_id)
     values (test_student_a, 'rls-test-a-ex02', true, 'Should not be allowed', thylacine_id);
-    raise exception 'TEST 7 FAILED: enrolled student was able to write progress for a project they are not a member of';
+    write_succeeded := true;
   exception
     when insufficient_privilege then
-      raise notice 'TEST 7 PASSED: enrolled student cannot write progress for an unrelated project (insufficient_privilege)';
+      write_succeeded := false;
   end;
+
+  select exists (
+    select 1 from public.exercise_progress
+    where user_id = test_student_a and exercise_id = 'rls-test-a-ex02'
+  ) into result;
+
+  if write_succeeded or result then
+    raise exception 'TEST 7 FAILED: enrolled student was able to write progress for a project they are not a member of';
+  else
+    raise notice 'TEST 7 PASSED: enrolled student cannot write progress for an unrelated project';
+  end if;
 
   update public.exercise_progress
   set notes = 'Updated within own enrolled project'
@@ -233,6 +299,35 @@ begin
     raise exception 'TEST 7b FAILED: enrolled student could NOT update their own progress within their own enrolled project (policy too strict / broken)';
   else
     raise notice 'TEST 7b PASSED: enrolled student can update their own progress within their own enrolled project';
+  end if;
+
+  ----------------------------------------------------------------------
+  -- TEST 8: an enrolled student cannot change an EXISTING record's
+  -- project_id to move it into a project they aren't a member of. Unlike
+  -- TEST 7 (a fresh INSERT, no USING clause involved at all), this row
+  -- (rls-test-a-ex01) already belongs to test_student_a within their own
+  -- enrolled project, so it passes the policy's USING clause — this
+  -- specifically exercises WITH CHECK rejecting the attempted change.
+  ----------------------------------------------------------------------
+  write_succeeded := false;
+  begin
+    update public.exercise_progress
+    set project_id = thylacine_id
+    where user_id = test_student_a and exercise_id = 'rls-test-a-ex01';
+    write_succeeded := true;
+  exception
+    when insufficient_privilege then
+      write_succeeded := false;
+  end;
+
+  select (project_id = thylacine_id) into result
+  from public.exercise_progress
+  where user_id = test_student_a and exercise_id = 'rls-test-a-ex01';
+
+  if write_succeeded or coalesce(result, false) then
+    raise exception 'TEST 8 FAILED: enrolled student was able to move an existing record into an unauthorized project';
+  else
+    raise notice 'TEST 8 PASSED: enrolled student cannot move an existing record into an unauthorized project';
   end if;
 
   raise notice 'ALL TESTS PASSED';

@@ -28,8 +28,29 @@
 --      trigger, silently overwriting preserved historical timestamps.
 --      Fixed in relabel_and_retire_luigi_anonymous.sql, not this file.
 --
--- (The first revision's three fixes — recursive RLS, profile privilege
--- escalation, project_id default — remain below, unchanged from that pass.)
+-- REVISION NOTE (third pass): this migration's OWN project_id backfill had
+-- the same class of risk as issue 6 above, missed in the first two passes.
+--   7. The project_id backfill ran an unconditional
+--      `UPDATE ... WHERE project_id IS NULL` immediately after
+--      `ADD COLUMN ... DEFAULT`, on the unverified assumption that it was
+--      needed. Postgres's fast-default optimization (PG11+) should make
+--      this a no-op for a STABLE default like this one — existing rows
+--      read back as already populated, without a physical UPDATE or any
+--      trigger firing — but that was never checked, only assumed. Had the
+--      assumption been wrong, the confirmed BEFORE UPDATE trigger would
+--      have fired on every row the UPDATE touched, overwriting Luigi's
+--      preserved timestamps. Replaced with a DO block that explicitly
+--      checks whether any row still has a NULL project_id after the ALTER
+--      TABLE, and only backfills (with the trigger safely disabled around
+--      it) the rows that actually still need it — see section 4 below.
+--      queries/verify_project_id_backfill.sql makes the "nothing was
+--      silently altered" claim explicitly checkable against your existing
+--      export of Luigi's 25 records, rather than assumed.
+--
+-- (The first and second revisions' fixes — recursive RLS, profile
+-- privilege escalation, project_id default, write-membership enforcement,
+-- grant restriction, relabel-trigger handling — remain below, unchanged
+-- from those passes except where this third pass touches the same area.)
 --
 -- NOT YET RUN AGAINST THE LIVE DATABASE. This file is reviewed and executed
 -- manually by Binia, in the Supabase SQL editor, only when she decides to
@@ -465,16 +486,56 @@ alter table public.exercise_progress
     references public.projects(id)
     default public.default_great_auk_project_id();
 
--- Backfill: every row that exists today predates the multi-project model,
--- so it is unambiguously Great Auk data.
-update public.exercise_progress
-set project_id = (select id from public.projects where slug = 'great-auk')
-where project_id is null;
+-- No unconditional backfill UPDATE here — and deliberately so. Since
+-- Postgres 11, ADD COLUMN ... DEFAULT <non-volatile expression> is a
+-- metadata-only operation for existing rows when the default isn't
+-- VOLATILE: the expression is evaluated once, stored as the column's
+-- "missing value," and every existing row reads back as already having
+-- it — no physical per-row UPDATE, and critically, no UPDATE trigger ever
+-- fires for existing rows at all. default_great_auk_project_id() is
+-- declared STABLE (not VOLATILE) specifically so this fast path applies.
+--
+-- An earlier revision of this migration ran an unconditional
+-- `UPDATE ... WHERE project_id IS NULL` immediately after the ALTER TABLE
+-- anyway, on the assumption that it was needed. That was never verified —
+-- if the fast-path already populated every row (the expected case), that
+-- UPDATE's WHERE clause matches zero rows and is a harmless no-op; but
+-- relying on that without checking is exactly the kind of assumption this
+-- migration is trying to stop making. It was also a real risk if the
+-- assumption turned out wrong: exercise_progress's confirmed
+-- `set_exercise_progress_updated_at` BEFORE UPDATE trigger would fire on
+-- every row the UPDATE actually touched, overwriting Luigi's preserved
+-- historical timestamps for no reason.
+--
+-- Replaced with a check that only acts if the fast path, for whatever
+-- reason, did not apply — and even then, protects timestamps explicitly
+-- rather than assuming a problem won't occur, instead of relying on it
+-- never coming up.
+do $$
+declare
+  rows_still_null int;
+  total_rows int;
+begin
+  select count(*) into total_rows from public.exercise_progress;
+  select count(*) into rows_still_null from public.exercise_progress where project_id is null;
 
--- Safe to make mandatory now that every existing row is backfilled AND
--- future legacy inserts (missing project_id) are covered by the default
--- above — this does not reintroduce the original backward-compatibility
--- break, because the column is no longer ever NULL by omission.
+  if rows_still_null = 0 then
+    raise notice 'project_id backfill: ADD COLUMN DEFAULT already populated all % existing row(s); no UPDATE was needed or run.', total_rows;
+  else
+    raise notice 'project_id backfill: % of % row(s) still NULL after ADD COLUMN DEFAULT (fast-path default did not apply as expected) — running a protected, trigger-safe backfill for those rows only.', rows_still_null, total_rows;
+    alter table public.exercise_progress disable trigger set_exercise_progress_updated_at;
+    update public.exercise_progress
+    set project_id = public.default_great_auk_project_id()
+    where project_id is null;
+    alter table public.exercise_progress enable trigger set_exercise_progress_updated_at;
+  end if;
+end $$;
+
+-- Safe to make mandatory now: every existing row is confirmed non-NULL by
+-- the check above (whichever branch ran), and future legacy inserts
+-- (missing project_id) are covered by the column default itself — this
+-- does not reintroduce the original backward-compatibility break, because
+-- the column is no longer ever NULL by omission.
 alter table public.exercise_progress
   alter column project_id set not null;
 

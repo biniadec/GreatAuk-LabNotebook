@@ -43,6 +43,25 @@ Also acted on in this pass: `queries/rls_tests.sql` expanded with project-bounda
 tests (section 7), and every "assumed" reference in `0001` replaced with the confirmed, audited
 schema (section 1).
 
+**Third review**, specifically triggered by re-reading `0001` itself against the confirmed trigger
+behavior from the second review, found one more:
+
+7. **`0001`'s own `project_id` backfill had the same class of risk as issue 6** — it ran an
+   unconditional `UPDATE ... WHERE project_id IS NULL` immediately after `ADD COLUMN ... DEFAULT`, on
+   the unverified assumption that the backfill was actually necessary. Since `default_great_auk_
+   project_id()` is `STABLE` (not `VOLATILE`), Postgres's fast-default optimization (PG11+) should
+   make that `UPDATE` a no-op (existing rows read back as already populated, no physical row touch, no
+   trigger fired) — but that was never checked, only assumed, and had it been wrong, the confirmed
+   `BEFORE UPDATE` trigger would have fired on every row actually touched, overwriting Luigi's
+   preserved timestamps. Replaced with a `DO` block that explicitly counts remaining `NULL`s after the
+   `ALTER TABLE` and only backfills (with the trigger disabled around it) if that count is nonzero —
+   see section 3. `queries/verify_project_id_backfill.sql` added so "nothing was altered" is something
+   you check directly against your already-exported 25 records, not something taken on faith.
+
+Also acted on in this pass: `rls_tests.sql`'s exception-handling itself was reviewed end to end (not
+just its test coverage) — see section 7's new note — and a new TEST 8 added, specifically targeting an
+`UPDATE` to an *existing* record's `project_id` (distinct from TEST 7's fresh-`INSERT` case).
+
 ## 1. What the schema migration adds
 
 - `profiles` — one row per `auth.users` row: `display_name`, `role` (`student` / `teacher` / `admin`).
@@ -131,26 +150,30 @@ Sequencing, each step gated on the one before it:
    assumption.
 2. Apply `migrations/0001_multi_user_platform.sql` (profiles/projects/project_memberships/
    `project_id`/helper functions/write-enforcement policies/grant restriction).
-3. Create Luigi's new permanent account via the Supabase Dashboard (Authentication → Users → Add
+3. **Immediately after, before anything else**: run `queries/verify_project_id_backfill.sql`
+   (read-only) and diff its output for Luigi's 25 records against your existing export. This is what
+   actually confirms the `project_id` backfill didn't touch any `updated_at` value, rather than
+   trusting the `DO` block's own reasoning blindly — see section 3.
+4. Create Luigi's new permanent account via the Supabase Dashboard (Authentication → Users → Add
    user — the same method already used for the instructor account; not SQL, since `auth.users` is
    managed by Supabase Auth itself, not something to insert into directly).
-4. Run `queries/setup_luigi_profile_membership.sql` (sets his real display name, enrolls him in the
+5. Run `queries/setup_luigi_profile_membership.sql` (sets his real display name, enrolls him in the
    Great Auk project) — the account's `profiles` row already exists by this point, created
    automatically by the new trigger.
-5. Run `queries/migrate_luigi_copy.sql`'s STEP 0 and STEP 1 (both read-only), then STEP 2, the actual
+6. Run `queries/migrate_luigi_copy.sql`'s STEP 0 and STEP 1 (both read-only), then STEP 2, the actual
    copy — copies (does not move) all 25 rows from `d303c036-37ce-4723-876d-c207c706cf5c`, keyed on
    `user_id` only (not `student_label` — see section 4a for why that matters), preserving
    `completed`, `notes`, and `updated_at` exactly. The original rows are untouched. No trigger-related
    precaution is needed for this step specifically — the audit confirmed the one trigger on this
    table is `BEFORE UPDATE` only, so a plain `INSERT` is unaffected.
-6. Run `queries/verify_luigi_migration.sql` — row count, a full field-by-field comparison, and an
+7. Run `queries/verify_luigi_migration.sql` — row count, a full field-by-field comparison, and an
    explicit check on the Exercise 04 genuine-but-incomplete case.
-7. Only once (6) passes AND Luigi has logged into the new account on the live, tested app and
+8. Only once (7) passes AND Luigi has logged into the new account on the live, tested app and
    confirmed his progress/notes appear correctly: run
    `queries/relabel_and_retire_luigi_anonymous.sql`, which relabels the copy to `"Luigi"` and retires
    (relabels, does not delete) the original anonymous rows out of that grouping — with the
    `set_exercise_progress_updated_at` trigger deliberately disabled around just those two statements,
-   so the relabeling itself doesn't overwrite the very timestamps step 5 preserved (see section 4a).
+   so the relabeling itself doesn't overwrite the very timestamps step 6 preserved (see section 4a).
 
 The copied rows are deliberately given a distinct transitional label rather than `"Luigi"` — see
 section 4a below for why.
@@ -168,7 +191,7 @@ conflict would occur, and STEP 2 itself has no `ON CONFLICT` clause at all, so a
 should never legitimately happen against a brand-new account) fails loudly with a
 constraint-violation error instead of silently vanishing. The trigger question itself turned out to
 be moot for this specific step once confirmed by audit (BEFORE UPDATE only, doesn't fire on INSERT) —
-it *does* matter for the later relabel/retire step, handled there instead (see step 7 above).
+it *does* matter for the later relabel/retire step, handled there instead (see step 8 above).
 
 ## 3. Backward compatibility: the live site must keep working during the transition
 
@@ -186,6 +209,20 @@ account before enrollment) sees zero rows under the "Members can read their own 
 `projects`, so the default would resolve to `NULL` and the `NOT NULL` constraint would fail anyway,
 defeating the purpose. The `SECURITY DEFINER` function bypasses exactly that. The column stays
 `NOT NULL` — it's just never actually `NULL` by omission anymore, legacy or otherwise.
+
+**Populating the default for existing rows, without risking their timestamps:** `default_great_auk_
+project_id()` is declared `STABLE`, not `VOLATILE`, specifically so Postgres's fast-default
+optimization (PG11+) applies — adding the column with this default should be a metadata-only
+operation for every row that already exists, with no physical per-row `UPDATE` and, critically, no
+`UPDATE` trigger ever firing for them. The migration does not simply assume this worked, though: right
+after the `ALTER TABLE`, a `DO` block explicitly counts how many rows still show `project_id IS NULL`.
+If that count is zero (the expected case), nothing further happens — no `UPDATE` runs at all. If it's
+nonzero for any reason (a different Postgres/Supabase version behaving differently, say), a targeted
+backfill runs *only* for those specific rows, with `set_exercise_progress_updated_at` explicitly
+disabled around it and re-enabled immediately after — the same surgical, now-confirmed-by-name
+technique used in `relabel_and_retire_luigi_anonymous.sql`. Either way, `queries/verify_project_id_
+backfill.sql` lets you check the actual result directly against your existing export of Luigi's 25
+records afterward, rather than trusting either code path blindly.
 
 ## 4. Making localStorage user-specific
 
@@ -356,8 +393,10 @@ pending your review — and per your note, the next things to start once this re
   positive cases. **Not yet fully a platform-wide guarantee**, because the *old* `instructors`-based
   policy still grants unconditional, unscoped read access to whoever is in the `instructors` table —
   see risk #2 below. Complete only once `0002` is run. For **writes**, now also holds directly:
-  `rls_tests.sql` TEST 7/7b prove an enrolled student can't write into a project they're not a member
-  of, and can write within their own.
+  `rls_tests.sql` TEST 7/7b prove an enrolled student can't write a *new* record into a project they're
+  not a member of (and can within their own), and TEST 8 proves they also can't move an *existing*
+  record into an unauthorized project by changing its `project_id` — the same guarantee exercised
+  against both ways it could be violated.
 - **"The administrator can access everything."** Holds via the new unconditional admin-read policies,
   gated on `is_admin()`. `rls_tests.sql` TEST 4 proves an admin can read a project they aren't a member
   of. Requires an actual `profiles` row with `role = 'admin'`; promoting an account is a manual
@@ -367,6 +406,20 @@ pending your review — and per your note, the next things to start once this re
 - **"Legacy (not-yet-enrolled) writes keep working, scoped to the default project only."** New
   guarantee from this revision, proven by `rls_tests.sql` TEST 5 (succeeds into the default project)
   and TEST 6 (fails into any other project).
+
+**On the tests' own reliability** (reviewed specifically for this): every "should fail" test
+(1, 6, 7, 8) no longer depends solely on catching an `insufficient_privilege` exception to decide
+pass/fail. Each one independently re-queries the actual data afterward — did the row get created, did
+the column actually change, did the role actually become `'admin'` — and fails if *either* the write
+appeared to succeed *or* the forbidden state is actually present. This matters because Postgres
+handles the two ways a write can be blocked differently: a row failing a `RESTRICTIVE` policy's
+`USING` clause is excluded silently (zero rows affected, no error), while a row that passes `USING` but
+then fails `WITH CHECK` (TEST 8's case) raises a loud `insufficient_privilege` error, and a fresh
+`INSERT` failing `WITH CHECK` (TEST 6/7, no `USING` clause in play at all) also raises loudly. Relying
+on exception-catching alone would have been fine for the loud cases but would have silently done
+nothing — not reliably failed — for a hypothetical future case that hit the silent path instead. The
+data-state check closes that gap regardless of which path a given scenario takes, or whether some
+future Postgres/Supabase version changes the exact error behavior.
 
 ## 8. Risks and decisions to address before proceeding
 
@@ -391,9 +444,10 @@ pending your review — and per your note, the next things to start once this re
 5. **The live `supervisor.js` NULL-`student_label` bug** (section 4a) exists independent of this
    migration and affects production right now. Worth prioritizing on its own timeline.
 6. **Sequencing discipline matters more than usual here.** Each step in section 2 explicitly depends
-   on the one before it having succeeded (audit → schema → account → profile/membership → copy →
-   verify → only then relabel/retire). Running them out of order, or running the relabel/retire step
-   before Luigi has actually tested the new account live, is the main way this could go wrong.
+   on the one before it having succeeded (audit → schema → **verify backfill** → account →
+   profile/membership → copy → verify → only then relabel/retire). Running them out of order, or
+   running the relabel/retire step before Luigi has actually tested the new account live, is the main
+   way this could go wrong.
 7. **The helper functions are a stricter design than the first review literally asked for** (see
    section 1a's closing note on `_is_student_in_project` not being directly callable) — an explicit
    design choice made along the way, not something requested verbatim, in case it should be
