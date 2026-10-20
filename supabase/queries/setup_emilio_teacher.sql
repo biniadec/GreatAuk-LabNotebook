@@ -7,13 +7,15 @@
 -- different project.
 --
 -- Run AFTER:
---   1. Emilio's real Supabase Auth account has been created (Dashboard >
---      Authentication > Users > Invite user is the recommended method for
---      a real colleague — it emails him a link to set his own password,
---      rather than you choosing one for him. "Add user" with a temporary
---      password works too if you'd rather set one up yourself and hand it
---      to him directly. Either way, this is an Auth-level action, not SQL —
---      auth.users is managed by Supabase Auth itself, not this script.)
+--   1. Emilio's real Supabase Auth account has been created via Dashboard >
+--      Authentication > Users > Add user, with a password you set and
+--      relay to him directly. NOT "Invite user" — its emailed set-your-
+--      own-password link won't work with this app as it stands today:
+--      js/supabase-client.js sets detectSessionInUrl: false, so the
+--      session the invite link's redirect carries is never picked up, and
+--      login.html has no set-password step for it to hand off to. This is
+--      an Auth-level action either way, not SQL — auth.users is managed by
+--      Supabase Auth itself, not this script.
 --
 -- Replace every '<EMILIO_USER_ID>' below with his new account's UUID
 -- (visible in the Dashboard's Users list right after creating it) before

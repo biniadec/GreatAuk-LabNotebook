@@ -529,10 +529,17 @@ future Postgres/Supabase version changes the exact error behavior.
 The general pattern for adding a teacher scoped to exactly one project — no Great Auk access, not an
 administrator:
 
-1. **Create the real Auth account.** Dashboard > Authentication > Users > **Invite user** is the
-   recommended method for a real colleague: it emails them a link to set their own password, rather
-   than you choosing one and relaying it. "Add user" with a temporary password works too if you'd
-   rather hand it to them directly. Either way this is a Supabase Auth action, not SQL.
+1. **Create the real Auth account via Dashboard > Authentication > Users > Add user**, with a
+   password you set and relay to them directly. **Correction, found during final pre-deployment
+   review:** an earlier version of this section recommended "Invite user" instead, on the assumption
+   its emailed set-your-own-password link would just work. It wouldn't, with this app as it stands
+   today — `js/supabase-client.js` initializes the client with `detectSessionInUrl: false` (a
+   deliberate choice, since the app never otherwise needs to parse auth tokens out of a URL), which
+   means the session Supabase's invite link carries in its redirect URL is never picked up, and
+   `login.html` has no "set your password" step for it to hand off to anyway. The invite email would
+   arrive and the link would silently fail to do anything useful. Until a real set-password page
+   exists, "Add user" is the only method that actually works end-to-end. This is a Supabase Auth
+   action, not SQL.
 2. **Note the new account's UUID** from the Dashboard's Users list right after creating it.
 3. **Run `queries/setup_emilio_teacher.sql`**, with that UUID filled in. It sets `display_name`,
    promotes `profiles.role` to `'teacher'`, and adds exactly one `project_memberships` row for the
