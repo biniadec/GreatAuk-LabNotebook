@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Enter your code | Lab Notebooks</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <div class="auth-page-shell">
+    <h1>Lab Notebooks</h1>
+
+    <section class="card" data-role="form-view">
+      <h2 style="font-size:1.05rem;" data-role="form-heading">Confirm password reset</h2>
+      <p class="supervisor-meta" style="margin-bottom:1rem;" data-role="form-hint">
+        Enter the email address and the 6-digit code from the password reset email. Use this if the
+        link in that email didn't work — some email providers (including many university accounts)
+        automatically visit links before you click them, which can use up a one-time link but never
+        touches a code sitting as plain text in the email.
+      </p>
+      <form data-role="verify-code-form">
+        <div class="form-field">
+          <label for="verify-email">Email</label>
+          <input type="email" id="verify-email" name="email" autocomplete="username" required />
+        </div>
+        <div class="form-field">
+          <label for="verify-token">6-digit code</label>
+          <input type="text" id="verify-token" name="token" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="6" required />
+        </div>
+        <div class="form-error" data-role="verify-code-error"></div>
+        <button type="submit" class="btn btn-primary" data-role="verify-code-submit">Verify code</button>
+      </form>
+      <p style="text-align:center; margin-top:0.75rem;">
+        <a href="recover-password.html" data-role="request-new-link">Request a new code</a>
+      </p>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/verify-code.js"></script>
+</body>
+</html>

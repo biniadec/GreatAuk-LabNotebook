@@ -581,14 +581,68 @@ exists. Full design rationale is in each file's own header comment, not repeated
   dashboard (`supervisor.html`) — confirming both the link itself worked with the real Redirect
   URL/Site URL configuration, and that `js/landing-page.js`'s role-aware routing resolved correctly
   for a real account, not just a mocked one.
-- ⏳ **Invite flow — not yet tested for real.** The *mechanism* is identical to recovery once a
-  session is established (same `set-password.html`, same code path), and was proven in isolation with
-  Playwright mocks (`round7-password-management.js`, test H: an invited account with no project
-  membership correctly lands on `not-enrolled.html`, never project content). What hasn't been
-  confirmed yet is Supabase's *invite* email specifically — its link format, or any
-  invite-vs-recovery difference in Dashboard behavior, could still turn up something the recovery
-  test didn't exercise. Test this with a fresh, disposable account before inviting Luigi, Emilio, or
-  Diamanto for real — see the instructions provided alongside this update for exactly how.
+- ❌ **First real invite test failed — root cause found, fixed with a different mechanism, not yet
+  re-tested.** The Dashboard's "Invite user" has no custom-redirect field (it always uses the
+  project's Site URL, unlike `resetPasswordForEmail`'s explicit `redirectTo`, which is why recovery
+  worked and this didn't). Separately and more importantly: the resulting `otp_expired` error was
+  Microsoft Defender's Safe Links pre-visiting the confirmation link and spending its one-time token
+  before Binia ever clicked it — a well-documented failure mode for any single-use magic-link email,
+  not specific to anything built here, and not fixable by anything on our own page (the token is
+  consumed by Supabase's own `/auth/v1/verify` endpoint on first GET, before our page is ever
+  reached).
+
+## 11. OTP code-entry — the fix for scanner-consumed links
+
+A 6-digit code sent as plain text is never "visited" by a link scanner; it's only ever consumed when
+a human reads it and types it in. New page `verify-code.html` + `js/verify-code.js` calls
+`client.auth.verifyOtp({ email, token, type })` — confirmed directly against the real network call
+(`POST /auth/v1/verify`) before writing any mock, same discipline as every other auth call in this
+project — then hands off to `set-password.html`, which needed **zero changes**: it already falls back
+to "is there already a session?" when there's no token in the URL (built earlier for the
+reload-after-processing case), and that's exactly what lets this compose with no new logic there.
+
+The verification `type` is **explicit**, read from this page's own `?type=` query param — never a
+silent try-recovery-then-try-invite guess, per Binia's explicit preference. `recover-password.html`'s
+"sent" confirmation links here with `?type=recovery`; the invite email template's own text (below)
+links here with `?type=invite`. The existing link-based flow is unchanged and still the primary path
+for anyone whose email doesn't do scanner pre-visiting (most personal email) — this is an addition,
+not a replacement.
+
+**Why templates were locked, and how to unlock them:** Supabase's built-in email sender disables
+custom template editing until a custom SMTP server is configured — Dashboard → Project Settings →
+Auth → SMTP Settings (exact label may vary slightly by Dashboard version). This isn't a bug or a
+separate permission to request; it's how Supabase gates template customization generally, specifically
+because the shared built-in mailer is meant for development, not for carrying custom production
+content. Once SMTP is configured, Authentication → Email Templates unlocks for editing.
+
+**SMTP provider recommendation:** for a handful of accounts (Luigi, Emilio, Diamanto, and whatever a
+small course grows to), volume is trivial — a few dozen emails a month at most. Two options, in order
+of what's worth checking first:
+1. **Ask KU IT whether an institutional SMTP relay is available** for a `@sund.ku.dk`-sent address.
+   If so, this is likely the simplest and most trustworthy option — it needs no new third-party
+   account, and mail from a real university address is generally better received by other university
+   mail systems than mail from an unfamiliar third-party domain.
+2. **Resend** (resend.com) as a concrete, low-friction fallback if KU IT access isn't readily
+   available: a generous free tier for this volume, SMTP credentials are simple to generate, and
+   Supabase's own documentation has a dedicated Resend integration guide. The one real prerequisite is
+   domain verification (a DNS TXT/CNAME record) for the "from" address — if there's no domain
+   available to verify (the project currently has no custom domain, only the `github.io` subdomain),
+   that's worth resolving before picking this option, since most providers restrict their
+   no-verification sending address to the account owner's own inbox only, not real recipients.
+
+**Email template text to use once SMTP is configured** (Authentication → Email Templates):
+- **Reset Password**: keep the existing `{{ .ConfirmationURL }}` link, and add beneath it something
+  like: *"If that link doesn't work, go to \<site\>/verify-code.html?type=recovery and enter this
+  code: {{ .Token }}"*.
+- **Invite user**: same pattern — keep `{{ .ConfirmationURL }}`, add: *"If that link doesn't work, go
+  to \<site\>/verify-code.html?type=invite and enter this code: {{ .Token }}"*. Replace `<site>` with
+  the real production URL once deployed; for local-only testing before that, Binia can temporarily
+  substitute `http://localhost:8000` in the template, matching whatever Site URL is configured at the
+  time.
+
+**Status: implemented and tested against mocks (16 new Playwright checks, `round8-verify-code.js`),
+not yet tested for real** — pending SMTP setup and the template edit above, which only Binia can do.
+Once SMTP is live, repeat the invite test from section 10 using the code instead of the link.
 
 Once the invite test above passes, flip section 9's guidance from "Add user, Invite pending" to
 recommending "Invite user" outright, and this line should be updated to ✅ as well.
