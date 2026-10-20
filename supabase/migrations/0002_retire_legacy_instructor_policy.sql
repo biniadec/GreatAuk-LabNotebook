@@ -1,8 +1,11 @@
 -- ============================================================================
 -- 0002_retire_legacy_instructor_policy.sql
 --
--- DO NOT RUN YET. Prepared for review alongside 0001, but sequenced after
--- it on purpose — see the condition below.
+-- APPLIED to the live database (after 0001, and after verifying admin read
+-- access and teacher project-scoping against real data with
+-- queries/verify_0002_before_running.sql — see MIGRATION_PLAN.md section 8,
+-- risk #2). Prepared for review alongside 0001, but sequenced after it on
+-- purpose — see the condition below, which was satisfied before running it.
 --
 -- Why this is needed: 0001 adds a new, project-scoped teacher-read policy
 -- on exercise_progress, but deliberately leaves the OLD "instructors"-table

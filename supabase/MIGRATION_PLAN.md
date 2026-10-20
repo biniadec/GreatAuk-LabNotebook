@@ -1,8 +1,27 @@
 # Multi-user platform migration plan
 
-Status: **draft, nothing applied**. This document describes what the migration files in this branch
-do and how the account migration and app-code changes would proceed once reviewed and approved.
-Nothing in this document has been run against the live database or deployed to GitHub Pages.
+Status: **0001 and 0002 both applied to the live database.** Luigi's account migration (copy, verify,
+real-account testing) is also complete; his original anonymous records have deliberately not been
+retired yet (see section 8, risk #2 and the standing instruction not to run that step). Nothing in
+this document has been deployed to GitHub Pages or merged into `main` — this remains a database-only
+status, tracked separately from the frontend/deploy status below.
+
+**Applied:**
+- `migrations/0001_multi_user_platform.sql` — applied. `profiles`/`projects`/`project_memberships`
+  exist; project-scoped read/write policies are live; Luigi's 25 records carry `project_id`.
+- `migrations/0002_retire_legacy_instructor_policy.sql` — applied. The legacy, unscoped
+  `"Instructors can read all progress rows"` policy is gone, confirmed by a read-only check against
+  `pg_policies` after running it. Pre-drop verification (`queries/verify_0002_before_running.sql`,
+  run against real data with one throwaway teacher account) and a live post-drop check (admin
+  dashboard, project switching, Luigi's progress, all re-confirmed working against the real database)
+  both passed before and after. This closes risk #2 in section 8 — the project-scoping guarantee for
+  teachers is now a real, platform-wide guarantee with no remaining unscoped bypass.
+
+**Not yet applied / deliberately deferred:**
+- Retiring Luigi's original anonymous `exercise_progress` records (`relabel_and_retire_luigi_
+  anonymous.sql`) — prepared, reviewed, not run. Still an explicit standing instruction not to run
+  this yet.
+- Anything in this repository being merged into `main` or deployed to GitHub Pages.
 
 ## 0. Security review fixes applied across revisions
 
@@ -381,22 +400,28 @@ admin interface, for now.
 
 ## 6. Scope boundary: this step vs. the next step
 
-This branch currently contains the schema migration, a prepared (not-yet-recommended-to-run) policy
-retirement migration, read-only audit/identification/investigation queries, an RLS test script, the
-Luigi account-migration scripts (profile/membership setup, copy, verify, relabel-and-retire), and this
-plan. No application code (`js/*.js`, `*.html`) has been changed. Specifically **not** yet done,
-pending your review — and per your note, the next things to start once this revision is approved:
+**UPDATE: everything this section originally listed as "not yet done" has since been completed** —
+this section is kept for history; see section 0's status line and the commit log on
+`feature/multi-user-platform` for the actual sequence. For the record:
 
-- The `supervisor.js` NULL-`student_label` bug described in section 4a (currently live on `main`,
-  independent of this migration's timeline).
-- `sync-adapter.js` changes (localStorage key scoping, `project_id`-aware upsert `onConflict` key,
-  removing the hardcoded `student_label: "Luigi"`).
-- **The student login page/flow** (mandatory, not optional — see section 5) — next up after this
-  revision is approved and the actual Supabase migration runs.
-- `supervisor.js`/`supervisor.html` changes to become project-aware and to identify students by
-  `user_id`/`project_memberships` rather than `student_label` (see section 4a).
-- Any actual Thylacine RNA course content — the schema can host a second project, but building its
-  modules/exercises is a separate, much larger content task, not part of this migration.
+- The `supervisor.js` NULL-`student_label` bug — moot. `supervisor.js` no longer identifies students
+  by `student_label` at all; it uses `user_id` + `project_memberships`, joined to `profiles` for
+  display names (see section 4a and the PGRST200 fix in the commit log).
+- `sync-adapter.js` — rewritten. Mandatory real login (no anonymous fallback), localStorage keys
+  scoped by `${userId}::${projectSlug}`, upserts carry a real `project_id` and the signed-in user's
+  real display name.
+- The student login page/flow — built (`login.html`, `js/login.js`, `js/auth-guard.js`), mandatory
+  across every student-facing page.
+- `supervisor.js`/`supervisor.html` — rewritten to be project-aware, with admin/teacher dashboards
+  scoped by real `project_memberships`.
+- Thylacine RNA course content — still genuinely not started (a placeholder page only, by design;
+  real content is a separate, much larger task, not part of this migration or this platform change).
+
+Original text, kept for history: "This branch currently contains the schema migration, a prepared
+(not-yet-recommended-to-run) policy retirement migration, read-only audit/identification/
+investigation queries, an RLS test script, the Luigi account-migration scripts (profile/membership
+setup, copy, verify, relabel-and-retire), and this plan. No application code (`js/*.js`, `*.html`)
+has been changed."
 
 ## 7. RLS review: do the required guarantees actually hold?
 
@@ -411,15 +436,17 @@ pending your review — and per your note, the next things to start once this re
   a shared project?) had no dedicated test until `verify_0002_before_running.sql` TEST D added one,
   using your real administrator account as a genuine, non-vacuous negative-case target (it isn't a
   'student' member of any project) — proved read-only, with no write to that account at all.
-  **Not yet fully a platform-wide guarantee**, because the *old* `instructors`-based
-  policy still grants unconditional, unscoped read access to whoever is in the `instructors` table —
-  see risk #2 below. Complete only once `0002` is run; `verify_0002_before_running.sql` proves, by
-  actually dropping that policy inside a rolled-back transaction, that doing so breaks nothing:
-  administrator read access to Luigi's real progress and profile (TEST A/B, real data, read-only), a
-  teacher of Luigi's own project still reading his real progress and profile (TEST C/C2), and that
-  same teacher still denied the administrator's profile (TEST D) — all against real data, using
-  exactly one new throwaway teacher account rather than the five originally planned (see that file's
-  header for why one new account is structurally unavoidable, given every one of these tables'
+  **Now a complete, platform-wide guarantee: `0002` has been applied.** The old `instructors`-based
+  unscoped read policy is gone — confirmed directly by a read-only query against `pg_policies` after
+  running it, and by your own admin dashboard, project switching, and Luigi's progress all still
+  working against the real database afterward. Before running it for real,
+  `verify_0002_before_running.sql` proved, by actually dropping that policy inside a rolled-back
+  transaction, that doing so would break nothing: administrator read access to Luigi's real progress
+  and profile (TEST A/B, real data, read-only), a teacher of Luigi's own project still reading his
+  real progress and profile (TEST C/C2), and that same teacher still denied the administrator's
+  profile (TEST D) — all against real data, using exactly one new throwaway teacher account rather
+  than the five originally planned (see that file's header for why one new account is structurally
+  unavoidable, given every one of these tables'
   foreign keys to `auth.users`). For **writes**, now also holds directly:
   `rls_tests.sql` TEST 7/7b prove an enrolled student can't write a *new* record into a project they're
   not a member of (and can within their own), and TEST 8 proves they also can't move an *existing*
@@ -456,24 +483,18 @@ future Postgres/Supabase version changes the exact error behavior.
    accumulate a default `profiles` row (`role: 'student'`, `display_name: 'New user'`) the same way
    `exercise_progress` already accumulates stray rows today. Harmless, but worth knowing before you
    see them in the table.
-2. **The old `instructors`-based "read everything" policy still exists and still works, and is not
-   actually project-scoped.** `0002_retire_legacy_instructor_policy.sql` is prepared to retire it, but
-   must only be run *after* confirming your own account has working read access through the new model
-   — running it first risks locking the current supervisor view out of its own data. Its exact name is
-   confirmed directly by `queries/audit_existing_schema.sql`'s first query, not assumed.
-   **UPDATE (pre-0002 review):** your own admin read access through the new model has since been
-   confirmed live, against the real database (real admin login, real dashboard, real project
-   switching, all working) — the specific precondition this risk describes is already satisfied.
-   Two new files narrow this further before 0002 is actually run:
-   `queries/audit_current_policies.sql` (read-only — run and confirmed: the `instructors` table holds
-   exactly one account, your own admin UUID, and the current policy set matches the expected
-   post-0001 shape) and `queries/verify_0002_before_running.sql` (runs 0002's actual `drop policy`
-   statement live, inside a transaction that ends in `ROLLBACK`, then re-proves administrator read
-   access and teacher project-scoping on both `exercise_progress` *and* `profiles` against *real* data
-   — your real admin account, Luigi's real records, and exactly one new throwaway teacher account,
-   not the five originally planned — before undoing the drop along with that one account's rows). See
-   section 7 for what each test found, and that file's header for exactly why one new account remains
-   unavoidable even in the minimal version.
+2. **RESOLVED — `0002` has been applied.** The old `instructors`-based "read everything" policy is
+   gone: confirmed by a read-only query against `pg_policies` after running it, and by your admin
+   dashboard, Great Auk/Thylacine project switching, and Luigi's migrated progress all still working
+   against the real database afterward. Before running it for real,
+   `queries/audit_current_policies.sql` confirmed the `instructors` table held exactly one account
+   (your own admin UUID) and the live policy set matched the expected post-0001 shape, and
+   `queries/verify_0002_before_running.sql` proved, by actually dropping the policy inside a
+   transaction that ends in `ROLLBACK`, that doing so broke nothing — administrator read access and
+   teacher project-scoping on both `exercise_progress` and `profiles`, tested against real data (your
+   real admin account, Luigi's real records, and one throwaway teacher account) before undoing the
+   drop along with that one account's rows. See section 7 for what each test found. The instructors
+   table itself is left in place, unused, as a rollback path — see 0002's own header.
 3. **Who enrolls whom.** `project_memberships` has no insert policy for students or teachers —
    enrollment is SQL-editor-only (by you) for now, confirmed acceptable for the initial rollout.
 4. **`exercise_progress`'s upsert conflict key.** It's currently `(user_id, exercise_id)`. Once a
@@ -502,3 +523,38 @@ future Postgres/Supabase version changes the exact error behavior.
    `exercise_progress`'s were explicitly reported) — section 4c's `TRUNCATE`/`TRIGGER` revocation is
    scoped to `exercise_progress` only for that reason. Worth a follow-up check on `instructors` too,
    using the same already-available audit query, before assuming it's fine.
+
+## 9. Onboarding a new teacher (worked example: Emilio, Thylacine RNA)
+
+The general pattern for adding a teacher scoped to exactly one project — no Great Auk access, not an
+administrator:
+
+1. **Create the real Auth account.** Dashboard > Authentication > Users > **Invite user** is the
+   recommended method for a real colleague: it emails them a link to set their own password, rather
+   than you choosing one and relaying it. "Add user" with a temporary password works too if you'd
+   rather hand it to them directly. Either way this is a Supabase Auth action, not SQL.
+2. **Note the new account's UUID** from the Dashboard's Users list right after creating it.
+3. **Run `queries/setup_emilio_teacher.sql`**, with that UUID filled in. It sets `display_name`,
+   promotes `profiles.role` to `'teacher'`, and adds exactly one `project_memberships` row for the
+   target project (`thylacine-rna` in the file as written — change the slug for a different project).
+   It does not touch `exercise_progress` and does not grant any other project's access.
+4. **Check the script's own verification queries.** The last one must return zero rows — if it
+   returns anything, the account has Great Auk access it shouldn't, and that needs fixing before
+   calling this done.
+5. **Have them sign in** at `login.html` with their real credentials. They should see: the Dashboard
+   link in the sidebar (teacher-gated — see `js/auth-guard.js`'s `populateDashboardLink()`); no project
+   switcher, since they belong to exactly one project (`js/auth-guard.js`'s `populateProjectSwitcher()`
+   hides it when there's only one); and, on `supervisor.html`, the Thylacine RNA roster (empty until
+   students are enrolled there) and no path to Great Auk's data at all — `determineAccess()` in
+   `js/supervisor.js` only ever returns the projects a teacher actually holds a `'teacher'` membership
+   row for.
+
+**What Emilio will NOT see, by design, until Thylacine RNA has real content:** the module
+filters/exercise view `supervisor.js` shows for Great Auk only appear for that one project
+(`selectProject()`'s `slug === "great-auk"` branch) — for any other project, including Thylacine RNA
+today, the dashboard shows an explicit "no modules have been built yet" message rather than an empty
+or broken-looking view. This is expected, not a bug, until Thylacine's course content exists.
+
+**Scope note:** this only sets up Emilio's *platform access*. It does not create any Thylacine RNA
+course content (modules, exercises) — see section 6's closing item; that remains a separate, larger
+task, not part of this migration.

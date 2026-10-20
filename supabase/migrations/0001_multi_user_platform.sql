@@ -52,9 +52,10 @@
 -- grant restriction, relabel-trigger handling — remain below, unchanged
 -- from those passes except where this third pass touches the same area.)
 --
--- NOT YET RUN AGAINST THE LIVE DATABASE. This file is reviewed and executed
--- manually by Binia, in the Supabase SQL editor, only when she decides to
--- proceed. It is written to be additive and backward-compatible:
+-- APPLIED to the live database. Run manually by Binia in the Supabase SQL
+-- editor after review. Kept exactly as reviewed/applied, as the historical
+-- record — see MIGRATION_PLAN.md section 0 for the status summary. It was
+-- written to be additive and backward-compatible:
 --
 --   - It does not touch, rename, or drop any existing table, column, row,
 --     or policy (exercise_progress, instructors, and their current RLS
