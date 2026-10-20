@@ -259,7 +259,7 @@
     // teacher, and wrong for an admin who has switched away from Great
     // Auk. Keep it accurate for both roles and both projects instead.
     const roleName = accessMode === "admin" ? "Administrator" : "Teacher";
-    const headingText = `${roleName} Dashboard — ${selectedProject.name}`;
+    const headingText = `${selectedProject.name} — ${roleName} Dashboard`;
     el.dashboardHeading.textContent = headingText;
     document.title = `${headingText} | Lab Notebooks`;
 
