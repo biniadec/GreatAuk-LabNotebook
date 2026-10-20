@@ -405,9 +405,18 @@ pending your review — and per your note, the next things to start once this re
   proves this directly. Writes are now additionally scoped by project membership (see below).
 - **"Teachers only access their assigned projects."** Holds for reads via the new policy routed
   through `is_teacher_of_student_in_project()`. `rls_tests.sql` TEST 3/3b prove both the negative and
-  positive cases. **Not yet fully a platform-wide guarantee**, because the *old* `instructors`-based
+  positive cases. This covers `exercise_progress`; the same guarantee for `profiles` (can a teacher
+  read a student's *profile*, not just their progress, outside a shared project?) had no dedicated
+  test until `verify_0002_before_running.sql` TEST D/D2 added one — a teacher can read the profile of
+  a student who shares a project with them, and cannot read the profile of one who doesn't.
+  **Not yet fully a platform-wide guarantee**, because the *old* `instructors`-based
   policy still grants unconditional, unscoped read access to whoever is in the `instructors` table —
-  see risk #2 below. Complete only once `0002` is run. For **writes**, now also holds directly:
+  see risk #2 below. Complete only once `0002` is run; `verify_0002_before_running.sql` proves, by
+  actually dropping that policy inside a rolled-back transaction and re-running the full battery
+  (TEST A–F) against the real database, that doing so breaks nothing: administrator read access on
+  both `exercise_progress` and `profiles` (TEST A/B), teacher project-scoping on both tables under the
+  post-drop policy set specifically (TEST C/C2, D/D2), student insert and update (TEST E/E2), and the
+  not-yet-enrolled legacy write allowance (TEST F) all still hold with the legacy policy gone. For **writes**, now also holds directly:
   `rls_tests.sql` TEST 7/7b prove an enrolled student can't write a *new* record into a project they're
   not a member of (and can within their own), and TEST 8 proves they also can't move an *existing*
   record into an unauthorized project by changing its `project_id` — the same guarantee exercised
@@ -448,6 +457,18 @@ future Postgres/Supabase version changes the exact error behavior.
    must only be run *after* confirming your own account has working read access through the new model
    — running it first risks locking the current supervisor view out of its own data. Its exact name is
    confirmed directly by `queries/audit_existing_schema.sql`'s first query, not assumed.
+   **UPDATE (pre-0002 review):** your own admin read access through the new model has since been
+   confirmed live, against the real database (real admin login, real dashboard, real project
+   switching, all working) — the specific precondition this risk describes is already satisfied.
+   Two new files narrow this further before 0002 is actually run:
+   `queries/audit_current_policies.sql` (read-only — lists every current policy/grant across all four
+   tables, so "is this really the only bypass" is based on the live policy set, not just what the
+   migration files say they created) and `queries/verify_0002_before_running.sql` (runs 0002's actual
+   `drop policy` statement live, inside a transaction that ends in `ROLLBACK`, then re-proves
+   administrator read access, teacher project-scoping on both `exercise_progress` *and* `profiles`
+   — the latter never had a dedicated test before this — and student insert/update, all with the
+   legacy policy actually gone for the duration of the transaction, before undoing it along with the
+   drop itself). See section 7 for what each test found.
 3. **Who enrolls whom.** `project_memberships` has no insert policy for students or teachers —
    enrollment is SQL-editor-only (by you) for now, confirmed acceptable for the initial rollout.
 4. **`exercise_progress`'s upsert conflict key.** It's currently `(user_id, exercise_id)`. Once a
