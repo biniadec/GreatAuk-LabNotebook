@@ -529,17 +529,14 @@ future Postgres/Supabase version changes the exact error behavior.
 The general pattern for adding a teacher scoped to exactly one project — no Great Auk access, not an
 administrator:
 
-1. **Create the real Auth account via Dashboard > Authentication > Users > Add user**, with a
-   password you set and relay to them directly. **Correction, found during final pre-deployment
-   review:** an earlier version of this section recommended "Invite user" instead, on the assumption
-   its emailed set-your-own-password link would just work. It wouldn't, with this app as it stands
-   today — `js/supabase-client.js` initializes the client with `detectSessionInUrl: false` (a
-   deliberate choice, since the app never otherwise needs to parse auth tokens out of a URL), which
-   means the session Supabase's invite link carries in its redirect URL is never picked up, and
-   `login.html` has no "set your password" step for it to hand off to anyway. The invite email would
-   arrive and the link would silently fail to do anything useful. Until a real set-password page
-   exists, "Add user" is the only method that actually works end-to-end. This is a Supabase Auth
-   action, not SQL.
+1. **Create the real Auth account.** Status as of the password-management build (section 10): "Add
+   user" (you set a password, relay it directly) is still confirmed safe and simple. "Invite user" —
+   previously corrected away from, because the emailed link had nowhere working to land — should now
+   work too, since `set-password.html` exists and password *recovery* through that exact page has
+   been verified end-to-end against the real Supabase project (section 10). The *invite* flow
+   specifically has not been separately confirmed for real yet — that real test is what section 10's
+   "pending" item is tracking. Once it passes, use "Invite user" as the default going forward; until
+   then, "Add user" remains the fallback that's already proven to work.
 2. **Note the new account's UUID** from the Dashboard's Users list right after creating it.
 3. **Run `queries/setup_emilio_teacher.sql`**, with that UUID filled in. It sets `display_name`,
    promotes `profiles.role` to `'teacher'`, and adds exactly one `project_memberships` row for the
@@ -565,3 +562,33 @@ or broken-looking view. This is expected, not a bug, until Thylacine's course co
 **Scope note:** this only sets up Emilio's *platform access*. It does not create any Thylacine RNA
 course content (modules, exercises) — see section 6's closing item; that remains a separate, larger
 task, not part of this migration.
+
+## 10. Self-service password management
+
+Built so students and teachers can set and change their own passwords without Binia relaying
+credentials or resetting them manually. Three new pages (`recover-password.html`, `set-password.html`,
+`change-password.html`), a shared `js/landing-page.js` helper for "where should this session land,"
+and a "Change password" link added everywhere "Sign out" already appears. Registration stays entirely
+administrator-controlled — neither flow can create an account; both only ever act on one that already
+exists. Full design rationale is in each file's own header comment, not repeated here.
+
+**Real-world test status:**
+
+- ✅ **Password recovery — confirmed working end-to-end against the real Supabase project**
+  (2026-10-20). Binia used the real Test Teacher account on `localhost:8000`: requested a reset via
+  `recover-password.html`, received the actual email from Supabase, followed the link to
+  `set-password.html`, set a new password, and was correctly redirected to the Thylacine RNA teacher
+  dashboard (`supervisor.html`) — confirming both the link itself worked with the real Redirect
+  URL/Site URL configuration, and that `js/landing-page.js`'s role-aware routing resolved correctly
+  for a real account, not just a mocked one.
+- ⏳ **Invite flow — not yet tested for real.** The *mechanism* is identical to recovery once a
+  session is established (same `set-password.html`, same code path), and was proven in isolation with
+  Playwright mocks (`round7-password-management.js`, test H: an invited account with no project
+  membership correctly lands on `not-enrolled.html`, never project content). What hasn't been
+  confirmed yet is Supabase's *invite* email specifically — its link format, or any
+  invite-vs-recovery difference in Dashboard behavior, could still turn up something the recovery
+  test didn't exercise. Test this with a fresh, disposable account before inviting Luigi, Emilio, or
+  Diamanto for real — see the instructions provided alongside this update for exactly how.
+
+Once the invite test above passes, flip section 9's guidance from "Add user, Invite pending" to
+recommending "Invite user" outright, and this line should be updated to ✅ as well.

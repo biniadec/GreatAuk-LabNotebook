@@ -39,13 +39,18 @@ and `--diff-filter=R` both empty); every new page this branch adds (`login.html`
   original anonymous rows never being part of any script here (the retirement script remains
   unexecuted, per your standing instruction).
 - **The one real risk to his access is not technical, it's communication**: once this merges, Luigi
-  can no longer continue anonymously — he must sign in with his real account. If he doesn't already
-  know that email/password, his very first visit after deploy will be a dead end. Put "Luigi has his
-  credentials in hand" on the checklist below as a hard gate, not an afterthought.
-- There is currently **no self-service "forgot password" flow** anywhere in the UI (checked
-  `login.html`/`js/login.js` directly — no `resetPasswordForEmail` call exists). If Luigi loses or
-  forgets his password post-deploy, the only recovery path today is you resetting it manually via the
-  Supabase Dashboard. Not a blocker, but worth knowing before go-live, not after a support request.
+  can no longer continue anonymously — he must sign in with his real account. He at least needs to
+  know the right *email* is on his account and that a login now exists at all — if he's forgotten or
+  never knew the password, self-service recovery (below) now covers that, but he still can't discover
+  the login wall exists on his own. Put "Luigi has been told, and the email on his account is one he
+  can actually check" on the checklist below, not an afterthought.
+- **UPDATE — this is now built and verified.** A self-service "Forgot password?" flow
+  (`recover-password.html` → `set-password.html`) was added after this review was first written, and
+  has since been tested end-to-end against the real Supabase project (see
+  `supabase/MIGRATION_PLAN.md` section 10) — a real reset email, received, followed, and landing
+  correctly. If Luigi forgets his password post-deploy, he can now recover it himself, no manual
+  Dashboard reset needed. A "Change password" option for an already-signed-in session
+  (`change-password.html`) exists too.
 
 **A correction this review found and already fixed in the docs** (not a deploy blocker, since Emilio's
 account doesn't exist yet): `MIGRATION_PLAN.md`'s teacher-onboarding steps previously recommended
