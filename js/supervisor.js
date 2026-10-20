@@ -30,6 +30,7 @@
   const TABLE = "exercise_progress";
 
   const el = {
+    dashboardHeading: document.querySelector('[data-role="dashboard-heading"]'),
     signOutBtn: document.querySelector('[data-role="sign-out-btn"]'),
     loginView: document.querySelector('[data-role="login-view"]'),
     loginForm: document.querySelector('[data-role="login-form"]'),
@@ -252,6 +253,15 @@
   async function selectProject(projectId) {
     selectedProject = availableProjects.find((p) => p.id === projectId) || availableProjects[0];
     el.projectSelect.value = selectedProject.id;
+
+    // The heading previously hardcoded "Great Auk" regardless of which
+    // project was actually being viewed — wrong for a Thylacine-only
+    // teacher, and wrong for an admin who has switched away from Great
+    // Auk. Keep it accurate for both roles and both projects instead.
+    const roleName = accessMode === "admin" ? "Administrator" : "Teacher";
+    const headingText = `${roleName} Dashboard — ${selectedProject.name}`;
+    el.dashboardHeading.textContent = headingText;
+    document.title = `${headingText} | Lab Notebook`;
 
     if (accessMode === "admin") {
       await renderTeachersNote(selectedProject.id);
@@ -503,10 +513,14 @@
     if (!selectedProject) return;
 
     if (roster.length === 0) {
+      // The roster panel (renderRoster(), above) already shows "No students
+      // are enrolled in this project yet." in its own empty state — showing
+      // the identical sentence again here as well was a genuine duplicate,
+      // not two different pieces of information. Nothing more to say in
+      // this panel when there's no student to show detail for.
       el.studentLabel.textContent = "";
       el.modulesContainer.innerHTML = "";
-      el.noDataMessage.hidden = false;
-      el.noDataMessage.textContent = "No students are enrolled in this project yet.";
+      el.noDataMessage.hidden = true;
       return;
     }
 
