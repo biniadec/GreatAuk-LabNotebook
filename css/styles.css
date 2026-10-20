@@ -2013,6 +2013,10 @@ body:not(.auth-ready) .app-shell {
   justify-content: center;
 }
 
+.sidebar-account .btn + .btn {
+  margin-top: 0.4rem;
+}
+
 .sidebar-project-switcher {
   margin-top: 0.5rem;
   display: flex;

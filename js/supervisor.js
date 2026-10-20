@@ -31,6 +31,7 @@
 
   const el = {
     dashboardHeading: document.querySelector('[data-role="dashboard-heading"]'),
+    changePasswordLink: document.querySelector('[data-role="change-password-link"]'),
     signOutBtn: document.querySelector('[data-role="sign-out-btn"]'),
     loginView: document.querySelector('[data-role="login-view"]'),
     loginForm: document.querySelector('[data-role="login-form"]'),
@@ -102,11 +103,13 @@
   async function handleSession(session) {
     if (!session || session.user.is_anonymous) {
       el.signOutBtn.hidden = true;
+      el.changePasswordLink.hidden = true;
       showOnly(el.loginView);
       el.loginView.hidden = false;
       return;
     }
     el.signOutBtn.hidden = false;
+    el.changePasswordLink.hidden = false;
 
     // Step 1: determine authorization. A thrown error here means a query
     // genuinely failed (database/network problem) — we don't know the

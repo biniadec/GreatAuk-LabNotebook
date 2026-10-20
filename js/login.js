@@ -26,55 +26,11 @@
   const errorEl = document.querySelector('[data-role="login-error"]');
   const submitBtn = document.querySelector('[data-role="login-submit"]');
 
-  // Same mapping auth-guard.js uses for its project switcher — duplicated
-  // here (not imported) since login.html doesn't load auth-guard.js at all;
-  // it would have nothing to guard yet (no session exists before sign-in).
-  const PROJECT_HOME_PAGES = {
-    "great-auk": "index.html",
-    "thylacine-rna": "thylacine/index.html",
-  };
-
-  // Mirrors the precedence supervisor.js's determineAccess() actually uses
-  // (profiles.role === 'admin' first, then a project_memberships 'teacher'
-  // row — never profiles.role === 'teacher', which this platform doesn't
-  // even require to be kept in sync with membership rows) so that where a
-  // login lands always agrees with what that account can actually do once
-  // it gets there.
-  async function resolveDefaultLandingPage(client, session) {
-    try {
-      const { data: profile, error: profileErr } = await client
-        .from("profiles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
-      if (profileErr) throw profileErr;
-
-      if (profile && profile.role === "admin") return "index.html";
-
-      const { data: memberships, error: memErr } = await client
-        .from("project_memberships")
-        .select("role, projects(slug)")
-        .eq("user_id", session.user.id);
-      if (memErr) throw memErr;
-
-      const rows = memberships || [];
-      if (rows.some((m) => m.role === "teacher")) return "supervisor.html";
-
-      const studentRow = rows.find((m) => m.role === "student" && m.projects);
-      if (studentRow) return PROJECT_HOME_PAGES[studentRow.projects.slug] || "not-enrolled.html";
-
-      return "not-enrolled.html";
-    } catch (err) {
-      console.warn("[GreatAuk] Could not resolve a role-aware landing page after login — defaulting to index.html.", err);
-      return "index.html";
-    }
-  }
-
   async function redirectTarget(client, session) {
     const params = new URLSearchParams(window.location.search);
     const explicit = params.get("redirect");
     if (explicit) return explicit;
-    return resolveDefaultLandingPage(client, session);
+    return global.GreatAuk.resolveDefaultLandingPage(client, session);
   }
 
   async function redirectIfAlreadySignedIn() {

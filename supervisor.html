@@ -13,7 +13,10 @@
 
     <div class="supervisor-header">
       <h1 data-role="dashboard-heading">Teacher Dashboard</h1>
-      <button type="button" class="btn btn-secondary btn-small" data-role="sign-out-btn" hidden>Sign out</button>
+      <div style="display:flex; gap:0.5rem;">
+        <a href="change-password.html" class="btn btn-secondary btn-small" data-role="change-password-link" hidden>Change password</a>
+        <button type="button" class="btn btn-secondary btn-small" data-role="sign-out-btn" hidden>Sign out</button>
+      </div>
     </div>
 
     <!-- Login form: shown when no session exists -->
