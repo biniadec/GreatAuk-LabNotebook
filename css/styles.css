@@ -1857,6 +1857,14 @@ footer.site-footer {
   display: none;
 }
 
+/* Same cascade gap, caught before shipping this time: .btn sets its own
+   `display: inline-flex`, which would otherwise override [hidden] exactly
+   like .supervisor-filters and .nav-link did above — this affects the new
+   conditionally-hidden buttons on thylacine/index.html. */
+.btn[hidden] {
+  display: none;
+}
+
 .supervisor-filters select {
   padding: 0.45rem 0.6rem;
   border: 1px solid var(--border);

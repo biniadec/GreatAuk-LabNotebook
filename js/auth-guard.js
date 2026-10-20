@@ -160,6 +160,7 @@
     global.GreatAuk.currentUser = session.user;
     global.GreatAuk.currentMemberships = myMemberships;
     global.GreatAuk.currentDisplayName = displayName;
+    global.GreatAuk.currentRole = profileRole;
 
     // An admin can switch between every project, not just ones they
     // happen to hold a membership row in — fetch the full list for them.

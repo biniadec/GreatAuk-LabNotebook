@@ -21,7 +21,8 @@
       </p>
       <p class="supervisor-meta" data-role="account-name" style="margin-top:1rem;"></p>
       <div style="display:flex; gap:0.6rem; justify-content:center; margin-top:0.75rem;">
-        <a class="btn btn-secondary" href="../index.html">Go to Great Auk</a>
+        <a class="btn btn-secondary" href="../supervisor.html" data-role="dashboard-link" hidden>Teacher Dashboard</a>
+        <a class="btn btn-secondary" href="../index.html" data-role="great-auk-link" hidden>Go to Great Auk</a>
         <button type="button" class="btn btn-secondary" data-role="sign-out-btn">Sign out</button>
       </div>
     </section>
@@ -35,8 +36,20 @@
   <script src="../js/supabase-client.js"></script>
   <script src="../js/auth-guard.js"></script>
   <script>
+    // "Go to Great Auk" only makes sense for someone who actually has
+    // access there (today, only an admin) -- showing it unconditionally
+    // would invite a Thylacine-only teacher or student toward a project
+    // they'd just be denied from. auth-guard.js's own populateDashboardLink()
+    // already handles the Teacher Dashboard link generically (it looks for
+    // data-role="dashboard-link" on any page), so nothing extra is needed
+    // for that one here.
     window.GreatAuk.authReady.then(() => {
       document.body.classList.add("auth-ready");
+      const memberships = window.GreatAuk.currentMemberships || [];
+      const role = window.GreatAuk.currentRole;
+      const hasGreatAuk = role === "admin" || memberships.some((m) => m.projects && m.projects.slug === "great-auk");
+      const greatAukLink = document.querySelector('[data-role="great-auk-link"]');
+      if (greatAukLink) greatAukLink.hidden = !hasGreatAuk;
     });
   </script>
 </body>

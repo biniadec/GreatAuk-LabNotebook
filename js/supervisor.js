@@ -261,7 +261,7 @@
     const roleName = accessMode === "admin" ? "Administrator" : "Teacher";
     const headingText = `${roleName} Dashboard — ${selectedProject.name}`;
     el.dashboardHeading.textContent = headingText;
-    document.title = `${headingText} | Lab Notebook`;
+    document.title = `${headingText} | Lab Notebooks`;
 
     if (accessMode === "admin") {
       await renderTeachersNote(selectedProject.id);
