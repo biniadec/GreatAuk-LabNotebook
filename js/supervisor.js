@@ -242,7 +242,7 @@
     }
     el.projectPicker.hidden = false;
     el.projectSelect.innerHTML = availableProjects
-      .map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`)
+      .map((p) => `<option value="${p.id}">${escapeHtml(displayName(p))}</option>`)
       .join("");
   }
 
@@ -257,6 +257,13 @@
     }
   });
 
+  // Display names follow the naming convention in projects-data.js (by
+  // slug); the database's projects.name is only a fallback.
+  function displayName(project) {
+    const lookup = global.GreatAuk.projectDisplayName;
+    return lookup ? lookup(project.slug, project.name) : project.name;
+  }
+
   async function selectProject(projectId) {
     selectedProject = availableProjects.find((p) => p.id === projectId) || availableProjects[0];
     el.projectSelect.value = selectedProject.id;
@@ -266,7 +273,7 @@
     // teacher, and wrong for an admin who has switched away from Great
     // Auk. Keep it accurate for both roles and both projects instead.
     const roleName = accessMode === "admin" ? "Administrator" : "Teacher";
-    const headingText = `${selectedProject.name} — ${roleName} Dashboard`;
+    const headingText = `${displayName(selectedProject)} — ${roleName} Dashboard`;
     el.dashboardHeading.textContent = headingText;
     document.title = `${headingText} | HoloBase`;
 

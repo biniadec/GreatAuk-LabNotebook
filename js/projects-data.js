@@ -3,8 +3,14 @@
  *
  * Platform and project identities for HoloBase. The platform brand is
  * shared (authentication pages, dashboard); each project keeps its own
- * scientific identity on its own pages. `name` matches the `projects`
- * table's seeded rows (shown in the dashboard); `subtitle` is frontend-only.
+ * scientific identity on its own pages.
+ *
+ * Naming convention: every page shows `displayName` (e.g. "Great Auk") and
+ * `subtitle` (e.g. "Ancient DNA & Comparative Genomics"); `fullName` joins
+ * them. `name` is only the `projects` table's seeded value, kept for
+ * reference — it is never shown: the sidebar switcher and the dashboard look
+ * the display name up by slug (projectDisplayName), so the convention needs
+ * no Supabase change. Slugs never change.
  * Module lists live in modules-data.js (Great Auk) and
  * thylacine-modules-data.js (Thylacine RNA).
  *
@@ -32,9 +38,9 @@
   const PROJECTS = [
     {
       slug: "great-auk",
-      name: "Great Auk Comparative Genomics",
+      name: "Great Auk Comparative Genomics", // projects.name in Supabase (not displayed)
       displayName: "Great Auk",
-      subtitle: "Comparative Genomics",
+      subtitle: "Ancient DNA & Comparative Genomics",
       status: "active",
       basePath: "great-auk/",
       publicDescription:
@@ -48,13 +54,13 @@
     },
     {
       slug: "thylacine-rna",
-      name: "Thylacine RNA",
-      displayName: "Thylacine RNA",
-      subtitle: "Ancient Transcriptomics",
+      name: "Thylacine RNA", // projects.name in Supabase (not displayed)
+      displayName: "Thylacine",
+      subtitle: "Ancient RNA & Transcriptomics",
       status: "active",
       basePath: "thylacine/",
       publicDescription:
-        "A step-by-step training notebook for the Thylacine RNA ancient transcriptomics project.",
+        "A step-by-step training notebook for the Thylacine ancient RNA and transcriptomics project.",
       artwork: {
         src: "assets/thylacine-banner.jpg",
         alt: "Illustration of a thylacine standing on a rocky outcrop above a Tasmanian landscape, with an RNA helix and sequencing traces drawn across the sky.",
@@ -66,7 +72,15 @@
 
   PROJECTS.forEach((p) => {
     p.homePage = p.basePath + "index.html";
+    p.fullName = `${p.displayName} — ${p.subtitle}`;
   });
+
+  // The name to show for a project slug; `fallback` (e.g. the database's
+  // projects.name) is used only for a slug this file doesn't know.
+  function projectDisplayName(slug, fallback) {
+    const project = PROJECTS.find((p) => p.slug === slug);
+    return project ? project.displayName : fallback || slug;
+  }
 
   // slug -> home page, relative to the site root.
   const PROJECT_HOME_PAGES = {};
@@ -87,4 +101,5 @@
   global.GreatAuk.PROJECTS = PROJECTS;
   global.GreatAuk.PROJECT_HOME_PAGES = PROJECT_HOME_PAGES;
   global.GreatAuk.projectPath = projectPath;
+  global.GreatAuk.projectDisplayName = projectDisplayName;
 })(window);

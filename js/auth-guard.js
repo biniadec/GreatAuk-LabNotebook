@@ -33,6 +33,13 @@
     console.warn("[GreatAuk] Page did not declare GreatAuk.ROOT_PREFIX — guessed", JSON.stringify(rootPrefix));
   }
 
+  // Display names come from projects-data.js by slug (the naming
+  // convention), not from the database's projects.name.
+  function displayNameFor(p) {
+    const lookup = global.GreatAuk && global.GreatAuk.projectDisplayName;
+    return lookup ? lookup(p.slug, p.name) : p.name;
+  }
+
   // Project home pages come from projects-data.js (the single map).
   function projectHomePages() {
     return (global.GreatAuk && global.GreatAuk.PROJECT_HOME_PAGES) || {};
@@ -84,7 +91,7 @@
       if (!href || seen.has(p.slug)) return;
       seen.add(p.slug);
       const activeClass = p.slug === currentSlug ? " is-active" : "";
-      links.push(`<a href="${rootPrefix}${href}" data-project-slug="${p.slug}" class="${activeClass}">${escapeHtml(p.name)}</a>`);
+      links.push(`<a href="${rootPrefix}${href}" data-project-slug="${p.slug}" class="${activeClass}">${escapeHtml(displayNameFor(p))}</a>`);
     });
 
     if (links.length <= 1) {

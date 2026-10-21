@@ -42,7 +42,7 @@
       title: "Getting Started on Mjolnir",
       status: "active",
       summary:
-        "Prepare to work independently on the UCPH Mjolnir HPC cluster before starting the Thylacine RNA analysis.",
+        "Prepare to work independently on the UCPH Mjolnir HPC cluster before starting the Thylacine analysis.",
       environment: ENVIRONMENTS.mjolnir,
       exerciseIds: sharedModule00.exerciseIds.map((id) => id.replace(/^m0-/, "thy-m00-")),
       // Teaching content comes from Great Auk's Module 00 page (one shared

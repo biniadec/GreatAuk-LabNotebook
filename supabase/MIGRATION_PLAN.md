@@ -730,3 +730,14 @@ too → Great Auk is back at the root. Old URLs work in every state. Nothing in 
 **Tested with mocks only** — see the phase reports. Still needs real-Supabase confirmation after
 deploy: a real sign-in for each role on the live site, the live old-URL forwarding, and a real
 recovery email still landing on `set-password.html`.
+
+**Naming convention (display only, 2026-10-21).** Projects are shown as **Great Auk — Ancient DNA &
+Comparative Genomics** and **Thylacine — Ancient RNA & Transcriptomics**: tab titles
+`<page> | <Project>` (project homepages `<Project> — <Subtitle> | HoloBase`), sidebar brand,
+footers, HoloBase cards, and the dashboard heading/picker (`<Project> — Teacher Dashboard`). The
+names come from `displayName`/`subtitle` in `js/projects-data.js`, looked up by slug; the
+`projects.name` values in Supabase (`Great Auk Comparative Genomics`, `Thylacine RNA`) are left
+unchanged and are no longer displayed, so no database change was needed. Slugs (`great-auk`,
+`thylacine-rna`), project IDs, exercise IDs and URLs are unchanged. The two banner images still show
+the old subtitles in the artwork (`assets/great-auk-banner.jpg`: "Comparative Genomics";
+`assets/thylacine-banner.jpg`: "Thylacine RNA / Ancient Transcriptomics") and need redrawing.
