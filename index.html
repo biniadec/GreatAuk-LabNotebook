@@ -1,21 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-project-theme="holobase">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex" />
-  <title>Moved — Great Auk Comparative Genomics — Lab Notebook</title>
-  <!--
-    Redirect stub. Great Auk moved to great-auk/; this keeps the old URL
-    working. Query string and #exercise anchor are carried over. Loads no
-    site scripts on purpose (no auth check, no Supabase): it only forwards.
-  -->
-  <script>
-    window.location.replace("great-auk/index.html" + window.location.search + window.location.hash);
-  </script>
-  <noscript><meta http-equiv="refresh" content="0; url=great-auk/index.html" /></noscript>
+  <title>HoloBase — Evolutionary Hologenomics Training Hub</title>
+  <meta name="description" content="HoloBase is the training hub for evolutionary hologenomics projects, including Great Auk Comparative Genomics and Thylacine RNA." />
+  <link rel="stylesheet" href="css/styles.css?v=holobase-1" />
+  <link rel="stylesheet" href="css/theme-holobase.css?v=holobase-1" />
 </head>
 <body>
-  <p>This page has moved to <a href="great-auk/index.html">great-auk/index.html</a>.</p>
+  <!--
+    Public HoloBase homepage. Deliberately does NOT load auth-guard.js:
+    anyone may view it. What it shows comes only from projects-data.js
+    (public names, descriptions, artwork). For a signed-in visitor, hub.js
+    reads that visitor's OWN profile and memberships (RLS-scoped) to decide
+    which cards open; it never requests progress, answers or other users.
+  -->
+  <div class="hub-shell">
+
+    <header class="hub-topbar">
+      <a class="hub-wordmark" href="index.html">
+        <span class="hub-wordmark-name">HoloBase</span>
+        <span class="hub-wordmark-tagline">Evolutionary Hologenomics Training Hub</span>
+      </a>
+      <div class="hub-account" data-role="hub-account">
+        <a class="btn btn-primary btn-small" href="login.html" data-role="hub-sign-in">Sign in</a>
+        <span class="hub-account-name" data-role="hub-account-name" hidden></span>
+        <a class="btn btn-secondary btn-small" href="supervisor.html" data-role="hub-dashboard-link" hidden>Dashboard</a>
+        <a class="btn btn-secondary btn-small" href="change-password.html" data-role="hub-change-password" hidden>Change password</a>
+        <button type="button" class="btn btn-secondary btn-small" data-role="hub-sign-out" hidden>Sign out</button>
+      </div>
+    </header>
+
+    <main>
+      <figure class="hub-banner">
+        <img src="assets/holobase-banner.jpg" width="2244" height="701"
+          alt="Panoramic illustration: a mammoth skeleton in a glacial valley, a DNA double helix sweeping across the scene past a globe with a branching evolutionary tree and animal and plant silhouettes, and microbes in the foreground." />
+      </figure>
+
+      <section class="hub-intro">
+        <h1>HoloBase</h1>
+        <span class="hub-tagline">Evolutionary Hologenomics Training Hub</span>
+        <hr class="hub-rule" />
+        <p data-role="hub-welcome">
+          Welcome to HoloBase, the home of our evolutionary hologenomics training projects.
+          Each project is a step-by-step notebook of hands-on modules, with your answers and
+          progress saved to your own account.
+        </p>
+        <p class="hub-status" data-role="hub-status" aria-live="polite">Sign in to open the projects you're enrolled in.</p>
+      </section>
+
+      <section aria-labelledby="hub-projects-title">
+        <h2 class="hub-section-title" id="hub-projects-title">Projects</h2>
+        <div class="hub-projects" data-role="hub-projects"></div>
+        <noscript>
+          <p>Project cards need JavaScript. You can still <a href="login.html">sign in</a>.</p>
+        </noscript>
+      </section>
+    </main>
+
+    <footer class="hub-footer">
+      HoloBase — Evolutionary Hologenomics Training Hub · <span data-current-year></span>
+    </footer>
+  </div>
+
+  <script src="js/projects-data.js?v=holobase-1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-client.js?v=holobase-1"></script>
+  <script src="js/hub.js?v=holobase-1"></script>
 </body>
 </html>

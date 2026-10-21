@@ -5,6 +5,10 @@ Reviewed: `feature/multi-user-platform` (18 commits ahead of `main`, commit `f40
 conflict-free merge whenever you decide to run it. Nothing in this review executed SQL, changed
 Supabase, merged, or deployed.
 
+> **Since this review:** the HoloBase restructure (Great Auk moved to `great-auk/`, public HoloBase
+> homepage at the root, login-redirect fix) was added in three commits — see
+> `supabase/MIGRATION_PLAN.md` §13. The checklist and rollback below are updated for it.
+
 ## What was checked, and the result
 
 **Security**
@@ -70,7 +74,10 @@ step (no GitHub Actions workflow, no CNAME — Pages serves straight from `main`
    right now), not just that the account exists in Supabase. This is the one step that actually
    protects his access — everything else here is technical.
 2. **Tell Luigi, before or at the moment of deploy**, that the site now requires a real login and
-   give him the URL — don't let him discover a login wall unannounced.
+   give him the URL — don't let him discover a login wall unannounced. The site root is now the
+   public HoloBase homepage; Great Auk lives at `great-auk/`. His old bookmarks (the root, any
+   `modules/…` page) keep working: the root shows HoloBase with his Great Auk card one click away,
+   and every old Great Auk page forwards to its new address, query string and `#exercise` included.
 3. **Re-confirm current Supabase state** (quick Dashboard glance, no SQL needed): migrations 0001 and
    0002 applied (already confirmed earlier), Luigi's profile/membership/25 records intact, his
    original anonymous records still present and untouched, anonymous auth still enabled at the
@@ -80,13 +87,25 @@ step (no GitHub Actions workflow, no CNAME — Pages serves straight from `main`
    old version until the new build is ready, typically a few minutes), the cutover to mandatory login
    is immediate and global once it propagates, with no gradual rollout.
 5. **Merge `feature/multi-user-platform` into `main`** and push. This is the deploy.
-6. **Within the next few minutes**, verify the live site directly (not localhost): the home page
-   requires login, `login.html` loads with neutral "Lab Notebooks" branding, and a real sign-in as
-   yourself (admin) reaches the dashboard and can switch projects.
+6. **Within the next few minutes**, verify the live site directly (not localhost), in a private
+   window so nothing is cached:
+   - the root shows the public HoloBase homepage **without** asking you to sign in, with both
+     project cards and only "Sign in to enter" buttons;
+   - opening `great-auk/index.html` or any module page directly **does** require login;
+   - an old URL forwards, e.g. `modules/01-reference-genome.html#m1-ex01` →
+     `great-auk/modules/01-reference-genome.html#m1-ex01`;
+   - `login.html` shows the HoloBase brand; a real sign-in as yourself (admin) lands on HoloBase
+     with both cards marked Administrator, and "Open dashboard" reaches the dashboard, which can
+     switch projects;
+   - Thylacine Module 00 and its Toolbox load their shared content (no "couldn't load" error).
 7. **Have Luigi sign in on the live site** as soon as practical after step 6, and confirm he sees his
    25 real records. This is the actual proof the deploy succeeded for the person it matters most to.
 8. **Do not invite Emilio yet, and do not run `relabel_and_retire_luigi_anonymous.sql` yet** — both
    remain your explicit, separate calls, unconnected to this deploy.
+
+**Every later deploy that changes a JS or CSS file:** bump the `?v=holobase-1` version tag on the
+local `<script>`/`<link>` references (one search-and-replace across the `.html` files), so browsers
+don't combine a new page with a cached old script for the ~10 minutes GitHub Pages lets them cache.
 
 ## Rollback procedure
 
@@ -105,9 +124,14 @@ changes are needed or recommended as part of rolling back:
    any of this branch's work began. No data is lost by a frontend rollback: anything written by a real
    account in the meantime (Luigi's account, any Test Teacher activity) simply stays in
    `exercise_progress`, untouched, available again whenever you redeploy forward.
-3. If the problem is narrower than "revert everything" — e.g. one broken page, not the whole
+3. **The HoloBase restructure can also be rolled back one phase at a time**, because each phase is
+   its own commit (see `supabase/MIGRATION_PLAN.md` §13): `git revert` the phase 3 commit alone to
+   bring back the temporary root redirect (root → Great Auk) instead of the HoloBase homepage;
+   revert phase 2 as well to put Great Auk back at the root. Old URLs work in every one of those
+   states. None of this touches Supabase.
+4. If the problem is narrower than "revert everything" — e.g. one broken page, not the whole
    login requirement — a targeted fix-forward commit on `main` is usually faster and less disruptive
    than a full revert. Use judgment; the revert path above is the guaranteed-safe fallback, not the
    only option.
-4. Luigi's original anonymous records and his migrated real-account records are never touched by
+5. Luigi's original anonymous records and his migrated real-account records are never touched by
    either a forward deploy or a rollback — both are pure frontend/git operations.

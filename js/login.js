@@ -4,15 +4,10 @@
  * Drives login.html: real email/password sign-in for students and
  * teachers. On success, redirects to wherever auth-guard.js sent the
  * visitor from (the `redirect` query param, a site-root-relative path
- * captured by the guard). If there isn't one — the visitor came to
- * login.html directly, not bounced here from a specific page — the
- * destination is resolved from the signed-in account's actual role and
- * project membership, NOT a hardcoded page: an admin goes to index.html;
- * a teacher goes to supervisor.html; a student goes to their own enrolled
- * project's landing page. A single hardcoded default here would send a
- * Thylacine-only account straight into a page that immediately rejects
- * them (index.html requires the Great Auk project) — exactly the
- * confusing first impression this is meant to avoid.
+ * captured by the guard, including any #exercise anchor). If there isn't
+ * one — the visitor came to login.html directly — everyone lands on the
+ * HoloBase homepage (landing-page.js), which shows each account the
+ * projects and dashboard it can open.
  *
  * If a real, already-signed-in session exists when this page loads,
  * redirects immediately (through the same logic) without showing the
@@ -23,8 +18,8 @@
  * page on this same site, inside the folder login.html itself lives in
  * (the site root — "/GreatAuk-LabNotebook/" on GitHub Pages). Anything
  * else — another origin, a protocol-relative "//host", a javascript: or
- * data: URL, a path outside the site — is ignored and the role-aware
- * default is used instead.
+ * data: URL, a path outside the site — is ignored and the HoloBase
+ * homepage is used instead.
  */
 
 (function (global) {

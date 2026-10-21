@@ -668,3 +668,65 @@ grant or data migration. It relies only on what migrations 0001/0002 already pro
 - **Future migrations.** Supabase changes the default Data API grants for newly created public tables
   on 30 October 2026. Any future migration that creates a table must state explicit, least-privilege
   `GRANT`s (as 0001 already does for its tables) rather than relying on defaults.
+
+## 13. HoloBase homepage and the `/great-auk/` move (frontend only — no Supabase change)
+
+Three separately tested commits on `feature/multi-user-platform`, each revertible on its own:
+
+| Phase | Commit | What it does |
+|---|---|---|
+| 1 — prepare | `ca51fc6` | One project map (`js/projects-data.js`: `basePath` → `homePage`, `PROJECT_HOME_PAGES`, `projectPath()`); every guarded page declares `ROOT_PREFIX`; dashboard and Thylacine shared-content paths resolve through `projectPath()`; **login redirect fix** (below). No visible change. |
+| 2 — move | `4c80ead` | `git mv` Great Auk into `great-auk/` (history kept); 14 inert redirect stubs at the old URLs; login redirect keeps the `#exercise` anchor. |
+| 3 — homepage | see `git log` | Public HoloBase homepage at the root; everyone lands there after signing in; "All projects (HoloBase)" link on every project page; `?v=` cache-busting on local scripts and styles. |
+
+**Site structure now**
+
+```
+/                  HoloBase homepage (public)          index.html, js/hub.js, css/theme-holobase.css
+/great-auk/        Great Auk Comparative Genomics      (moved, unchanged content and exercise IDs)
+/thylacine/        Thylacine RNA                       (unchanged)
+/supervisor.html, /login.html, /recover-password.html, /set-password.html, /verify-code.html,
+/change-password.html, /not-enrolled.html              shared, still at the root
+/modules/*.html, /toolbox.html, /resources.html, /glossary.html   redirect stubs → /great-auk/…
+```
+
+**Why no Supabase change is needed.** The authentication pages did not move, so the recovery
+`redirectTo` (built from `recover-password.html`'s own location) and the Redirect URLs allowlist are
+unchanged. Invites land on the Site URL (the root), which is now HoloBase — a better landing for an
+invited account than the old Great Auk home. Exercise IDs, `exercise_progress` rows and localStorage
+keys (`<name>::<user id>::<project slug>`, no path) don't depend on page URLs, so the move cannot
+lose, duplicate or mix anyone's progress.
+
+**Login redirect fix.** `login.html?redirect=…` used to follow any value, so a crafted link could
+send someone to another site straight after a genuine sign-in. It now follows only a destination that
+resolves to this same site, inside the site's own folder; other origins, `//host`, `javascript:` /
+`data:`, backslash, control-character and encoded-slash forms fall back to the HoloBase homepage.
+
+**What the public homepage can and cannot reveal.**
+- Signed out (or a leftover anonymous session): no database request at all. It shows only what's in
+  `projects-data.js` — names, subtitles, `publicDescription`, artwork.
+- Signed in: it reads only that account's own `profiles` row and own `project_memberships` rows
+  (both already restricted to the account by RLS) to mark cards Enrolled / Teacher / Administrator /
+  Not enrolled. It never requests progress, answers, rosters, teacher notes or other users. If the
+  check fails, no card opens.
+- The cards are a convenience, not the protection: every project page still runs `auth-guard.js`
+  (login + project membership), the dashboard still runs its own access check, and RLS still
+  decides what data any request can read or write. Opening a locked project's URL directly is still
+  refused.
+- **Limitation (unchanged by this work):** the site is static files served from a **public**
+  GitHub repository. Student answers, progress and dashboard data live only in Supabase and are
+  protected by login + RLS. The *teaching text* of the modules, however, is in the HTML itself:
+  the login check stops it being shown in the browser, but anyone can read the files in the
+  repository or fetch them directly. Truly private teaching content would need a private repository
+  with a host that enforces access, or moving that content into Supabase behind RLS.
+
+**Old URLs.** Each stub forwards with `location.replace()` (so the back button isn't trapped), keeps
+the query string and `#anchor`, falls back to a `<noscript>` refresh (which keeps the page but not
+the query string), and loads no site scripts — no auth check, no Supabase call.
+
+**Rollback.** Revert phase 3 alone → the root becomes a redirect to `great-auk/` again; revert phase 2
+too → Great Auk is back at the root. Old URLs work in every state. Nothing in Supabase to undo.
+
+**Tested with mocks only** — see the phase reports. Still needs real-Supabase confirmation after
+deploy: a real sign-in for each role on the live site, the live old-URL forwarding, and a real
+recovery email still landing on `set-password.html`.

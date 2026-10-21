@@ -147,7 +147,11 @@
     // already confirmed at this point — a failure here is a data-loading
     // problem for this specific project, not a reason to say "denied".
     try {
-      await selectProject(availableProjects[0].id);
+      // ?project=<slug> (the HoloBase homepage's "Open dashboard") picks the
+      // starting project, but only among those this account may see.
+      const wanted = new URLSearchParams(window.location.search).get("project");
+      const initial = availableProjects.find((p) => p.slug === wanted) || availableProjects[0];
+      await selectProject(initial.id);
     } catch (err) {
       showError(
         "You're authorized, but we couldn't load this project's data due to a database or network error. Please try reloading.",

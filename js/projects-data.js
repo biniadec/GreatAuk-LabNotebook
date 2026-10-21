@@ -22,7 +22,12 @@
   const PLATFORM = {
     name: "HoloBase",
     tagline: "Evolutionary Hologenomics Training Hub",
+    homePage: "index.html",
   };
+
+  // `publicDescription` and `artwork` are shown on the public HoloBase
+  // homepage to visitors who are not signed in — keep them to wording
+  // approved for public view. Nothing else about a project is public.
 
   const PROJECTS = [
     {
@@ -32,6 +37,14 @@
       subtitle: "Comparative Genomics",
       status: "active",
       basePath: "great-auk/",
+      publicDescription:
+        "A step-by-step guide to analysing genomic data from the Great Auk and its living relatives.",
+      artwork: {
+        src: "assets/great-auk-hero.png",
+        alt: "A Great Auk (Pinguinus impennis) standing on snow and ice, with mountains in the background",
+        position: "50% 6%",
+      },
+      accent: "#2f6690",
     },
     {
       slug: "thylacine-rna",
@@ -40,6 +53,14 @@
       subtitle: "Ancient Transcriptomics",
       status: "active",
       basePath: "thylacine/",
+      publicDescription:
+        "A step-by-step training notebook for the Thylacine RNA ancient transcriptomics project.",
+      artwork: {
+        src: "assets/thylacine-banner.jpg",
+        alt: "Illustration of a thylacine standing on a rocky outcrop above a Tasmanian landscape, with an RNA helix and sequencing traces drawn across the sky.",
+        position: "22% 50%",
+      },
+      accent: "#9c4727",
     },
   ];
 

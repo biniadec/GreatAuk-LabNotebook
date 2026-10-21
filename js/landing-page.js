@@ -5,56 +5,29 @@
  * destination already in mind — used by login.js (no explicit `redirect`
  * param), set-password.js (just finished a recovery/invite flow), and
  * change-password.js ("continue" after a successful password change).
- * One shared implementation so these three places can't drift out of sync
- * with each other or with the authorization rules they're meant to mirror.
+ * One shared implementation so these three places can't drift apart.
  *
- * Mirrors the exact precedence supervisor.js's determineAccess() actually
- * uses (profiles.role === 'admin' first, then a project_memberships
- * 'teacher' row — never profiles.role === 'teacher', which this platform
- * doesn't require to be kept in sync with membership rows), so where
- * someone lands always agrees with what their account can actually do
- * once they get there. An account with no role === 'admin' and no
- * membership at all (e.g. invited but not yet enrolled in any project)
- * correctly resolves to not-enrolled.html — there is nowhere else honest
- * to send them yet.
+ * Everyone — student, teacher, administrator, or an account not yet
+ * enrolled anywhere — lands on the HoloBase homepage (index.html), which
+ * shows each person the projects and dashboard their account can open
+ * and marks the rest as not enrolled. The pages behind those links still
+ * enforce access themselves (auth-guard.js, supervisor.js, RLS).
+ *
+ * Kept async, with the (client, session) signature its callers already
+ * use, so a future role-specific rule can be added here in one place.
  */
 
 (function (global) {
   "use strict";
 
-  // Project home pages come from projects-data.js (the single map).
-  function projectHomePages() {
-    return (global.GreatAuk && global.GreatAuk.PROJECT_HOME_PAGES) || {};
+  function platformHome() {
+    const platform = global.GreatAuk && global.GreatAuk.PLATFORM;
+    return (platform && platform.homePage) || "index.html";
   }
 
+  // eslint-disable-next-line no-unused-vars
   async function resolveDefaultLandingPage(client, session) {
-    try {
-      const { data: profile, error: profileErr } = await client
-        .from("profiles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
-      if (profileErr) throw profileErr;
-
-      if (profile && profile.role === "admin") return projectHomePages()["great-auk"];
-
-      const { data: memberships, error: memErr } = await client
-        .from("project_memberships")
-        .select("role, projects(slug)")
-        .eq("user_id", session.user.id);
-      if (memErr) throw memErr;
-
-      const rows = memberships || [];
-      if (rows.some((m) => m.role === "teacher")) return "supervisor.html";
-
-      const studentRow = rows.find((m) => m.role === "student" && m.projects);
-      if (studentRow) return projectHomePages()[studentRow.projects.slug] || "not-enrolled.html";
-
-      return "not-enrolled.html";
-    } catch (err) {
-      console.warn("[GreatAuk] Could not resolve a role-aware landing page — defaulting to the Great Auk home page.", err);
-      return projectHomePages()["great-auk"] || "index.html";
-    }
+    return platformHome();
   }
 
   global.GreatAuk = global.GreatAuk || {};
