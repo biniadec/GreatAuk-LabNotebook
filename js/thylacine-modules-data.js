@@ -46,8 +46,10 @@
       environment: ENVIRONMENTS.mjolnir,
       exerciseIds: sharedModule00.exerciseIds.map((id) => id.replace(/^m0-/, "thy-m00-")),
       // Teaching content comes from Great Auk's Module 00 page (one shared
-      // source); paths are relative to the site root.
+      // source); `path` is relative to that project's folder, resolved
+      // through GreatAuk.projectPath() in projects-data.js.
       sharedContent: {
+        project: "great-auk",
         path: "modules/00-getting-started.html",
         sourceIdFor: (id) => id.replace(/^thy-m00-/, "m0-"),
       },

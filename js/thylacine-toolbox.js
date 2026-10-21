@@ -17,7 +17,7 @@
 
     GA.SharedContent.mountSharedContent(
       target,
-      { url: root + "toolbox.html", pick: [".page-intro", ".toolbox-group"] },
+      { url: root + GA.projectPath("great-auk", "toolbox.html"), pick: [".page-intro", ".toolbox-group"] },
       () => {
         if (GA.injectIcons) GA.injectIcons(target);
       }

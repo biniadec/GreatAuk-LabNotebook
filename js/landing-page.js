@@ -22,10 +22,10 @@
 (function (global) {
   "use strict";
 
-  const PROJECT_HOME_PAGES = {
-    "great-auk": "index.html",
-    "thylacine-rna": "thylacine/index.html",
-  };
+  // Project home pages come from projects-data.js (the single map).
+  function projectHomePages() {
+    return (global.GreatAuk && global.GreatAuk.PROJECT_HOME_PAGES) || {};
+  }
 
   async function resolveDefaultLandingPage(client, session) {
     try {
@@ -36,7 +36,7 @@
         .maybeSingle();
       if (profileErr) throw profileErr;
 
-      if (profile && profile.role === "admin") return "index.html";
+      if (profile && profile.role === "admin") return projectHomePages()["great-auk"];
 
       const { data: memberships, error: memErr } = await client
         .from("project_memberships")
@@ -48,16 +48,15 @@
       if (rows.some((m) => m.role === "teacher")) return "supervisor.html";
 
       const studentRow = rows.find((m) => m.role === "student" && m.projects);
-      if (studentRow) return PROJECT_HOME_PAGES[studentRow.projects.slug] || "not-enrolled.html";
+      if (studentRow) return projectHomePages()[studentRow.projects.slug] || "not-enrolled.html";
 
       return "not-enrolled.html";
     } catch (err) {
-      console.warn("[GreatAuk] Could not resolve a role-aware landing page — defaulting to index.html.", err);
-      return "index.html";
+      console.warn("[GreatAuk] Could not resolve a role-aware landing page — defaulting to the Great Auk home page.", err);
+      return projectHomePages()["great-auk"] || "index.html";
     }
   }
 
   global.GreatAuk = global.GreatAuk || {};
-  global.GreatAuk.PROJECT_HOME_PAGES = PROJECT_HOME_PAGES;
   global.GreatAuk.resolveDefaultLandingPage = resolveDefaultLandingPage;
 })(window);

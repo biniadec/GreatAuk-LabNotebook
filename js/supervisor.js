@@ -441,7 +441,9 @@
     await Promise.all(
       toLoad.map(async (mod) => {
         try {
-          const path = mod.sharedContent ? mod.sharedContent.path : `modules/${mod.slug}.html`;
+          const path = mod.sharedContent
+            ? global.GreatAuk.projectPath(mod.sharedContent.project, mod.sharedContent.path)
+            : global.GreatAuk.projectPath(selectedProject.slug, `modules/${mod.slug}.html`);
           const sourceIdFor = mod.sharedContent ? mod.sharedContent.sourceIdFor : (id) => id;
           const resp = await fetch(path);
           const html = await resp.text();

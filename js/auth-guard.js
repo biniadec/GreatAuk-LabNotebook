@@ -23,18 +23,20 @@
   "use strict";
 
   const pathname = window.location.pathname;
-  // A page more than one folder deep (e.g. thylacine/modules/) declares its
-  // own prefix; every existing page keeps the original one-level logic.
+  // Every page declares its own path back to the site root (ROOT_PREFIX:
+  // "", "../" or "../../"). The URL-based guess below is only a fallback
+  // for a page that forgot to, and warns so it's caught in testing.
   const declaredPrefix = global.GreatAuk && global.GreatAuk.ROOT_PREFIX;
-  const rootPrefix =
-    typeof declaredPrefix === "string"
-      ? declaredPrefix
-      : pathname.includes("/modules/") || pathname.includes("/thylacine/") ? "../" : "";
+  let rootPrefix = declaredPrefix;
+  if (typeof declaredPrefix !== "string") {
+    rootPrefix = pathname.includes("/modules/") || pathname.includes("/thylacine/") ? "../" : "";
+    console.warn("[GreatAuk] Page did not declare GreatAuk.ROOT_PREFIX — guessed", JSON.stringify(rootPrefix));
+  }
 
-  const PROJECT_HOME_PAGES = {
-    "great-auk": "index.html",
-    "thylacine-rna": "thylacine/index.html",
-  };
+  // Project home pages come from projects-data.js (the single map).
+  function projectHomePages() {
+    return (global.GreatAuk && global.GreatAuk.PROJECT_HOME_PAGES) || {};
+  }
 
   function loginUrl() {
     const redirect = encodeURIComponent(pathname + window.location.search);
@@ -77,7 +79,7 @@
     const links = [];
 
     projectsList.forEach((p) => {
-      const href = PROJECT_HOME_PAGES[p.slug];
+      const href = projectHomePages()[p.slug];
       if (!href || seen.has(p.slug)) return;
       seen.add(p.slug);
       const activeClass = p.slug === currentSlug ? " is-active" : "";

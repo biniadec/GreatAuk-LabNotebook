@@ -17,6 +17,14 @@
  * If a real, already-signed-in session exists when this page loads,
  * redirects immediately (through the same logic) without showing the
  * form at all.
+ *
+ * The `redirect` param is untrusted input (anyone can send a link to
+ * login.html?redirect=…), so it is only followed when it resolves to a
+ * page on this same site, inside the folder login.html itself lives in
+ * (the site root — "/GreatAuk-LabNotebook/" on GitHub Pages). Anything
+ * else — another origin, a protocol-relative "//host", a javascript: or
+ * data: URL, a path outside the site — is ignored and the role-aware
+ * default is used instead.
  */
 
 (function (global) {
@@ -26,10 +34,37 @@
   const errorEl = document.querySelector('[data-role="login-error"]');
   const submitBtn = document.querySelector('[data-role="login-submit"]');
 
+  // Returns a same-site path (pathname + query + hash) for a valid
+  // destination, or null for anything that must not be followed.
+  function safeRedirect(raw) {
+    if (typeof raw !== "string" || raw === "" || raw.length > 2048) return null;
+    // Control characters and backslashes have no place in our own paths;
+    // browsers normalise some of them in ways that can change the host.
+    if (/[\u0000-\u001f\u007f\\]/.test(raw)) return null;
+    let url;
+    try {
+      url = new URL(raw, window.location.href);
+    } catch (err) {
+      return null;
+    }
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    if (url.origin !== window.location.origin) return null;
+    const siteRoot = new URL(".", window.location.href).pathname;
+    if (!url.pathname.startsWith(siteRoot)) return null;
+    // Encoded slashes/backslashes: never in our own paths, and some servers
+    // decode them into "//host" before redirecting.
+    if (/%2f|%5c/i.test(url.pathname)) return null;
+    return url.pathname + url.search + url.hash;
+  }
+
   async function redirectTarget(client, session) {
     const params = new URLSearchParams(window.location.search);
     const explicit = params.get("redirect");
-    if (explicit) return explicit;
+    if (explicit) {
+      const safe = safeRedirect(explicit);
+      if (safe) return safe;
+      console.warn("[GreatAuk] Ignored a redirect destination outside this site.");
+    }
     return global.GreatAuk.resolveDefaultLandingPage(client, session);
   }
 

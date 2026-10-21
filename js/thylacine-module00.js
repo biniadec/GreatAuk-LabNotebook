@@ -29,7 +29,7 @@
     GA.SharedContent.mountSharedContent(
       target,
       {
-        url: root + mod.sharedContent.path,
+        url: root + GA.projectPath(mod.sharedContent.project, mod.sharedContent.path),
         pick: [".module-header .module-intro", ".objectives-card", "section.exercise", ".summary-card"],
         rewrite: { pattern: /\bm0-ex(\d{2})\b/g, replace: "thy-m00-ex$1" },
         validation: {
