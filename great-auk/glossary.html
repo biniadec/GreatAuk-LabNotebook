@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glossary | Great Auk Lab Notebook</title>
+  <meta name="description" content="Concise definitions of terms introduced as the course progresses." />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-active-nav="glossary">
+
+  <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"></button>
+  <div class="sidebar-overlay"></div>
+
+  <div class="app-shell">
+    <nav class="sidebar" aria-label="Primary">
+      <div class="sidebar-brand">
+        <a href="index.html" class="brand-link">
+          <span class="brand-mark"><img src="../assets/auk-avatar.png" alt="" /></span>
+          <span class="brand-text">
+            <span class="brand-title">Great Auk</span>
+            <span class="brand-subtitle">Genomics</span>
+          </span>
+        </a>
+        <div class="sidebar-project-switcher" data-role="project-switcher" hidden></div>
+      </div>
+
+      <div class="sidebar-section">
+        <a href="index.html" class="nav-link" data-nav="home">
+          <span class="nav-icon" data-icon="home"></span> Home
+        </a>
+        <a href="../supervisor.html" class="nav-link" data-nav="dashboard" data-role="dashboard-link" hidden>
+          <span class="nav-icon" data-icon="dashboard"></span> Dashboard
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <p class="sidebar-heading">Modules</p>
+        <a href="modules/00-getting-started.html" class="nav-link" data-nav="module-00">
+          <span class="nav-icon" data-icon="module-00"></span><span class="nav-number">00</span> Getting Started on Mjolnir
+        </a>
+        <a href="modules/01-reference-genome.html" class="nav-link" data-nav="module-01">
+          <span class="nav-icon" data-icon="module-01"></span><span class="nav-number">01</span> Reference Genome
+        </a>
+        <a href="modules/02-raw-sequencing-data.html" class="nav-link" data-nav="module-02">
+          <span class="nav-icon" data-icon="module-02"></span><span class="nav-number">02</span> Raw Sequencing Data
+        </a>
+        <a href="modules/03-raw-read-qc.html" class="nav-link" data-nav="module-03">
+          <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">03</span> Raw Read QC
+        </a>
+        <a href="modules/04-preprocessing.html" class="nav-link" data-nav="module-04">
+          <span class="nav-icon" data-icon="module-04"></span><span class="nav-number">04</span> Pre-processing<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/05-prepare-reference.html" class="nav-link" data-nav="module-05">
+          <span class="nav-icon" data-icon="module-05"></span><span class="nav-number">05</span> Prepare Reference<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/06-mapping.html" class="nav-link" data-nav="module-06">
+          <span class="nav-icon" data-icon="module-06"></span><span class="nav-number">06</span> Mapping<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/07-mapping-qc.html" class="nav-link" data-nav="module-07">
+          <span class="nav-icon" data-icon="module-07"></span><span class="nav-number">07</span> Mapping QC<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/08-genomic-diversity.html" class="nav-link" data-nav="module-08">
+          <span class="nav-icon" data-icon="module-08"></span><span class="nav-number">08</span> Genomic Diversity<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/09-mitochondrial-genetics.html" class="nav-link" data-nav="module-09">
+          <span class="nav-icon" data-icon="module-09"></span><span class="nav-number">09</span> Mitochondrial Genetics<span class="nav-tag">soon</span>
+        </a>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section">
+        <a href="toolbox.html" class="nav-link" data-nav="toolbox">
+          <span class="nav-icon" data-icon="toolbox"></span> Terminal Toolbox
+        </a>
+        <a href="resources.html" class="nav-link" data-nav="resources">
+          <span class="nav-icon" data-icon="resources"></span> Genome Resources
+        </a>
+        <a href="glossary.html" class="nav-link" data-nav="glossary">
+          <span class="nav-icon" data-icon="glossary"></span> Glossary
+        </a>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section sidebar-account">
+        <p class="sidebar-account-name" data-role="account-name"></p>
+        <a href="../change-password.html" class="btn btn-secondary btn-small" data-role="change-password-link">Change password</a>
+        <button type="button" class="btn btn-secondary btn-small" data-role="sign-out-btn">Sign out</button>
+      </div>
+
+      <div class="sidebar-footer">
+        Great Auk Comparative Genomics<br />
+        Lab Notebook · v1
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="content-column">
+
+        <p class="breadcrumb"><a href="index.html">Home</a> / Glossary</p>
+        <h1 class="page-title">Glossary</h1>
+        <p class="page-intro">
+          Concise definitions for terms used in the course so far. This list will grow as later modules
+          introduce new concepts.
+        </p>
+
+        <details class="glossary-term">
+          <summary>Absolute path</summary>
+          <div class="glossary-term-body">A file or directory path written from the root of the filesystem (starting with <code>/</code>). Unambiguous regardless of your current working directory.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Accession</summary>
+          <div class="glossary-term-body">A unique identifier assigned to a database record — for example, a specific genome assembly or sequencing run — so it can be unambiguously cited and retrieved.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Adapter</summary>
+          <div class="glossary-term-body">A short, known synthetic DNA sequence ligated onto fragments during library preparation so they can bind to the sequencer and be identified. Not part of the biological sample itself.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Adapter read-through</summary>
+          <div class="glossary-term-body">When a DNA fragment is shorter than the sequencing read length, the read continues past the fragment's end into adapter sequence. Common with short, degraded (e.g. ancient/historical) DNA, and detected by FastQC's Adapter Content panel.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>BioSample</summary>
+          <div class="glossary-term-body">The NCBI/ENA database record (accession prefix <code>SAMN</code> or <code>SAMEA</code>) describing a biological sample or specimen used for sequencing. One BioSample can be linked to several sequencing libraries and runs — it describes the source, not any single sequencing experiment.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>BUSCO</summary>
+          <div class="glossary-term-body">Benchmarking Universal Single-Copy Orthologs — a tool and completeness metric reporting what proportion of a fixed set of genes expected in nearly every member of a lineage are found intact in a given assembly. A proxy for how much real, unbroken biology the assembly actually contains.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Chromosome-level assembly</summary>
+          <div class="glossary-term-body">A genome assembly in which sequence has been ordered and oriented into complete chromosomes, rather than left as many shorter, unordered fragments.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Compressed file</summary>
+          <div class="glossary-term-body">A file that has been algorithmically shrunk to take up less disk space. Must be decompressed (or read with compression-aware tools) to access its original content. Gzip (<code>.gz</code>) is the most common format for genomic data.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Compute node</summary>
+          <div class="glossary-term-body">On an HPC cluster such as Mjolnir, a machine dedicated to running scheduled jobs (via Slurm) — where actual analyses, alignments, and other resource-intensive work should run, as opposed to a login node.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Contig</summary>
+          <div class="glossary-term-body">A contiguous stretch of assembled sequence built by overlapping sequencing reads, with no gaps. Short for "contiguous sequence."</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Duplication / library complexity</summary>
+          <div class="glossary-term-body">The proportion of sequencing reads that are identical (or near-identical) to each other. High duplication can mean a sample was sequenced far deeper than its library's actual molecular diversity ("complexity") supports — a common issue with low-input material such as historical or ancient DNA, not only a sign of over-sequencing.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>ENA</summary>
+          <div class="glossary-term-body">The European Nucleotide Archive — EMBL-EBI's database of nucleotide sequencing data, including raw reads, assemblies, and their associated metadata. Mirrors much of the same data held by NCBI's SRA.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>FASTA</summary>
+          <div class="glossary-term-body">A plain-text format for representing one or more sequences. Each sequence begins with a header line starting with <code>&gt;</code>, followed by the sequence itself on the following line(s).</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>FASTQ</summary>
+          <div class="glossary-term-body">A plain-text format for representing sequencing reads together with per-base quality scores. Each read is exactly four lines: an identifier line starting with <code>@</code>, the called sequence, a separator line (<code>+</code>), and a quality string the same length as the sequence. Almost always distributed as <code>.fastq.gz</code>.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>FastQC</summary>
+          <div class="glossary-term-body">A diagnostic tool that reads a FASTQ file and reports summary statistics and quality patterns (per-base quality, GC content, duplication, adapter content, and more) as an HTML report. It never modifies the file it analyses, and its pass/warn/fail flags are heuristics calibrated on typical modern libraries — not an automatic verdict on whether a dataset is usable.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>GC content</summary>
+          <div class="glossary-term-body">The proportion of a sequence's bases that are G or C rather than A or T. FastQC reports this per read; an unusual or shifted distribution can have several possible causes (sample composition, contamination, bias), not one single explanation.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>GCA_ / GCF_ accession prefix</summary>
+          <div class="glossary-term-body">NCBI genome assembly accessions starting <code>GCA_</code> are GenBank assemblies (submitted by any group, not independently curated by NCBI); those starting <code>GCF_</code> are RefSeq assemblies, which NCBI has additionally processed and annotated. The prefix reflects database status, not assembly quality.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Genome assembly</summary>
+          <div class="glossary-term-body">A reconstruction of an organism's genome built computationally from sequencing reads, consisting of contigs and/or scaffolds (and, ideally, full chromosomes).</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Heterospecific mapping</summary>
+          <div class="glossary-term-body">Aligning sequencing reads from one species against a reference genome from a different, related species — necessary when no reference exists for the species itself (as with the extinct Great Auk), but prone to reference bias: increasing sequence divergence causes more mismatches, reduced mapping of divergent regions, and under-detection of true heterozygosity.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Login node</summary>
+          <div class="glossary-term-body">On an HPC cluster such as Mjolnir, the shared machine you land on when you connect — meant for lightweight tasks like file organisation, script editing, and job submission, not for running analyses directly.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Metadata</summary>
+          <div class="glossary-term-body">Data about data — for a genome assembly, this includes things like the submitting organisation, sequencing technology used, assembly date, and quality statistics, rather than the sequence itself.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>MultiQC</summary>
+          <div class="glossary-term-body">A tool that scans a directory of FastQC (and other tool) outputs and aggregates them into a single comparative HTML report — reading the parsed <code>.zip</code>/log files each tool produces, not their HTML reports.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>N50 (contig / scaffold)</summary>
+          <div class="glossary-term-body">A contiguity statistic: the length at which half of an assembly's total size is contained in contigs (or scaffolds) at least that long. A higher N50 generally means a more contiguous assembly, but contig N50 and scaffold N50 measure different things and should not be compared to each other directly.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Paired-end sequencing</summary>
+          <div class="glossary-term-body">A sequencing design where each DNA fragment is read from both ends, producing two files per run — R1 and R2. R1 and R2 are mates describing the same physical fragment, not independent datasets, and their read order must stay synchronized between the two files.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Phred quality score</summary>
+          <div class="glossary-term-body">A per-base confidence value assigned during base calling, encoded as a single ASCII character in a FASTQ quality line. Higher values indicate the sequencer was more confident in that base call.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Project directory (Mjolnir)</summary>
+          <div class="glossary-term-body">On Mjolnir, the shared location <code>/projects/&lt;project&gt;/</code> where a research project's data lives, with a standard internal layout including a <code>people/&lt;KU-ID&gt;/</code> folder for each member's own working files — distinct from your personal, size-limited home directory.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>R1 / R2</summary>
+          <div class="glossary-term-body">The conventional names for the two FASTQ files produced by a paired-end sequencing run — R1 from one end of each fragment, R2 from the other. Read <em>n</em> in R1 and read <em>n</em> in R2 are mates and must stay in the same order across both files.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Read</summary>
+          <div class="glossary-term-body">A single sequence produced by a sequencer for one DNA fragment (or one end of it), represented as one four-line record in a FASTQ file.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Reference bias</summary>
+          <div class="glossary-term-body">Systematic distortion introduced when sequencing reads are mapped to a reference genome that differs from the sampled individual's own genome — reads or alleles that resemble the reference are retained preferentially, which can under-detect true heterozygosity. Increases with evolutionary distance between sample and reference.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Reference genome</summary>
+          <div class="glossary-term-body">A genome assembly chosen to serve as the standard coordinate system that other data (reads, variants, annotations) are compared or aligned against.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Relative path</summary>
+          <div class="glossary-term-body">A file or directory path interpreted relative to your current working directory. Convenient, but only correct if you know where you're starting from.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Run accession</summary>
+          <div class="glossary-term-body">The ENA/SRA accession (prefix <code>SRR</code> or <code>ERR</code>) identifying one actual execution of sequencing on a library, and the FASTQ file(s) it produced. A library's experiment accession (<code>SRX</code>/<code>ERX</code>) can in principle have more than one run accession under it.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Scaffold</summary>
+          <div class="glossary-term-body">A sequence built by ordering and orienting multiple contigs, with gaps of estimated length (often represented as runs of <code>N</code>) between them where the exact sequence is unknown.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Sequencing library</summary>
+          <div class="glossary-term-body">A prepared, adapter-ligated collection of DNA molecules ready for sequencing, built from a sample. A single specimen can yield several distinct libraries (different extractions, protocols, or sequencing batches) — more libraries does not automatically mean more individuals were sampled.</div>
+        </details>
+
+        <details class="glossary-term">
+          <summary>Single-end sequencing</summary>
+          <div class="glossary-term-body">A sequencing design where each fragment is read from only one end, producing a single FASTQ file per run. Common for ancient DNA, where fragments are often already shorter than a single read.</div>
+        </details>
+
+        <footer class="site-footer">
+          Great Auk Comparative Genomics — Lab Notebook · <span data-current-year></span>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    window.GreatAuk = window.GreatAuk || {};
+    window.GreatAuk.ROOT_PREFIX = "../";
+  </script>
+  <script src="../js/projects-data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/supabase-client.js"></script>
+  <script src="../js/auth-guard.js"></script>
+  <script src="../js/icons.js"></script>
+  <script src="../js/app.js"></script>
+</body>
+</html>

@@ -39,7 +39,8 @@
   }
 
   function loginUrl() {
-    const redirect = encodeURIComponent(pathname + window.location.search);
+    // The #exercise anchor is kept too, so a deep link survives sign-in.
+    const redirect = encodeURIComponent(pathname + window.location.search + window.location.hash);
     return `${rootPrefix}login.html?redirect=${redirect}`;
   }
 

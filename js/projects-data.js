@@ -31,7 +31,7 @@
       displayName: "Great Auk",
       subtitle: "Comparative Genomics",
       status: "active",
-      basePath: "",
+      basePath: "great-auk/",
     },
     {
       slug: "thylacine-rna",
