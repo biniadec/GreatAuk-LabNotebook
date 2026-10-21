@@ -1,57 +1,195 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-project-theme="thylacine-rna">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Thylacine RNA — Lab Notebook</title>
-  <meta name="description" content="Thylacine RNA project — content in development." />
+  <title>Thylacine RNA — Ancient Transcriptomics | HoloBase</title>
+  <meta name="description" content="A step-by-step training notebook for the Thylacine RNA ancient transcriptomics project." />
   <link rel="stylesheet" href="../css/styles.css" />
-  <style>body:not(.auth-ready) .auth-page-shell { display: none; }</style>
+  <link rel="stylesheet" href="../css/theme-thylacine.css" />
 </head>
-<body>
+<body data-active-nav="home">
 
-  <div class="auth-page-shell" style="max-width:480px;">
-    <h1>Thylacine RNA</h1>
+  <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"></button>
+  <div class="sidebar-overlay"></div>
 
-    <section class="card" style="text-align:center;">
-      <p>
-        This project's exercises haven't been built yet — they'll be designed together with Emilio,
-        using his real datasets and workflows, the same way every exercise in Great Auk Comparative
-        Genomics was built from verified, real material rather than invented content.
-      </p>
-      <p class="supervisor-meta" data-role="account-name" style="margin-top:1rem;"></p>
-      <div style="display:flex; gap:0.6rem; justify-content:center; margin-top:0.75rem;">
-        <a class="btn btn-secondary" href="../supervisor.html" data-role="dashboard-link" hidden>Teacher Dashboard</a>
-        <a class="btn btn-secondary" href="../index.html" data-role="great-auk-link" hidden>Go to Great Auk</a>
-        <a class="btn btn-secondary" href="../change-password.html" data-role="change-password-link">Change password</a>
-        <button type="button" class="btn btn-secondary" data-role="sign-out-btn">Sign out</button>
+  <div class="app-shell">
+    <nav class="sidebar" aria-label="Primary">
+      <div class="sidebar-brand">
+        <a href="index.html" class="brand-link">
+          <span class="brand-mark"><img src="../assets/thylacine-avatar.png" alt="" /></span>
+          <span class="brand-text">
+            <span class="brand-title">Thylacine RNA</span>
+            <span class="brand-subtitle">Ancient Transcriptomics</span>
+          </span>
+        </a>
+        <div class="sidebar-project-switcher" data-role="project-switcher" hidden></div>
       </div>
-    </section>
+
+      <div class="sidebar-section">
+        <a href="index.html" class="nav-link" data-nav="home">
+          <span class="nav-icon" data-icon="home"></span> Home
+        </a>
+        <a href="../supervisor.html" class="nav-link" data-nav="dashboard" data-role="dashboard-link" hidden>
+          <span class="nav-icon" data-icon="dashboard"></span> Dashboard
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <p class="sidebar-heading">Modules</p>
+        <a href="modules/00-getting-started.html" class="nav-link" data-nav="module-00">
+          <span class="nav-icon" data-icon="module-00"></span><span class="nav-number">00</span> Getting Started on Mjolnir
+        </a>
+        <a href="modules/01-without-umi-preprocessing.html" class="nav-link" data-nav="module-01">
+          <span class="nav-icon" data-icon="toolbox"></span><span class="nav-number">01</span> Without UMI: Preprocessing<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/02-without-umi-analysis.html" class="nav-link" data-nav="module-02">
+          <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">02</span> Without UMI: Analysis<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/03-with-umi-preprocessing.html" class="nav-link" data-nav="module-03">
+          <span class="nav-icon" data-icon="toolbox"></span><span class="nav-number">03</span> With UMI: Preprocessing<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/04-with-umi-analysis.html" class="nav-link" data-nav="module-04">
+          <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">04</span> With UMI: Analysis<span class="nav-tag">soon</span>
+        </a>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section">
+        <a href="toolbox.html" class="nav-link" data-nav="toolbox">
+          <span class="nav-icon" data-icon="toolbox"></span> Terminal Toolbox
+        </a>
+        <a href="resources.html" class="nav-link" data-nav="resources">
+          <span class="nav-icon" data-icon="resources"></span> Project Resources
+        </a>
+        <a href="glossary.html" class="nav-link" data-nav="glossary">
+          <span class="nav-icon" data-icon="glossary"></span> Glossary
+        </a>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section sidebar-account">
+        <p class="sidebar-account-name" data-role="account-name"></p>
+        <a href="../change-password.html" class="btn btn-secondary btn-small" data-role="change-password-link">Change password</a>
+        <button type="button" class="btn btn-secondary btn-small" data-role="sign-out-btn">Sign out</button>
+      </div>
+
+      <div class="sidebar-footer">
+        Thylacine RNA — Ancient Transcriptomics<br />
+        Part of HoloBase
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="content-column content-column--wide">
+
+        <section class="hero hero--banner">
+          <img class="hero-banner-img" src="../assets/thylacine-banner.jpg" width="2172" height="724"
+            alt="Illustration of a thylacine standing on a rocky outcrop above a Tasmanian landscape, with an RNA helix and sequencing traces drawn across the sky." />
+          <h1 class="visually-hidden">Thylacine RNA — Ancient Transcriptomics</h1>
+          <a class="btn btn-primary btn-pill hero-banner-cta" data-role="continue-link-hero" href="modules/00-getting-started.html">
+            Continue Learning <span data-icon="arrowRight" style="width:16px;height:16px;display:inline-flex;"></span>
+          </a>
+        </section>
+
+        <section class="dashboard-row">
+          <div class="card stat-card">
+            <div class="stat-card-title">Overall Progress</div>
+            <div class="donut-row">
+              <div class="donut">
+                <svg viewBox="0 0 84 84">
+                  <circle class="donut-track" cx="42" cy="42" r="34"></circle>
+                  <circle class="donut-fill" data-role="donut-fill" cx="42" cy="42" r="34"
+                    stroke-dasharray="213.6" stroke-dashoffset="213.6"></circle>
+                </svg>
+                <span class="donut-label" data-role="overall-progress-number">0%</span>
+              </div>
+              <div class="donut-stats">
+                <p data-role="modules-started-label">0 / 5 modules started</p>
+                <p data-role="overall-progress-sub">0 exercises complete</p>
+              </div>
+            </div>
+          </div>
+
+          <a class="card continue-card-compact" data-role="continue-link" href="modules/00-getting-started.html">
+            <span class="continue-thumb" data-icon="document"></span>
+            <span class="continue-body">
+              <span class="continue-label" data-role="continue-label">Module 00</span>
+              <h3 data-role="continue-title">Start with Exercise 1</h3>
+              <p data-role="continue-sub">Prepare to work independently on the UCPH Mjolnir HPC cluster.</p>
+              <span class="btn btn-secondary btn-small" data-role="continue-cta">Go to Exercise →</span>
+            </span>
+          </a>
+
+          <div class="card stat-card">
+            <div class="stat-card-title">Quick Links</div>
+            <div class="quick-links-grid">
+              <a class="quick-link-tile" href="toolbox.html">
+                <span data-icon="toolbox"></span> Terminal Toolbox
+              </a>
+              <a class="quick-link-tile" href="resources.html">
+                <span data-icon="resources"></span> Project Resources
+              </a>
+              <a class="quick-link-tile" href="glossary.html">
+                <span data-icon="glossary"></span> Glossary
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-heading">
+            <h2>Modules</h2>
+          </div>
+          <div class="card-grid" id="module-grid">
+            <!-- Rendered by home.js -->
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+            <div class="card info-card">
+              <span class="info-icon" data-icon="compass"></span>
+              <div>
+                <h3>Two Computing Environments</h3>
+                <p>Preprocessing modules run in the terminal on Mjolnir. Analysis modules run in R and RStudio on your own computer — macOS or Windows. Setup and data-transfer instructions will come with each module; you don't need to install anything yet.</p>
+              </div>
+            </div>
+            <div class="card info-card">
+              <span class="info-icon" data-icon="flask"></span>
+              <div>
+                <h3>A Real Research Project</h3>
+                <p>The exercises are being developed with Emilio from the project's own data, scripts and workflows — starting without UMIs, then adding UMI-based processing.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="site-footer">
+          Thylacine RNA — Ancient Transcriptomics · <span data-current-year></span> · Part of HoloBase — Evolutionary Hologenomics Training Hub
+        </footer>
+
+      </div>
+    </main>
   </div>
 
+  <script src="../js/modules-data.js"></script>
+  <script src="../js/thylacine-modules-data.js"></script>
   <script>
     window.GreatAuk = window.GreatAuk || {};
     window.GreatAuk.REQUIRED_PROJECT = "thylacine-rna";
+    window.GreatAuk.ROOT_PREFIX = "../";
+    window.GreatAuk.MODULES = window.GreatAuk.MODULES_BY_PROJECT["thylacine-rna"];
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../js/supabase-client.js"></script>
   <script src="../js/auth-guard.js"></script>
-  <script>
-    // "Go to Great Auk" only makes sense for someone who actually has
-    // access there (today, only an admin) -- showing it unconditionally
-    // would invite a Thylacine-only teacher or student toward a project
-    // they'd just be denied from. auth-guard.js's own populateDashboardLink()
-    // already handles the Teacher Dashboard link generically (it looks for
-    // data-role="dashboard-link" on any page), so nothing extra is needed
-    // for that one here.
-    window.GreatAuk.authReady.then(() => {
-      document.body.classList.add("auth-ready");
-      const memberships = window.GreatAuk.currentMemberships || [];
-      const role = window.GreatAuk.currentRole;
-      const hasGreatAuk = role === "admin" || memberships.some((m) => m.projects && m.projects.slug === "great-auk");
-      const greatAukLink = document.querySelector('[data-role="great-auk-link"]');
-      if (greatAukLink) greatAukLink.hidden = !hasGreatAuk;
-    });
-  </script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/sync-adapter.js"></script>
+  <script src="../js/icons.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/home.js"></script>
 </body>
 </html>

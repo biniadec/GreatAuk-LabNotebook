@@ -646,3 +646,25 @@ Once SMTP is live, repeat the invite test from section 10 using the code instead
 
 Once the invite test above passes, flip section 9's guidance from "Add user, Invite pending" to
 recommending "Invite user" outright, and this line should be updated to ✅ as well.
+
+## 12. HoloBase and the Thylacine RNA project (frontend only — no schema change)
+
+The platform is now **HoloBase — Evolutionary Hologenomics Training Hub**; Great Auk and Thylacine RNA
+keep their own project identities. This needed **no Supabase change**: no new table, column, policy,
+grant or data migration. It relies only on what migrations 0001/0002 already provide
+(`project_memberships`, project-scoped RLS, `exercise_progress.project_id`).
+
+- **Exercise-ID namespace.** `exercise_progress` is unique on `(user_id, exercise_id)` and every save
+  is an upsert on that key, so a Thylacine page writing a Great Auk ID would *overwrite* that
+  student's Great Auk row. Every Thylacine ID therefore starts with `thy-` (Module 00:
+  `m0-exNN` → `thy-m00-exNN`), and `js/sync-adapter.js` enforces this at runtime on every write path —
+  local writes, the retry queue (including entries left in localStorage by earlier visits), the
+  seed migration and the final upsert. Great Auk IDs are unaffected; Luigi's records are untouched.
+- **Shared Module 00 and Terminal Toolbox.** One source of teaching content (Great Auk's pages),
+  loaded into Thylacine pages at runtime by `js/shared-content.js`, with IDs rewritten and validated
+  before progress tracking starts; on failure the page shows an error with Retry instead of exercises.
+- **Read-only preview.** An admin, or a teacher of a project, without a *student* enrolment in it sees
+  a preview banner; exercises are read-only and nothing is read, stored, queued or sent.
+- **Future migrations.** Supabase changes the default Data API grants for newly created public tables
+  on 30 October 2026. Any future migration that creates a table must state explicit, least-privilege
+  `GRANT`s (as 0001 already does for its tables) rather than relying on defaults.

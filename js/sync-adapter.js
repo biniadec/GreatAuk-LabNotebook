@@ -65,6 +65,55 @@
     return global.GreatAuk.REQUIRED_PROJECT || "great-auk";
   }
 
+  // ---- exercise-ID guard -------------------------------------------------
+  //
+  // exercise_progress is unique on (user_id, exercise_id) and every write is
+  // an upsert on that key. If a Thylacine page ever wrote a Great Auk-style
+  // ID (say m0-ex05), it would not merely collide: it would OVERWRITE that
+  // student's Great Auk row. So projects with their own ID namespace declare
+  // a required prefix here, and every path that can store or send a row —
+  // local writes, the retry queue (including entries left in localStorage by
+  // an earlier visit), the one-time seed migration, and the final network
+  // call — drops anything that doesn't carry it. Projects not listed here
+  // (Great Auk) are completely unaffected.
+  const REQUIRED_EXERCISE_ID_PREFIX = { "thylacine-rna": "thy-" };
+
+  function isAllowedExerciseId(id) {
+    const prefix = REQUIRED_EXERCISE_ID_PREFIX[currentProjectSlug()];
+    if (!prefix) return true;
+    return typeof id === "string" && id.startsWith(prefix);
+  }
+
+  function reportRejected(ids, where) {
+    if (ids.length === 0) return;
+    console.error(
+      `[GreatAuk] Refused to save ${ids.length} exercise ID(s) not valid for project "${currentProjectSlug()}" (${where}).`,
+      ids
+    );
+  }
+
+  function allowedRows(rows, where) {
+    const ok = rows.filter((r) => isAllowedExerciseId(r.exercise_id));
+    reportRejected(rows.filter((r) => !isAllowedExerciseId(r.exercise_id)).map((r) => r.exercise_id), where);
+    return ok;
+  }
+
+  function allowedMap(map, where) {
+    if (!map || typeof map !== "object") return map;
+    const out = {};
+    const rejected = [];
+    for (const [id, value] of Object.entries(map)) {
+      if (isAllowedExerciseId(id)) out[id] = value;
+      else rejected.push(id);
+    }
+    reportRejected(rejected, where);
+    return out;
+  }
+
+  function isPreview() {
+    return Boolean(global.GreatAuk.PREVIEW_MODE);
+  }
+
   // ---- in-memory state for this page load ------------------------------
 
   // { [exerciseId]: { completed: bool, notes: string } } — the merged,
@@ -143,16 +192,20 @@
   }
 
   async function readPending() {
-    return (await getLocalAdapter().read(await pendingKey())) || {};
+    const stored = (await getLocalAdapter().read(await pendingKey())) || {};
+    // Covers retries of entries queued by an earlier visit: anything invalid
+    // is dropped here, before it can be merged or flushed.
+    return allowedMap(stored, "retry queue");
   }
 
   async function writePending(pending) {
-    await getLocalAdapter().write(await pendingKey(), pending);
+    await getLocalAdapter().write(await pendingKey(), allowedMap(pending, "retry queue write"));
   }
 
   async function queuePending(rows) {
+    if (isPreview()) return;
     const pending = await readPending();
-    for (const row of rows) pending[row.exercise_id] = row;
+    for (const row of allowedRows(rows, "queue")) pending[row.exercise_id] = row;
     await writePending(pending);
   }
 
@@ -177,6 +230,10 @@
   }
 
   async function upsertRows(session, rows) {
+    if (isPreview()) return false;
+    // Final gate immediately before the network: nothing reaches Supabase
+    // without passing the project's exercise-ID rule.
+    rows = allowedRows(rows, "upsert");
     const client = getClient();
     if (!client || !session || rows.length === 0) {
       if (rows.length > 0) {
@@ -212,7 +269,7 @@
 
   async function flushPending() {
     const session = await ensureSession();
-    if (!session) return;
+    if (!session || isPreview()) return;
     const pending = await readPending();
     const rows = Object.values(pending);
     if (rows.length === 0) return;
@@ -225,6 +282,10 @@
     if (!loadPromise) {
       loadPromise = (async () => {
         const session = await ensureSession();
+        // Preview (admin/teacher without a student enrolment): no progress
+        // of their own here — read nothing, migrate nothing, flush nothing.
+        if (isPreview()) return mergedState;
+
         const local = getLocalAdapter();
         const keys = getKeys();
         const completionKey = await scopedKey(keys.COMPLETION);
@@ -234,8 +295,8 @@
           // No real session available (shouldn't happen given auth-guard,
           // but defensive) — fall back to local data exactly as the plain
           // adapter would.
-          const completion = (await local.read(completionKey)) || {};
-          const notes = (await local.read(notesKey)) || {};
+          const completion = allowedMap((await local.read(completionKey)) || {}, "local cache");
+          const notes = allowedMap((await local.read(notesKey)) || {}, "local cache");
           for (const id of Object.keys(completion)) {
             mergedState[id] = { completed: true, notes: notes[id] || "" };
           }
@@ -259,7 +320,7 @@
             // Supabase already has rows for this user+project — authoritative.
             const completionMap = {};
             const notesMap = {};
-            for (const row of data) {
+            for (const row of allowedRows(data, "load")) {
               mergedState[row.exercise_id] = { completed: Boolean(row.completed), notes: row.notes || "" };
               if (row.completed) completionMap[row.exercise_id] = true;
               if (row.notes) notesMap[row.exercise_id] = row.notes;
@@ -273,8 +334,8 @@
             const migKey = await migratedKey();
             const alreadyMigrated = await local.read(migKey);
             if (!alreadyMigrated) {
-              const localCompletion = (await local.read(completionKey)) || {};
-              const localNotes = (await local.read(notesKey)) || {};
+              const localCompletion = allowedMap((await local.read(completionKey)) || {}, "seed migration");
+              const localNotes = allowedMap((await local.read(notesKey)) || {}, "seed migration");
               const ids = new Set([...Object.keys(localCompletion), ...Object.keys(localNotes)]);
               if (ids.size > 0) {
                 const rows = Array.from(ids).map((id) => ({
@@ -290,8 +351,8 @@
           }
         } catch (err) {
           console.warn("[GreatAuk] Could not load Supabase progress — using local cache only.", err);
-          const completion = (await local.read(completionKey)) || {};
-          const notes = (await local.read(notesKey)) || {};
+          const completion = allowedMap((await local.read(completionKey)) || {}, "local cache");
+          const notes = allowedMap((await local.read(notesKey)) || {}, "local cache");
           for (const id of Object.keys(completion)) {
             mergedState[id] = { completed: true, notes: notes[id] || "" };
           }
@@ -303,9 +364,25 @@
         // Apply any locally-queued edits that never made it to Supabase
         // (e.g. the tab closed mid-sync) on top of the authoritative load,
         // then try to flush them.
+        // They must go into the local completion/notes maps too, not only
+        // mergedState: ProgressStore always rewrites a WHOLE map, so a
+        // queued edit missing from the map would look "removed" on the
+        // very next unrelated save and be upserted back to incomplete/empty
+        // — silently undoing the retried answer.
         const pending = await readPending();
-        for (const [id, row] of Object.entries(pending)) {
-          mergedState[id] = { completed: row.completed, notes: row.notes };
+        const pendingEntries = Object.entries(pending);
+        if (pendingEntries.length > 0) {
+          const completion = (await local.read(completionKey)) || {};
+          const notes = (await local.read(notesKey)) || {};
+          for (const [id, row] of pendingEntries) {
+            mergedState[id] = { completed: row.completed, notes: row.notes };
+            if (row.completed) completion[id] = true;
+            else delete completion[id];
+            if (row.notes) notes[id] = row.notes;
+            else delete notes[id];
+          }
+          await local.write(completionKey, allowedMap(completion, "local cache"));
+          await local.write(notesKey, allowedMap(notes, "local cache"));
         }
         flushPending();
 
@@ -320,14 +397,17 @@
   const HybridAdapter = {
     async read(key) {
       await loadMergedStateOnce();
+      if (isPreview()) return null;
       const scoped = await scopedKey(key);
-      return getLocalAdapter().read(scoped);
+      return allowedMap(await getLocalAdapter().read(scoped), "read");
     },
 
     async write(key, value) {
       const keys = getKeys();
       await loadMergedStateOnce();
+      if (isPreview()) return true;
 
+      value = allowedMap(value, "local write");
       const scoped = await scopedKey(key);
 
       // Always write local first — this is what progress.js's "Saved"

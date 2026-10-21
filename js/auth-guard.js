@@ -23,7 +23,13 @@
   "use strict";
 
   const pathname = window.location.pathname;
-  const rootPrefix = pathname.includes("/modules/") || pathname.includes("/thylacine/") ? "../" : "";
+  // A page more than one folder deep (e.g. thylacine/modules/) declares its
+  // own prefix; every existing page keeps the original one-level logic.
+  const declaredPrefix = global.GreatAuk && global.GreatAuk.ROOT_PREFIX;
+  const rootPrefix =
+    typeof declaredPrefix === "string"
+      ? declaredPrefix
+      : pathname.includes("/modules/") || pathname.includes("/thylacine/") ? "../" : "";
 
   const PROJECT_HOME_PAGES = {
     "great-auk": "index.html",
@@ -95,6 +101,21 @@
     link.hidden = !(profileRole === "admin" || isTeacherSomewhere);
   }
 
+  function showPreviewBanner(profileRole) {
+    document.body.classList.add("is-preview-mode");
+    const column = document.querySelector(".content-column");
+    if (!column || column.querySelector('[data-role="preview-banner"]')) return;
+    const who = profileRole === "admin" ? "an administrator" : "a teacher";
+    const banner = document.createElement("div");
+    banner.className = "preview-banner";
+    banner.setAttribute("data-role", "preview-banner");
+    banner.setAttribute("role", "status");
+    banner.innerHTML =
+      `<strong>Preview mode</strong> — you're viewing this project as ${who}, without a student enrolment. ` +
+      `Exercises are read-only and nothing you do here is saved.`;
+    column.insertBefore(banner, column.firstChild);
+  }
+
   function escapeHtml(str) {
     const div = document.createElement("div");
     div.textContent = str;
@@ -162,6 +183,16 @@
     global.GreatAuk.currentDisplayName = displayName;
     global.GreatAuk.currentRole = profileRole;
 
+    // Read-only preview: an admin, or a teacher of this project, who has no
+    // STUDENT enrolment in it can inspect its pages but has no progress of
+    // their own here. Saving would only produce rows the database refuses,
+    // left queued forever as "waiting to sync" — so nothing is saved at all
+    // (sync-adapter.js and progress.js both honour this flag).
+    global.GreatAuk.PREVIEW_MODE = Boolean(
+      requiredProject &&
+        !myMemberships.some((m) => m.role === "student" && m.projects && m.projects.slug === requiredProject)
+    );
+
     // An admin can switch between every project, not just ones they
     // happen to hold a membership row in — fetch the full list for them.
     // Everyone else sees only the projects they're a student or teacher of.
@@ -180,6 +211,7 @@
     }
 
     document.body.classList.add("auth-ready");
+    if (global.GreatAuk.PREVIEW_MODE) showPreviewBanner(profileRole);
     populateAccountUI(displayName);
     populateProjectSwitcher(switcherProjects);
     populateDashboardLink(profileRole, myMemberships);

@@ -9,15 +9,20 @@
   "use strict";
 
   document.addEventListener("DOMContentLoaded", () => {
-    injectIcons();
+    injectIcons(document);
     highlightActiveNav();
     setupMobileNav();
     setupFooterYear();
   });
 
-  function injectIcons() {
+  // Exposed so pages can re-run it on content inserted after load (shared
+  // content); called with no argument it covers the whole document as before.
+  window.GreatAuk = window.GreatAuk || {};
+  window.GreatAuk.injectIcons = injectIcons;
+
+  function injectIcons(root) {
     const icons = (window.GreatAuk && window.GreatAuk.ICONS) || {};
-    document.querySelectorAll("[data-icon]").forEach((el) => {
+    (root || document).querySelectorAll("[data-icon]").forEach((el) => {
       const key = el.getAttribute("data-icon");
       if (icons[key]) el.innerHTML = icons[key];
     });

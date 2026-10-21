@@ -135,4 +135,9 @@
 
   global.GreatAuk = global.GreatAuk || {};
   global.GreatAuk.MODULES = MODULES;
+  // Per-project registry, so pages that need more than one project's module
+  // list at once (supervisor.html; Thylacine's shared Module 00) can read
+  // Great Auk's without relying on GreatAuk.MODULES, which each project page
+  // points at its own list.
+  global.GreatAuk.MODULES_BY_PROJECT = Object.assign(global.GreatAuk.MODULES_BY_PROJECT || {}, { "great-auk": MODULES });
 })(window);

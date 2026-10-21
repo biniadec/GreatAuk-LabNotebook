@@ -53,9 +53,14 @@
     const icons = window.GreatAuk.ICONS;
 
     grid.innerHTML = modules.map((mod) => {
-      const iconKey = "module-" + mod.number;
+      const iconKey = mod.icon || "module-" + mod.number;
       const thumbIcon = icons[iconKey] || "";
       const total = mod.exerciseIds.length;
+      // Optional: which computing environment a module needs (Thylacine
+      // modules define this; Great Auk's don't, so their cards are unchanged).
+      const envBadge = mod.environment
+        ? `<span class="env-badge env-badge--${mod.environment.kind}">${mod.environment.label}</span>`
+        : "";
 
       let footBlock;
       if (mod.status === "active" && total > 0) {
@@ -80,7 +85,7 @@
             <span class="module-card-title-row">
               <span class="module-number">${mod.number}</span>
               <h3>${mod.title}</h3>
-            </span>
+            </span>${envBadge}
             <p>${mod.summary}</p>
             ${footBlock}
           </span>

@@ -1,0 +1,98 @@
+/* =========================================================
+   Thylacine RNA — Ancient Transcriptomics: project theme.
+
+   Loaded after styles.css on Thylacine pages (and on the dashboard),
+   and scoped to html[data-project-theme="thylacine-rna"], so it can
+   never affect Great Auk. It does not add a new design system: it
+   re-points the shared colour variables to a warm, earthy palette
+   taken from the Thylacine RNA banner, plus a few component accents
+   (primary buttons, active navigation, the banner hero).
+
+   Palette (contrast checked against WCAG 2.1):
+     Deep terracotta  #9C4727  primary buttons, labels, links (6.3:1 white text)
+     Burnt orange     #B35E2E  progress fills, focus rings, accents
+                               (darkened from #C46B37 so fills reach 3:1
+                               against their track; #C46B37 is 3.65:1 as text)
+     Warm ochre       #D69B55 / #E3A15F  decorative only, and the active-nav
+                               marker on the dark sidebar (5.2:1); 2.3:1 on cream,
+                               so never used for text or progress fills
+     Pale sandstone   #F5E8D7 / #F0DDC6  soft backgrounds, tracks, thumbnails
+     Warm cream       #FFF9F1  page background
+     Dark umber       #49362D  headings, text, sidebar (10.9:1 on cream)
+     Muted taupe      #6B5B50  secondary text (darkened from #79695D, which
+                               is 4.36:1 on sandstone, just under 4.5)
+   ========================================================= */
+
+html[data-project-theme="thylacine-rna"] {
+  --ice: #fff9f1;
+  --ice-light: #fffcf7;
+  --ice-mid: #f0ddc6;
+  --navy: #49362d;
+  --navy-deep: #33241d;
+  --navy-soft: #5c4639;
+  --border: #e4cfb6;
+  --border-soft: #f0e2d0;
+  --accent: #b35e2e;
+  --accent-dark: #9c4727;
+  --accent-light: #f8e9da;
+  --text: #49362d;
+  --text-muted: #6b5b50;
+  --text-faint: #8a776a;
+  --shadow-sm: 0 1px 2px rgba(73, 54, 45, 0.08);
+  --shadow-md: 0 6px 20px rgba(73, 54, 45, 0.09);
+  --shadow-lg: 0 12px 32px rgba(73, 54, 45, 0.13);
+
+  /* Completion stays a distinct colour (an earthy olive, 5.4:1 on white,
+     4.7:1 on its light tint) so "done" remains recognisable at a glance. */
+  --success: #55733a;
+  --success-light: #eef2e4;
+
+  --thy-terracotta: #9c4727;
+  --thy-terracotta-dark: #823a1f;
+  --thy-ochre: #e3a15f;
+  --thy-sandstone: #f5e8d7;
+}
+
+html[data-project-theme="thylacine-rna"] .btn-primary {
+  background: var(--thy-terracotta);
+  color: var(--white);
+}
+
+html[data-project-theme="thylacine-rna"] .btn-primary:hover {
+  background: var(--thy-terracotta-dark);
+  color: var(--white);
+}
+
+html[data-project-theme="thylacine-rna"] .nav-link.is-active {
+  background: rgba(227, 161, 95, 0.16);
+}
+
+html[data-project-theme="thylacine-rna"] .nav-link.is-active::before {
+  background: var(--thy-ochre);
+}
+
+html[data-project-theme="thylacine-rna"] .module-thumb,
+html[data-project-theme="thylacine-rna"] .quick-link-tile,
+html[data-project-theme="thylacine-rna"] .objectives-card,
+html[data-project-theme="thylacine-rna"] .summary-card {
+  background: var(--thy-sandstone);
+}
+
+html[data-project-theme="thylacine-rna"] .hero--banner {
+  background: var(--thy-sandstone);
+  border-color: var(--border);
+}
+
+html[data-project-theme="thylacine-rna"] .env-badge--mjolnir {
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}
+
+html[data-project-theme="thylacine-rna"] .env-badge--local-r {
+  background: var(--white);
+  color: var(--navy);
+}
+
+html[data-project-theme="thylacine-rna"] .progress-fill {
+  background: linear-gradient(90deg, var(--thy-terracotta) 0%, var(--accent) 100%);
+}

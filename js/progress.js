@@ -17,12 +17,29 @@
 (function () {
   "use strict";
 
-  document.addEventListener("DOMContentLoaded", () => {
-    initExercises();
+  // A page whose exercises are inserted after load (shared content, e.g.
+  // Thylacine's Module 00) sets GreatAuk.DEFER_MODULE_INIT and calls
+  // GreatAuk.initModulePage() itself once the content is in place and its
+  // IDs validated. Every other page initialises on DOMContentLoaded exactly
+  // as before.
+  let initialised = false;
+  async function initModulePage() {
+    if (initialised) return;
+    initialised = true;
+    const GA = window.GreatAuk || {};
+    if (GA.authReady) await GA.authReady;
+    initExercises(Boolean(GA.PREVIEW_MODE));
     initCopyButtons();
+  }
+
+  window.GreatAuk = window.GreatAuk || {};
+  window.GreatAuk.initModulePage = initModulePage;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!window.GreatAuk.DEFER_MODULE_INIT) initModulePage();
   });
 
-  function initExercises() {
+  function initExercises(preview) {
     const exerciseEls = Array.from(document.querySelectorAll("[data-exercise-id]"));
     if (exerciseEls.length === 0) return;
 
@@ -33,6 +50,18 @@
       const checkbox = el.querySelector('[data-role="complete-checkbox"]');
       const textarea = el.querySelector('[data-role="notes"]');
       const saveStatus = el.querySelector('[data-role="notes-status"]');
+
+      // Preview mode: exercises are inspectable but read-only, with nothing
+      // read from or written to anyone's progress.
+      if (preview) {
+        if (checkbox) checkbox.disabled = true;
+        if (textarea) {
+          textarea.readOnly = true;
+          textarea.setAttribute("aria-readonly", "true");
+        }
+        if (saveStatus) saveStatus.textContent = "Preview — not saved";
+        return;
+      }
 
       const [isComplete, notes] = await Promise.all([
         store.isExerciseComplete(id),

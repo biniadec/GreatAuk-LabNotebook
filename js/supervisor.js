@@ -264,7 +264,7 @@
     const roleName = accessMode === "admin" ? "Administrator" : "Teacher";
     const headingText = `${selectedProject.name} — ${roleName} Dashboard`;
     el.dashboardHeading.textContent = headingText;
-    document.title = `${headingText} | Lab Notebooks`;
+    document.title = `${headingText} | HoloBase`;
 
     if (accessMode === "admin") {
       await renderTeachersNote(selectedProject.id);
@@ -274,20 +274,20 @@
 
     await loadRosterAndProgress(selectedProject.id);
 
-    if (selectedProject.slug === "great-auk") {
-      // activeModules must be set on every visit to this project, not only
-      // the first — switching away (which zeroes it, below) and back must
-      // not leave it empty just because the exercise *content* is already
-      // cached and loadExerciseContent() (the only other place that used to
-      // set it) gets skipped on a cache hit.
-      activeModules = (global.GreatAuk.MODULES || []).filter((m) => m.status === "active" && m.exerciseIds.length > 0);
-      if (exerciseContentCache.size === 0) {
-        await loadExerciseContent(activeModules);
-      }
+    // Each project's own visual theme (css/theme-thylacine.css is scoped to
+    // this attribute; Great Auk has no theme rules, so it renders as before).
+    document.documentElement.setAttribute("data-project-theme", selectedProject.slug);
+
+    // activeModules must be recomputed on every project visit, not only the
+    // first — switching away and back must not leave it stale or empty just
+    // because the exercise content is already cached.
+    const projectModules = (global.GreatAuk.MODULES_BY_PROJECT || {})[selectedProject.slug] || [];
+    activeModules = projectModules.filter((m) => m.status === "active" && m.exerciseIds.length > 0);
+    if (activeModules.length > 0) {
+      await loadExerciseContent(activeModules);
       populateModuleFilter();
       el.filtersRow.hidden = false;
     } else {
-      activeModules = [];
       el.filtersRow.hidden = true;
     }
 
@@ -431,15 +431,23 @@
 
   // ---- exercise content (fetched live from the real module pages) -------
 
+  // A module's text comes from its own page (Great Auk: modules/<slug>.html),
+  // or from a shared source page (Thylacine Module 00 reads Great Auk's
+  // Module 00, mapping thy-m00-exNN back to the source's m0-exNN). The cache
+  // is keyed by the project's OWN exercise IDs, which never collide across
+  // projects, so each module is fetched at most once per page load.
   async function loadExerciseContent(modules) {
+    const toLoad = modules.filter((mod) => mod.exerciseIds.some((id) => !exerciseContentCache.has(id)));
     await Promise.all(
-      modules.map(async (mod) => {
+      toLoad.map(async (mod) => {
         try {
-          const resp = await fetch(`modules/${mod.slug}.html`);
+          const path = mod.sharedContent ? mod.sharedContent.path : `modules/${mod.slug}.html`;
+          const sourceIdFor = mod.sharedContent ? mod.sharedContent.sourceIdFor : (id) => id;
+          const resp = await fetch(path);
           const html = await resp.text();
           const doc = new DOMParser().parseFromString(html, "text/html");
           for (const exId of mod.exerciseIds) {
-            const content = extractExerciseContent(doc, exId);
+            const content = extractExerciseContent(doc, sourceIdFor(exId));
             if (content) exerciseContentCache.set(exId, content);
           }
         } catch (err) {
@@ -530,7 +538,7 @@
     const student = roster.find((s) => s.user_id === selectedStudentId);
     el.studentLabel.textContent = student ? `Showing progress for: ${student.display_name}` : "";
 
-    if (selectedProject.slug !== "great-auk") {
+    if (activeModules.length === 0) {
       el.modulesContainer.innerHTML = "";
       el.noDataMessage.hidden = false;
       el.noDataMessage.textContent = "No modules have been built yet for this project.";
