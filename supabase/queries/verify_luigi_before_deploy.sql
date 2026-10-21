@@ -28,8 +28,16 @@
 -- Expected result today, if Luigi has not saved anything since the copy:
 --   query 1: 25 rows, all "none — identical"
 --   query 2: one line, "none — identical" = 25
---   query 3: no rows
---   query 4: no rows
+--   query 3: no rows, or only identities whose status starts "reviewed"
+--   query 4: no rows, or only rows whose status starts "reviewed"
+--
+-- Reviewed and deliberately NOT transferred (decision 2026-10-21):
+--   98ce87b1-68f8-4518-936a-bdf2b27ca4a7 — one row, m1-ex08, completed =
+--   false, notes empty, saved 2026-10-20 19:28:43.844711+00. Carries no
+--   answer or completion (it displays exactly like no row), and the live
+--   site labels every visitor's rows "Luigi", so the label does not show
+--   whose it is. Queries 3 and 4 mark it "reviewed"; if that identity ever
+--   saves anything newer, it shows as "NEW — review" again.
 --   query 5: 25 rows, membership = student / great-auk
 --
 -- If anything says CARRY OVER or REVIEW: stop before deploying. A separate
@@ -111,6 +119,12 @@ order by proposed_action;
 --    anonymous sessions, and the local test suites never reach the live
 --    database, so anything listed here came from a real live-site visitor.)
 select
+  case
+    when p.user_id = '98ce87b1-68f8-4518-936a-bdf2b27ca4a7'
+     and max(p.updated_at) <= timestamptz '2026-10-20 19:28:43.844711+00'
+      then 'reviewed 2026-10-21 — empty m1-ex08, not transferred'
+    else 'NEW — review'
+  end                                        as status,
   p.user_id,
   count(*)                                   as rows_saved,
   min(p.updated_at)                          as first_saved,
@@ -128,7 +142,14 @@ order by last_saved desc;
 
 -- 4. Any row labelled as Luigi's that belongs to neither of his two
 --    identities (any date) — a second place his work could be.
-select user_id, exercise_id, completed, notes, student_label, updated_at
+select
+  case
+    when user_id = '98ce87b1-68f8-4518-936a-bdf2b27ca4a7'
+     and updated_at <= timestamptz '2026-10-20 19:28:43.844711+00'
+      then 'reviewed 2026-10-21 — not transferred'
+    else 'NEW — review'
+  end as status,
+  user_id, exercise_id, completed, notes, student_label, updated_at
 from public.exercise_progress
 where student_label ilike '%luigi%'
   and user_id not in ('d303c036-37ce-4723-876d-c207c706cf5c',

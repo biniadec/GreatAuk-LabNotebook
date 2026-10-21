@@ -24,6 +24,13 @@
 --   same transitional label the original copy used, so the later
 --   relabel_and_retire_luigi_anonymous.sql treats these rows identically.
 --
+-- Scope: only Luigi's original anonymous identity -> his real account. The
+-- third anonymous identity 98ce87b1-68f8-4518-936a-bdf2b27ca4a7 (one empty,
+-- incomplete m1-ex08 row, 2026-10-20 19:28:43) was reviewed on 2026-10-21
+-- and deliberately is NOT transferred: it holds no answer or completion.
+-- This script never reads or writes it, and its row is covered by the
+-- "every other user's rows unchanged" fingerprint check below.
+--
 -- What it never does: touch any anonymous row; delete anything; change any
 -- real-account row outside the approved list; overwrite a real-account row
 -- that is newer; touch any other user.
