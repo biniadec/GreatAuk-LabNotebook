@@ -677,7 +677,7 @@ Three separately tested commits on `feature/multi-user-platform`, each revertibl
 |---|---|---|
 | 1 — prepare | `ca51fc6` | One project map (`js/projects-data.js`: `basePath` → `homePage`, `PROJECT_HOME_PAGES`, `projectPath()`); every guarded page declares `ROOT_PREFIX`; dashboard and Thylacine shared-content paths resolve through `projectPath()`; **login redirect fix** (below). No visible change. |
 | 2 — move | `4c80ead` | `git mv` Great Auk into `great-auk/` (history kept); 14 inert redirect stubs at the old URLs; login redirect keeps the `#exercise` anchor. |
-| 3 — homepage | see `git log` | Public HoloBase homepage at the root; everyone lands there after signing in; "All projects (HoloBase)" link on every project page; `?v=` cache-busting on local scripts and styles. |
+| 3 — homepage | `863da63` | Public HoloBase homepage at the root; everyone lands there after signing in; "All projects (HoloBase)" link on every project page; `?v=` cache-busting on local scripts and styles. |
 
 **Site structure now**
 
