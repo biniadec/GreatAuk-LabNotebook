@@ -103,10 +103,12 @@ order by exercise_id;
 
 -- ----------------------------------------------------------------------------
 -- STEP 3 (CHANGES DATA — only after approval): the reconciliation.
--- Run the whole block, begin; … commit; together.
+-- One DO statement, run on its own. A single statement is all-or-nothing in
+-- Postgres: if any check below raises, every change it made — including the
+-- trigger disable — is rolled back automatically. (No explicit begin/commit,
+-- so a failed run can't leave the SQL Editor's session inside an aborted
+-- transaction.)
 -- ----------------------------------------------------------------------------
-begin;
-
 do $$
 declare
   -- ===== parameters (STEP 2) =====
@@ -123,6 +125,8 @@ declare
   v_anon_fp_after     text;
   v_other_fp_before   text;
   v_other_fp_after    text;
+  v_users_fp_before   text;
+  v_users_fp_after    text;
   v_updated           int;
   v_inserted          int;
   v_remaining         int;
@@ -142,6 +146,19 @@ begin
   if not exists (select 1 from public.project_memberships
                   where user_id = c_real and project_id = v_ga and role = 'student') then
     raise exception 'Luigi''s real account has no Great Auk student membership. Nothing changed.';
+  end if;
+
+  -- The timestamp trigger must exist, be enabled, and be the only user
+  -- trigger on the table — so disabling it by name is exactly what we think.
+  if not exists (select 1 from pg_trigger
+                  where tgrelid = 'public.exercise_progress'::regclass
+                    and tgname = 'set_exercise_progress_updated_at'
+                    and tgenabled = 'O') then
+    raise exception 'Timestamp trigger set_exercise_progress_updated_at missing or not enabled. Nothing changed.';
+  end if;
+  if (select count(*) from pg_trigger
+       where tgrelid = 'public.exercise_progress'::regclass and not tgisinternal) <> 1 then
+    raise exception 'exercise_progress has user triggers other than set_exercise_progress_updated_at — review first. Nothing changed.';
   end if;
 
   -- Lock both identities' rows so nothing changes underneath this check.
@@ -200,6 +217,9 @@ begin
   select md5(coalesce(string_agg(concat_ws('|', exercise_id, completed, notes, student_label, updated_at, project_id), E'\n' order by exercise_id), ''))
     into v_other_fp_before from public.exercise_progress
    where user_id = c_real and exercise_id <> all (v_approved);
+  select md5(coalesce(string_agg(concat_ws('|', user_id, exercise_id, completed, notes, student_label, updated_at, project_id), E'\n' order by user_id, exercise_id), ''))
+    into v_users_fp_before from public.exercise_progress
+   where user_id not in (c_anon, c_real);
 
   -- ---- apply ------------------------------------------------------------
   execute 'alter table public.exercise_progress disable trigger set_exercise_progress_updated_at';
@@ -241,6 +261,12 @@ begin
   if v_other_fp_after <> v_other_fp_before then
     raise exception 'A real-account row outside the approved list changed. Rolled back.';
   end if;
+  select md5(coalesce(string_agg(concat_ws('|', user_id, exercise_id, completed, notes, student_label, updated_at, project_id), E'\n' order by user_id, exercise_id), ''))
+    into v_users_fp_after from public.exercise_progress
+   where user_id not in (c_anon, c_real);
+  if v_users_fp_after <> v_users_fp_before then
+    raise exception 'Another user''s rows changed. Rolled back.';
+  end if;
 
   -- Nothing may still need carrying over, and every approved row must now
   -- match its source exactly, timestamp included. (A real-account row that
@@ -271,8 +297,6 @@ begin
   raise notice 'Reconciled % exercise(s): % updated, % inserted: %', cardinality(v_approved), v_updated, v_inserted, v_approved;
 end
 $$;
-
-commit;
 
 
 -- ----------------------------------------------------------------------------
