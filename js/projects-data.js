@@ -40,9 +40,9 @@
       publicDescription:
         "A step-by-step guide to analysing genomic data from the Great Auk and its living relatives.",
       artwork: {
-        src: "assets/great-auk-hero.png",
-        alt: "A Great Auk (Pinguinus impennis) standing on snow and ice, with mountains in the background",
-        position: "50% 6%",
+        src: "assets/great-auk-banner.jpg",
+        alt: "Illustration of a Great Auk (Pinguinus impennis) standing on snowy rocks above an Arctic shoreline, with a DNA helix, a phylogenetic tree and sequencing traces drawn across the sky.",
+        position: "50% 50%",
       },
       accent: "#2f6690",
     },
@@ -58,7 +58,7 @@
       artwork: {
         src: "assets/thylacine-banner.jpg",
         alt: "Illustration of a thylacine standing on a rocky outcrop above a Tasmanian landscape, with an RNA helix and sequencing traces drawn across the sky.",
-        position: "22% 50%",
+        position: "50% 50%",
       },
       accent: "#9c4727",
     },
