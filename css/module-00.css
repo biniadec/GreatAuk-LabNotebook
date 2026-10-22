@@ -1,0 +1,677 @@
+/* =========================================================
+   HoloBase Module 00 — Mjolnir Foundations.
+   Page-specific styles (body.m00-page only) on top of styles.css and
+   theme-holobase.css. Nothing here affects other pages.
+
+   Terminal palette (contrast on the terminal background #1f1d1b):
+     text #ece6dc 13.9:1 · commands #ffffff 16.5:1 · errors #ffab9e 9.0:1
+     notes #a9cdee 10.4:1 · warnings #ffd27a 12.4:1
+   SIMULATION badge: #2c2926 on #f2b134 (8.5:1)
+   ========================================================= */
+
+.m00-page .m00-shell {
+  max-width: 1440px;
+}
+
+.m00-review {
+  margin: 0 0 1.5rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid #e3c98f;
+  border-radius: var(--radius-md);
+  background: #fbf1dc;
+  color: var(--hb-charcoal);
+  font-size: 0.92rem;
+}
+
+.m00-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.m00-content {
+  min-width: 0;
+}
+
+.m00-header h1 {
+  font-family: var(--font-heading);
+  color: var(--hb-charcoal);
+  font-size: 2.1rem;
+  margin: 0.2rem 0 0.75rem;
+}
+
+.m00-kicker {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--hb-text);
+}
+
+.m00-intro {
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: var(--hb-text);
+  margin: 0 0 1.5rem;
+}
+
+.m00-content code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: #efe9df;
+  color: var(--hb-charcoal);
+  padding: 0.05em 0.35em;
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+
+.m00-content a {
+  color: var(--hb-charcoal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ---------- Credit and "three separate things" ---------- */
+
+.m00-credit {
+  margin: 0 0 2rem;
+  padding: 1.1rem 1.3rem;
+  border-left: 4px solid var(--hb-charcoal);
+  background: var(--hb-card);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.m00-credit h2 {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  color: var(--hb-charcoal);
+  margin: 0 0 0.5rem;
+}
+
+.m00-credit p {
+  margin: 0 0 0.6rem;
+  line-height: 1.6;
+  color: var(--hb-text);
+}
+
+.m00-credit p:last-child {
+  margin-bottom: 0;
+}
+
+.m00-credit-f15 {
+  padding: 0.6rem 0.8rem;
+  background: var(--hb-cream);
+  border-radius: var(--radius-sm);
+}
+
+.m00-how h2,
+.m00-next h2,
+.m00-part > h2 {
+  font-family: var(--font-heading);
+  color: var(--hb-charcoal);
+  font-size: 1.4rem;
+  margin: 0 0 1rem;
+}
+
+.m00-how-list,
+.m00-next-grid {
+  list-style: none;
+  margin: 0 0 2rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 1rem;
+}
+
+.m00-how-item,
+.m00-next-card {
+  background: var(--hb-card);
+  border: 1px solid var(--hb-border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.1rem;
+}
+
+.m00-how-item h3,
+.m00-next-card h3 {
+  margin: 0.3rem 0 0.4rem;
+  font-size: 1rem;
+  color: var(--hb-charcoal);
+}
+
+.m00-how-item p,
+.m00-next-card p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--hb-text);
+}
+
+.m00-how-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  background: var(--hb-charcoal);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.m00-next-card--primary {
+  border: 2px solid var(--hb-charcoal);
+}
+
+/* ---------- Progress ---------- */
+
+.m00-progress {
+  margin: 0 0 2rem;
+}
+
+.m00-progress-text {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+  color: var(--hb-charcoal);
+}
+
+.m00-progress-track {
+  height: 8px;
+}
+
+/* ---------- Parts and exercises ---------- */
+
+.m00-part {
+  margin-bottom: 2.25rem;
+}
+
+.m00-part-num {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hb-text);
+  margin-bottom: 0.15rem;
+}
+
+.m00-ex {
+  background: var(--hb-card);
+  border: 1px solid var(--hb-border);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.3rem 1.2rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.m00-ex.is-complete {
+  border-color: #9bb88a;
+}
+
+.m00-ex-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.m00-ex-num {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--hb-text);
+}
+
+.m00-ex-head h3 {
+  margin: 0;
+  font-size: 1.06rem;
+  color: var(--hb-charcoal);
+  flex: 1 1 16rem;
+}
+
+.m00-kind {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--hb-border);
+  white-space: nowrap;
+}
+
+.m00-kind--read {
+  background: var(--hb-cream);
+  color: var(--hb-charcoal);
+}
+
+.m00-kind--practise {
+  background: #2c2926;
+  border-color: #2c2926;
+  color: #f2b134; /* 8.5:1 */
+}
+
+.m00-kind--explain {
+  background: #e7eef4;
+  border-color: #c7d6e2;
+  color: #2f4a61; /* 8.4:1 */
+}
+
+.m00-ex-status {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #3e6b2a; /* 6.0:1 on the card */
+}
+
+.m00-ex-body p,
+.m00-ex-body li {
+  line-height: 1.6;
+  color: var(--hb-text);
+}
+
+.m00-ex-body > p {
+  margin: 0 0 0.7rem;
+}
+
+.m00-concept {
+  color: var(--hb-text);
+}
+
+.m00-tasks {
+  margin: 0 0 0.8rem;
+  padding-left: 0;
+  list-style: none;
+}
+
+.m00-task-item {
+  position: relative;
+  padding: 0.35rem 0 0.35rem 2rem;
+}
+
+.m00-tick {
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  border: 2px solid var(--hb-muted);
+  background: var(--hb-card);
+}
+
+.m00-task-item.is-done .m00-tick {
+  border-color: #3e6b2a;
+  background: #3e6b2a;
+}
+
+.m00-task-item.is-done .m00-tick::after {
+  content: "";
+  position: absolute;
+  left: 0.36rem;
+  top: 0.14rem;
+  width: 0.3rem;
+  height: 0.6rem;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.m00-hint,
+.m00-model {
+  margin: 0 0 0.6rem;
+  border: 1px solid var(--hb-border);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.7rem;
+  background: var(--hb-cream);
+}
+
+.m00-hint summary,
+.m00-model summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--hb-charcoal);
+}
+
+.m00-hint p,
+.m00-model p {
+  margin: 0.5rem 0 0.2rem;
+}
+
+.m00-kb {
+  font-size: 0.9rem;
+}
+
+.m00-ex-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #ece6dc;
+}
+
+.m00-ex-count {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--hb-charcoal);
+}
+
+.m00-answer-label {
+  flex-basis: 100%;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--hb-charcoal);
+}
+
+.m00-answer {
+  flex-basis: 100%;
+  width: 100%;
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--hb-border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--hb-charcoal);
+}
+
+.m00-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: var(--hb-charcoal);
+}
+
+.m00-done input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--hb-charcoal);
+}
+
+.m00-done-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--hb-text);
+}
+
+.m00-open-sim {
+  margin-left: auto;
+}
+
+/* ---------- Simulator panel ---------- */
+
+.m00-terminal-wrap {
+  min-width: 0;
+}
+
+.m00-terminal-toggle {
+  display: none;
+}
+
+.sim {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #1f1d1b;
+  color: #ece6dc;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid #000;
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-mono);
+}
+
+.sim-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.7rem;
+  padding: 0.55rem 0.75rem;
+  background: #2c2926;
+  border-bottom: 1px solid #000;
+  font-family: var(--font-body);
+}
+
+.sim-badge {
+  background: #f2b134;
+  color: #2c2926;
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+.sim-header-text {
+  font-size: 0.8rem;
+  color: #ece6dc;
+  flex: 1 1 12rem;
+}
+
+.sim-header-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.sim-btn {
+  font: inherit;
+  font-size: 0.78rem;
+  color: #ece6dc;
+  background: transparent;
+  border: 1px solid #6b655e;
+  border-radius: 4px;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+}
+
+.sim-btn:hover,
+.sim-btn:focus-visible {
+  border-color: #ece6dc;
+}
+
+.sim-btn:focus-visible,
+.sim-input:focus-visible,
+.m00-terminal-toggle:focus-visible {
+  outline: 3px solid #f2b134;
+  outline-offset: 2px;
+}
+
+.sim-screen {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 0.85rem 0.9rem;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  min-height: 16rem;
+}
+
+.sim-row {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.sim-cmd { color: #fff; font-weight: 600; }
+.sim-err { color: #ffab9e; }
+.sim-info { color: #a9cdee; }
+.sim-warn { color: #ffd27a; }
+.sim-row-tag { font-weight: 700; }
+
+.sim-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  margin-top: 0.25rem;
+}
+
+.sim-prompt {
+  color: #f2b134;
+  white-space: nowrap;
+}
+
+.sim-input {
+  flex: 1;
+  min-width: 4rem;
+  font: inherit;
+  color: #fff;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  caret-color: #f2b134;
+}
+
+.sim-editor {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.85rem;
+  background: #1f1d1b;
+  z-index: 2;
+}
+
+.sim-editor[hidden] {
+  display: none;
+}
+
+.sim-editor-title {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.sim-editor-note,
+.sim-editor-status {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #a9cdee;
+  font-family: var(--font-body);
+}
+
+.sim-editor-area {
+  flex: 1;
+  width: 100%;
+  min-height: 10rem;
+  font: inherit;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: #ece6dc;
+  background: #121110;
+  border: 1px solid #6b655e;
+  border-radius: 4px;
+  padding: 0.6rem;
+  resize: none;
+}
+
+.sim-editor-area:focus-visible {
+  outline: 3px solid #f2b134;
+  outline-offset: 1px;
+}
+
+.sim-editor-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Wide screens: exercises left, simulator right (stays in view). */
+@media (min-width: 1100px) {
+  .m00-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  }
+
+  .m00-terminal-wrap {
+    position: sticky;
+    top: 1rem;
+  }
+
+  .sim {
+    height: calc(100vh - 2rem);
+    max-height: 56rem;
+  }
+
+  .m00-open-sim {
+    display: none;
+  }
+}
+
+/* Smaller screens: the simulator opens as a panel at the bottom. */
+@media (max-width: 1099.98px) {
+  .m00-terminal-wrap {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    pointer-events: none;
+  }
+
+  .m00-terminal-toggle {
+    display: block;
+    pointer-events: auto;
+    margin: 0 16px 16px auto;
+    font: inherit;
+    font-weight: 700;
+    color: #2c2926;
+    background: #f2b134;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.6rem 1.1rem;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+  }
+
+  .m00-terminal {
+    display: none;
+  }
+
+  .m00-terminal-wrap.is-open {
+    pointer-events: auto;
+  }
+
+  .m00-terminal-wrap.is-open .m00-terminal {
+    display: block;
+    padding: 0 8px 8px;
+  }
+
+  .m00-terminal-wrap.is-open .m00-terminal-toggle {
+    margin-bottom: 8px;
+  }
+
+  .m00-terminal-wrap.is-open .sim {
+    height: 62vh;
+  }
+
+  body.m00-sim-open .m00-shell {
+    padding-bottom: 66vh;
+  }
+
+  body:not(.m00-sim-open) .m00-shell {
+    padding-bottom: 5rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .m00-header h1 {
+    font-size: 1.65rem;
+  }
+
+  .m00-ex {
+    padding: 1rem 1rem 1.1rem;
+  }
+
+  .sim-screen {
+    font-size: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m00-page * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
