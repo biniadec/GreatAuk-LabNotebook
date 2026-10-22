@@ -12,10 +12,14 @@
  * and marks each card accordingly, using the same precedence as
  * auth-guard.js and supervisor.js (profiles.role === 'admin' first, then
  * project_memberships rows):
- *   - administrator: every project, with View project + Open dashboard
- *   - teacher of a project: View project + Open dashboard
- *   - student of a project: Enter project
- *   - no membership: shown locked, "Not enrolled", with no link
+ *   - administrator: every project — "Administrator", View project + Open dashboard
+ *   - teacher of the project: "Teacher", View project + Open dashboard
+ *   - student of the project: "Student", Enter project
+ *   - a teacher account (profiles.role 'teacher', or a teacher membership
+ *     anywhere) not assigned to the project: locked, "No teaching access"
+ *   - anyone else without a membership: locked, "Not enrolled"
+ * The badges only describe access the account already has; the pages behind
+ * the buttons enforce it themselves.
  * It never requests progress, answers, rosters or anyone else's data; the
  * pages behind these links stay protected by auth-guard.js and RLS. If
  * access can't be checked, no card opens (fail closed).
@@ -58,7 +62,8 @@
     el.status.classList.toggle("hub-status--error", Boolean(isError));
   }
 
-  // access: null (signed out) | "loading" | "error" | { isAdmin, roles: {slug: Set(role)} }
+  // access: null (signed out) | "loading" | "error" |
+  //         { isAdmin, isTeacherAccount, roles: {slug: Set(role)} }
   function cardFor(project, access) {
     const card = make("article", "hub-card");
     card.setAttribute("data-project-card", project.slug);
@@ -98,17 +103,20 @@
       const isTeacher = roles.has("teacher");
       if (access.isAdmin || isTeacher || isStudent) {
         state = access.isAdmin ? "admin" : isTeacher ? "teacher" : "student";
-        chip = make("span", "hub-chip hub-chip--member", access.isAdmin ? "Administrator" : isTeacher ? "Teacher" : "Enrolled");
+        chip = make("span", "hub-chip hub-chip--member", access.isAdmin ? "Administrator" : isTeacher ? "Teacher" : "Student");
         if (isStudent) actions.appendChild(link("Enter project", home, true));
         else actions.appendChild(link("View project", home, false));
         if (access.isAdmin || isTeacher) actions.appendChild(link("Open dashboard", dashboard, !isStudent));
       } else {
-        state = "locked";
+        const teacher = access.isTeacherAccount;
+        state = teacher ? "no-teaching" : "locked";
         card.classList.add("hub-card--locked");
         chip = make("span", "hub-chip");
         chip.innerHTML = LOCK_SVG;
-        chip.appendChild(document.createTextNode(" Not enrolled"));
-        body.appendChild(make("p", "hub-card-note", "You're not enrolled in this project. Contact your supervisor if you should have access."));
+        chip.appendChild(document.createTextNode(teacher ? " No teaching access" : " Not enrolled"));
+        body.appendChild(make("p", "hub-card-note", teacher
+          ? "This project is not assigned to you. Contact the HoloBase administrator if you need access."
+          : "You're not enrolled in this project. Please contact your supervisor if you believe you should have access."));
       }
     }
 
@@ -148,7 +156,9 @@
       const open = PROJECTS.filter((p) => access.isAdmin || (access.roles[p.slug] && access.roles[p.slug].size));
       setStatus(open.length
         ? `Welcome back, ${displayName}. Choose a project to continue.`
-        : `Welcome, ${displayName}. You're not enrolled in a project yet — contact your supervisor.`);
+        : access.isTeacherAccount
+          ? `Welcome, ${displayName}. No projects are assigned to you yet — contact the HoloBase administrator.`
+          : `Welcome, ${displayName}. You're not enrolled in a project yet — contact your supervisor.`);
     }
     renderCards(access);
   }
@@ -165,9 +175,12 @@
       if (!m.projects || !m.projects.slug) return;
       (roles[m.projects.slug] = roles[m.projects.slug] || new Set()).add(m.role);
     });
+    const isAdmin = Boolean(profile && profile.role === "admin");
+    const isTeacherAccount = !isAdmin && (
+      Boolean(profile && profile.role === "teacher") || (memberships || []).some((m) => m.role === "teacher"));
     return {
       displayName: (profile && profile.display_name) || null,
-      access: { isAdmin: Boolean(profile && profile.role === "admin"), roles },
+      access: { isAdmin, isTeacherAccount, roles },
     };
   }
 

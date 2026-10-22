@@ -332,6 +332,18 @@ html[data-project-theme="holobase"] button:focus-visible {
     font-size: 1.85rem;
   }
 
+  /* Narrow cards: the access badge sits on its own line above the project
+     name, so a long badge ("No teaching access") never squeezes the title
+     and subtitle. */
+  .hub-card-head {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .hub-card-head .hub-chip {
+    order: -1;
+  }
+
   .hub-banner {
     border-radius: var(--radius-md);
   }

@@ -60,7 +60,7 @@
       status: "active",
       basePath: "thylacine/",
       publicDescription:
-        "A step-by-step training notebook for the Thylacine ancient RNA and transcriptomics project.",
+        "A step-by-step guide to analysing ancient RNA and transcriptomic data from the Thylacine.",
       artwork: {
         src: "assets/thylacine-banner.jpg",
         alt: "Illustration of a thylacine standing on a rocky outcrop above a Tasmanian landscape, with an RNA helix and sequencing traces drawn across the sky.",
