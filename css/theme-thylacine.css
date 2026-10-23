@@ -37,7 +37,10 @@ html[data-project-theme="thylacine-rna"] {
   --accent-light: #f8e9da;
   --text: #49362d;
   --text-muted: #6b5b50;
-  --text-faint: #8a776a;
+  /* Faint text darkened from #8a776a for WCAG AA (>= 4.6:1 on white,
+     cream and sandstone); --line-faint keeps the lighter shade for lines. */
+  --text-faint: #806e62;
+  --line-faint: #8a776a;
   /* Module/exercise numbers: the same warm umber, darkened just enough for
      WCAG AA (>= 4.6:1 on white, cream and sandstone). */
   --text-number: #75655a;
@@ -49,6 +52,7 @@ html[data-project-theme="thylacine-rna"] {
      4.7:1 on its light tint) so "done" remains recognisable at a glance. */
   --success: #55733a;
   --success-light: #eef2e4;
+  --success-text: #55733a; /* already AA: 5.4:1 on white, 4.7:1 on its tint */
 
   --thy-terracotta: #9c4727;
   --thy-terracotta-dark: #823a1f;

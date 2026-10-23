@@ -19,14 +19,23 @@
   --accent-light: #eaf3f9;
   --text: #16293b;
   --text-muted: #51677d;
-  --text-faint: #7c90a3;
-  /* Module/exercise numbers: the same blue-grey as --text-faint, darkened
+  /* Faint text (placeholders, footer, dashboard meta): darkened from
+     #7c90a3 to meet WCAG AA (>= 4.6:1 on white and the tinted panels).
+     --line-faint keeps the original lighter shade for non-text lines. */
+  --text-faint: #5c7083;
+  --line-faint: #7c90a3;
+  /* Module/exercise numbers: the original faint blue-grey (#7c90a3), darkened
      just enough for WCAG AA (>= 4.6:1 on white and on the tinted cards). */
   --text-number: #5a6e80;
   --success: #2f8f6b;
   --success-light: #e4f3ee;
   --warning: #a9682c;
   --warning-light: #f8ecdf;
+  /* Text in these colours (labels, badges, callout headings): the same
+     hues, darkened for WCAG AA on white and on their light tints. Fills,
+     borders and the progress bar keep --success / --warning. */
+  --success-text: #27785a;
+  --warning-text: #975d27;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -966,7 +975,7 @@ ul, ol {
 
 .status-badge.active {
   background: var(--success-light);
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .status-badge.placeholder {
@@ -1282,7 +1291,7 @@ ul, ol {
   gap: 0.3rem;
   font-size: 0.74rem;
   font-weight: 700;
-  color: var(--success);
+  color: var(--success-text);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -1312,8 +1321,8 @@ ul, ol {
   margin-bottom: 0.5rem;
 }
 
-.block-label.hint { color: var(--warning); background: var(--warning-light); }
-.block-label.check { color: var(--success); background: var(--success-light); }
+.block-label.hint { color: var(--warning-text); background: var(--warning-light); }
+.block-label.check { color: var(--success-text); background: var(--success-light); }
 .block-label.solution { color: var(--accent-dark); background: var(--accent-light); }
 .block-label.notes { color: var(--text-muted); background: var(--ice-mid); }
 .block-label.doc { color: var(--accent-dark); background: var(--ice-mid); }
@@ -1397,6 +1406,13 @@ details.reveal .reveal-body {
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0.5rem 0;
+}
+
+/* Keyboard focus on sideways-scrolling blocks (tabindex set by app.js /
+   supervisor.js only while they overflow). */
+[data-scroll-focus]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .command-block .comment {
@@ -1503,7 +1519,7 @@ details.reveal .reveal-body {
 }
 
 .callout-warning strong {
-  color: var(--warning);
+  color: var(--warning-text);
 }
 
 /* ---------- Comparison tables (e.g. assembly quality comparisons) ---------- */
@@ -1590,7 +1606,7 @@ details.reveal .reveal-body {
 
 .phylo-diagram .branch-extinct {
   fill: none;
-  stroke: var(--text-faint);
+  stroke: var(--line-faint);
   stroke-width: 1.6;
   stroke-dasharray: 3 3;
 }
@@ -1946,7 +1962,7 @@ footer.site-footer {
 }
 
 .form-error {
-  color: var(--warning);
+  color: var(--warning-text);
   font-size: 0.85rem;
   margin: -0.4rem 0 1rem;
   min-height: 1.1em;
@@ -2084,7 +2100,7 @@ footer.site-footer {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--warning);
+  color: var(--warning-text);
   background: var(--warning-light);
   padding: 0.12rem 0.5rem;
   border-radius: 999px;

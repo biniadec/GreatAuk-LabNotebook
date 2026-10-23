@@ -639,6 +639,34 @@
     el.modulesContainer.innerHTML = html;
     el.noDataMessage.hidden = Boolean(html.trim());
     if (!html.trim()) el.noDataMessage.textContent = "No exercises match the current filters.";
+    markScrollableRegions(el.modulesContainer);
+  }
+
+  // Same as markScrollableRegions in app.js (not loaded on this page): a
+  // keyboard stop on copied code blocks, diagrams and tables only while they
+  // overflow sideways, re-checked by a ResizeObserver whenever their size
+  // changes. Only tabindex values set here are ever removed.
+  const scrollObserver = "ResizeObserver" in global
+    ? new ResizeObserver((entries) => entries.forEach((entry) => updateScrollFocus(entry.target)))
+    : null;
+
+  function markScrollableRegions(root) {
+    if (scrollObserver) scrollObserver.disconnect(); // blocks from the previous render are gone
+    root.querySelectorAll(".command-block, .fastq-anatomy, .comparison-table-wrap").forEach((node) => {
+      updateScrollFocus(node);
+      if (scrollObserver) scrollObserver.observe(node);
+    });
+  }
+
+  function updateScrollFocus(node) {
+    const overflows = node.scrollWidth > node.clientWidth + 1;
+    if (overflows && !node.hasAttribute("tabindex")) {
+      node.setAttribute("tabindex", "0");
+      node.setAttribute("data-scroll-focus", "");
+    } else if (!overflows && node.hasAttribute("data-scroll-focus")) {
+      node.removeAttribute("tabindex");
+      node.removeAttribute("data-scroll-focus");
+    }
   }
 
   initAuth();
