@@ -20,6 +20,9 @@
   --text: #16293b;
   --text-muted: #51677d;
   --text-faint: #7c90a3;
+  /* Module/exercise numbers: the same blue-grey as --text-faint, darkened
+     just enough for WCAG AA (>= 4.6:1 on white and on the tinted cards). */
+  --text-number: #5a6e80;
   --success: #2f8f6b;
   --success-light: #e4f3ee;
   --warning: #a9682c;
@@ -686,6 +689,32 @@ ul, ol {
   padding: 1.1rem 1.2rem;
 }
 
+/* Historical training (archived Module 00), shown apart from active progress. */
+.history-progress {
+  margin: 0.45rem 0 0;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--border-soft);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.history-progress a {
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+
+.roster-item:has(.roster-item-history) {
+  flex-wrap: wrap;
+}
+
+.roster-item-history {
+  display: block;
+  flex-basis: 100%;
+  margin-top: -0.3rem;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
 .archived-tag {
   display: inline-block;
   margin-left: 0.4rem;
@@ -703,6 +732,11 @@ ul, ol {
 /* The shared HoloBase course card (first in every project's module grid). */
 .module-card--shared {
   border-left: 4px solid #3f3b37;
+}
+
+.module-card-note {
+  font-size: 0.78rem;
+  color: var(--text-muted);
 }
 
 .module-card-tags {
@@ -917,7 +951,7 @@ ul, ol {
 .module-number {
   font-family: var(--font-mono);
   font-size: 0.78rem;
-  color: var(--text-faint);
+  color: var(--text-number);
   letter-spacing: 0.05em;
 }
 
@@ -1233,7 +1267,7 @@ ul, ol {
 
 .exercise-number {
   font-family: var(--font-mono);
-  color: var(--text-faint);
+  color: var(--text-number);
   font-size: 0.95rem;
 }
 
@@ -1950,6 +1984,10 @@ footer.site-footer {
 }
 
 .supervisor-filters select {
+  /* A long option must never make the page wider than the screen. */
+  max-width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
   padding: 0.45rem 0.6rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);

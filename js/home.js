@@ -22,9 +22,35 @@
     const [completedMap, notesMap] = await Promise.all([store.getCompletionMap(), store.getNotesMap()]);
 
     renderOverallProgress(countable, allExerciseIds, completedMap);
+    renderHistory(MODULES.filter((m) => m.archived), completedMap, notesMap);
     renderModuleGrid(MODULES, completedMap, notesMap);
     renderContinueLearning(countable, completedMap);
   });
+
+  // Historical training (an archived module) is shown separately from the
+  // active progress above, derived from the student's own saved records —
+  // only for someone who has saved work in it.
+  function renderHistory(archived, completedMap, notesMap) {
+    const fill = document.querySelector("[data-role='donut-fill']");
+    const card = fill && fill.closest(".stat-card");
+    if (!card) return;
+    const root = card.querySelector(".donut-stats") || card;
+    root.querySelectorAll("[data-role='history-progress']").forEach((n) => n.remove());
+    for (const mod of archived) {
+      const done = mod.exerciseIds.filter((id) => completedMap[id]).length;
+      const any = done > 0 || mod.exerciseIds.some((id) => notesMap && notesMap[id]);
+      if (!any) continue;
+      const p = document.createElement("p");
+      p.className = "history-progress";
+      p.setAttribute("data-role", "history-progress");
+      p.appendChild(document.createTextNode(`${mod.historyLabel || `Module ${mod.number} (archived)`} — ${done}/${mod.exerciseIds.length} exercises completed · Archived `));
+      const a = document.createElement("a");
+      a.href = `modules/${mod.slug}.html`;
+      a.textContent = "View answers";
+      p.appendChild(a);
+      root.appendChild(p);
+    }
+  }
 
   // Card for the shared HoloBase course, shown first in every project.
   function sharedFoundationCard(icons) {
@@ -41,7 +67,7 @@
             </span>
             <span class="module-card-tags"><span class="module-tag">Shared · all projects</span><span class="module-tag module-tag--status">${f.status}</span></span>
             <p>${f.summary}</p>
-            <div class="module-card-foot"><span class="placeholder-note">HoloBase course · progress saved in this browser for now</span></div>
+            <div class="module-card-foot"><span class="module-card-note">HoloBase course · progress saved in this browser for now</span></div>
           </span>
           <span class="module-chevron">${icons.chevronRight}</span>
         </a>`;

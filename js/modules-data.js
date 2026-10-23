@@ -27,6 +27,8 @@
       // out of progress totals and "continue learning", because nobody can
       // complete it any more.
       archived: true,
+      // Shown separately from active progress for anyone with saved work in it.
+      historyLabel: "Previous Mjolnir training",
       summary:
         "Prepare to work independently on the UCPH Mjolnir HPC cluster before starting the Great Auk genomics analysis.",
       exerciseIds: [

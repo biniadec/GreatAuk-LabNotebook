@@ -396,6 +396,17 @@
     return count;
   }
 
+  // Historical training in archived modules, per student, from their rows.
+  function historyLines(userId) {
+    const rows = progressByUser.get(userId);
+    if (!rows) return [];
+    return activeModules.filter((m) => m.archived).map((m) => {
+      const done = m.exerciseIds.filter((id) => rows.get(id) && rows.get(id).completed).length;
+      const any = done > 0 || m.exerciseIds.some((id) => rows.get(id) && rows.get(id).notes);
+      return any ? `${m.historyLabel || `Module ${m.number} (archived)`} — ${done}/${m.exerciseIds.length} exercises completed · Archived` : null;
+    }).filter(Boolean);
+  }
+
   function totalExerciseCount() {
     return countedModules().reduce((sum, m) => sum + m.exerciseIds.length, 0);
   }
@@ -415,7 +426,8 @@
         return `
           <li class="roster-item${isSelected ? " is-selected" : ""}" data-user-id="${s.user_id}">
             <span class="roster-item-name">${escapeHtml(s.display_name)}</span>
-            <span class="roster-item-progress">${countText}</span>
+            <span class="roster-item-progress">${countText}</span>${historyLines(s.user_id).map((t) => `
+            <span class="roster-item-history" data-role="roster-history">${escapeHtml(t)}</span>`).join("")}
           </li>`;
       })
       .join("");
@@ -509,7 +521,7 @@
     el.filterModule.innerHTML =
       '<option value="all">All modules</option>' +
       activeModules
-        .map((m) => `<option value="${m.id}">Module ${m.number} — ${escapeHtml(m.title)}${m.archived ? " (archived original)" : ""}</option>`)
+        .map((m) => `<option value="${m.id}">Module ${m.number} — ${escapeHtml(m.title)}${m.archived ? " (archived)" : ""}</option>`)
         .join("");
   }
 
