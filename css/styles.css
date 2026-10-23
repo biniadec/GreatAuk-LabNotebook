@@ -686,6 +686,49 @@ ul, ol {
   padding: 1.1rem 1.2rem;
 }
 
+.archived-tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid #e3c98f;
+  background: #fbf1dc;
+  color: #2c2926;
+  vertical-align: middle;
+}
+
+/* The shared HoloBase course card (first in every project's module grid). */
+.module-card--shared {
+  border-left: 4px solid #3f3b37;
+}
+
+.module-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.15rem 0 0.35rem;
+}
+
+.module-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--ice-light);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.module-tag--status {
+  background: #fbf1dc;
+  border-color: #e3c98f;
+  color: #2c2926;
+}
+
 .module-thumb {
   width: 60px;
   height: 60px;
@@ -1375,6 +1418,14 @@ details.reveal .reveal-body {
   margin-top: 0.3rem;
   min-height: 1em;
 }
+
+/* "Archived — read-only" status on the archived original Module 00: the
+   theme's muted text colour (5.8:1 on white), not the faint one. */
+.notes-save-status.notes-status--archived {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
 
 .completion-row {
   display: flex;

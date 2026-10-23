@@ -28,7 +28,7 @@
     initialised = true;
     const GA = window.GreatAuk || {};
     if (GA.authReady) await GA.authReady;
-    initExercises(Boolean(GA.PREVIEW_MODE));
+    initExercises(Boolean(GA.PREVIEW_MODE), Boolean(GA.READ_ONLY_ARCHIVE));
     initCopyButtons();
   }
 
@@ -39,7 +39,7 @@
     if (!window.GreatAuk.DEFER_MODULE_INIT) initModulePage();
   });
 
-  function initExercises(preview) {
+  function initExercises(preview, readOnly) {
     const exerciseEls = Array.from(document.querySelectorAll("[data-exercise-id]"));
     if (exerciseEls.length === 0) return;
 
@@ -67,6 +67,20 @@
         store.isExerciseComplete(id),
         store.getExerciseNotes(id),
       ]);
+
+      // Archived original: show what was saved, exactly as saved, and
+      // accept no changes (sync-adapter.js refuses every write as well).
+      if (readOnly) {
+        if (checkbox) { checkbox.checked = isComplete; checkbox.disabled = true; }
+        setExerciseVisualState(el, isComplete);
+        if (textarea) {
+          textarea.value = notes;
+          textarea.readOnly = true;
+          textarea.setAttribute("aria-readonly", "true");
+        }
+        if (saveStatus) { saveStatus.textContent = "Archived — read-only"; saveStatus.classList.add("notes-status--archived"); }
+        return;
+      }
 
       if (checkbox) {
         checkbox.checked = isComplete;

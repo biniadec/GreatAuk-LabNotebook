@@ -21,6 +21,12 @@
       number: "00",
       title: "Getting Started on Mjolnir",
       status: "active",
+      // The original Great Auk Module 00, replaced for new students by the
+      // shared HoloBase Module 00 (module-00/). Kept, read-only, so existing
+      // answers stay available and the dashboard can still show them; left
+      // out of progress totals and "continue learning", because nobody can
+      // complete it any more.
+      archived: true,
       summary:
         "Prepare to work independently on the UCPH Mjolnir HPC cluster before starting the Great Auk genomics analysis.",
       exerciseIds: [

@@ -87,6 +87,11 @@ step (no GitHub Actions workflow, no CNAME — Pages serves straight from `main`
    old version until the new build is ready, typically a few minutes), the cutover to mandatory login
    is immediate and global once it propagates, with no gradual rollout.
 5. **Merge `feature/multi-user-platform` into `main`** and push. This is the deploy.
+   **Decide first whether Module 00 ships now:** the branch tip includes the shared Module 00 course
+   and the read-only archive of Great Auk's original Module 00 (MIGRATION_PLAN.md §14). To deploy the
+   HoloBase restructure without them, merge commit `cdf4630` instead of the branch tip. If it ships,
+   add to step 6: the "Start here" section opens `module-00/`, and Luigi's archived Module 00 shows
+   his answers read-only.
 6. **Within the next few minutes**, verify the live site directly (not localhost), in a private
    window so nothing is cached:
    - the root shows the public HoloBase homepage **without** asking you to sign in, with both

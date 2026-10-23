@@ -378,11 +378,16 @@
     selectedStudentId = roster.length > 0 ? roster[0].user_id : null;
   }
 
+  // Archived modules (the original Great Auk Module 00) are still shown in
+  // the student detail, so existing answers stay visible, but they no
+  // longer count towards completion: nobody can complete them any more.
+  const countedModules = () => activeModules.filter((m) => !m.archived);
+
   function rosterCompletedCount(userId) {
     const rows = progressByUser.get(userId);
     if (!rows || activeModules.length === 0) return 0;
     let count = 0;
-    for (const mod of activeModules) {
+    for (const mod of countedModules()) {
       for (const exId of mod.exerciseIds) {
         const row = rows.get(exId);
         if (row && row.completed) count++;
@@ -392,7 +397,7 @@
   }
 
   function totalExerciseCount() {
-    return activeModules.reduce((sum, m) => sum + m.exerciseIds.length, 0);
+    return countedModules().reduce((sum, m) => sum + m.exerciseIds.length, 0);
   }
 
   function renderRoster() {
@@ -504,7 +509,7 @@
     el.filterModule.innerHTML =
       '<option value="all">All modules</option>' +
       activeModules
-        .map((m) => `<option value="${m.id}">Module ${m.number} — ${escapeHtml(m.title)}</option>`)
+        .map((m) => `<option value="${m.id}">Module ${m.number} — ${escapeHtml(m.title)}${m.archived ? " (archived original)" : ""}</option>`)
         .join("");
   }
 
@@ -613,7 +618,7 @@
 
       html += `
         <div class="module-progress-heading">
-          <h2>Module ${mod.number} — ${escapeHtml(mod.title)}</h2>
+          <h2>Module ${mod.number} — ${escapeHtml(mod.title)}${mod.archived ? ' <span class="archived-tag">Archived original · read-only</span>' : ""}</h2>
           <span class="progress-count">${completedCount} / ${total} complete</span>
         </div>
         ${exerciseRowsHtml}`;

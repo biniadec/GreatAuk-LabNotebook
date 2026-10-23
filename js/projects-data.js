@@ -31,6 +31,16 @@
     homePage: "index.html",
   };
 
+  // The shared foundation course, at HoloBase level (not inside a project).
+  // Progress there is browser-local until account-based tracking exists.
+  const SHARED_FOUNDATION = {
+    number: "00",
+    title: "Mjolnir Foundations",
+    path: "module-00/index.html",
+    summary: "Learn the essentials of HPC, explore a simulated terminal, and practise working with Slurm before your first session on Mjolnir.",
+    status: "Draft — under review",
+  };
+
   // `publicDescription` and `artwork` are shown on the public HoloBase
   // homepage to visitors who are not signed in — keep them to wording
   // approved for public view. Nothing else about a project is public.
@@ -98,6 +108,7 @@
 
   global.GreatAuk = global.GreatAuk || {};
   global.GreatAuk.PLATFORM = PLATFORM;
+  global.GreatAuk.SHARED_FOUNDATION = SHARED_FOUNDATION;
   global.GreatAuk.PROJECTS = PROJECTS;
   global.GreatAuk.PROJECT_HOME_PAGES = PROJECT_HOME_PAGES;
   global.GreatAuk.projectPath = projectPath;

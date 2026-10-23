@@ -110,6 +110,13 @@
     return out;
   }
 
+  // An archived page (the original Great Auk Module 00) shows saved
+  // progress but must never write: not to Supabase, not to the retry queue,
+  // not even to the local cache.
+  function isReadOnly() {
+    return Boolean(global.GreatAuk.READ_ONLY_ARCHIVE);
+  }
+
   function isPreview() {
     return Boolean(global.GreatAuk.PREVIEW_MODE);
   }
@@ -203,7 +210,7 @@
   }
 
   async function queuePending(rows) {
-    if (isPreview()) return;
+    if (isPreview() || isReadOnly()) return;
     const pending = await readPending();
     for (const row of allowedRows(rows, "queue")) pending[row.exercise_id] = row;
     await writePending(pending);
@@ -230,7 +237,7 @@
   }
 
   async function upsertRows(session, rows) {
-    if (isPreview()) return false;
+    if (isPreview() || isReadOnly()) return false;
     // Final gate immediately before the network: nothing reaches Supabase
     // without passing the project's exercise-ID rule.
     rows = allowedRows(rows, "upsert");
@@ -269,7 +276,7 @@
 
   async function flushPending() {
     const session = await ensureSession();
-    if (!session || isPreview()) return;
+    if (!session || isPreview() || isReadOnly()) return;
     const pending = await readPending();
     const rows = Object.values(pending);
     if (rows.length === 0) return;
@@ -325,9 +332,11 @@
               if (row.completed) completionMap[row.exercise_id] = true;
               if (row.notes) notesMap[row.exercise_id] = row.notes;
             }
-            await local.write(completionKey, completionMap);
-            await local.write(notesKey, notesMap);
-          } else {
+            if (!isReadOnly()) {
+              await local.write(completionKey, completionMap);
+              await local.write(notesKey, notesMap);
+            }
+          } else if (!isReadOnly()) {
             // Supabase is empty for this user+project. One-time migration of
             // whatever is already in this scoped slice of localStorage, if
             // anything.
@@ -369,7 +378,9 @@
         // queued edit missing from the map would look "removed" on the
         // very next unrelated save and be upserted back to incomplete/empty
         // — silently undoing the retried answer.
-        const pending = await readPending();
+        // (Not on an archived page: it shows exactly what is stored, and any
+        // queued edits stay queued for an ordinary page to send.)
+        const pending = isReadOnly() ? {} : await readPending();
         const pendingEntries = Object.entries(pending);
         if (pendingEntries.length > 0) {
           const completion = (await local.read(completionKey)) || {};
@@ -398,6 +409,18 @@
     async read(key) {
       await loadMergedStateOnce();
       if (isPreview()) return null;
+      // Archived page: answer from what was just loaded from Supabase (the
+      // authoritative record), never from the browser's local cache, which
+      // this page deliberately leaves untouched.
+      if (isReadOnly()) {
+        const keys = getKeys();
+        const map = {};
+        for (const [id, row] of Object.entries(mergedState)) {
+          if (key === keys.COMPLETION && row.completed) map[id] = true;
+          if (key === keys.NOTES && row.notes) map[id] = row.notes;
+        }
+        return allowedMap(map, "read");
+      }
       const scoped = await scopedKey(key);
       return allowedMap(await getLocalAdapter().read(scoped), "read");
     },
@@ -405,7 +428,7 @@
     async write(key, value) {
       const keys = getKeys();
       await loadMergedStateOnce();
-      if (isPreview()) return true;
+      if (isPreview() || isReadOnly()) return true;
 
       value = allowedMap(value, "local write");
       const scoped = await scopedKey(key);

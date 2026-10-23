@@ -741,3 +741,30 @@ unchanged and are no longer displayed, so no database change was needed. Slugs (
 `thylacine-rna`), project IDs, exercise IDs and URLs are unchanged. The two banner images still show
 the old subtitles in the artwork (`assets/great-auk-banner.jpg`: "Comparative Genomics";
 `assets/thylacine-banner.jpg`: "Thylacine RNA / Ancient Transcriptomics") and need redrawing.
+
+## 14. Module 00 — Mjolnir Foundations, integrated at HoloBase level (frontend only — no Supabase change)
+
+The shared course from `feature/module-00-foundations` (provisionally approved by Bent Petersen;
+detailed review pending) now lives at `module-00/`, with the audited, paraphrased Knowledge Base
+wording from the Cloudflare preview. Its 25 exercises, 41 simulator tasks, order and behaviour are
+unchanged. Progress stays in the browser (`holobase_m00_preview_v1`); nothing is written to Supabase,
+and the page says it is not synchronised to the account and not a verified completion. No readiness
+check, no gating, no migration 0003.
+
+- **HoloBase homepage:** a "Start here — Module 00: Mjolnir Foundations" section beneath the banner.
+- **Navigation:** every Great Auk and Thylacine sidebar's "00" entry, both project homepages' first
+  module card, and Thylacine's "continue" links point to `module-00/`.
+- **Great Auk's original Module 00** (`great-auk/modules/00-getting-started.html`, `m0-ex01…21`) is a
+  **read-only archive**: same address and exercise IDs, an archive notice, and
+  `GreatAuk.READ_ONLY_ARCHIVE`, under which `sync-adapter.js` answers reads from what was just loaded
+  from Supabase and refuses every write (Supabase, retry queue, seed upload, local cache), and
+  `progress.js` shows saved answers with all inputs disabled. In `modules-data.js` it is
+  `archived: true`: kept for the dashboard (labelled "Archived original · read-only", Luigi's answers
+  visible) but left out of progress totals and "continue learning"; on a student's homepage it is
+  listed only for someone with saved work in it. Luigi's displayed totals therefore now exclude his
+  21 original Module 00 exercises; his records are untouched.
+- **Thylacine's copy of Module 00** (`thy-m00-*`, no real students) is retired: its page redirects to
+  `module-00/`, it is no longer in `thylacine-modules-data.js`, and `js/thylacine-module00.js` is
+  removed.
+- **Deployment scope:** `cdf4630` is the last commit before this integration. Deploying from it keeps
+  Module 00 out of the first HoloBase deployment; deploying the branch tip includes it.

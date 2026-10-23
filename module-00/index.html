@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en" data-project-theme="holobase">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- No network access at all from this page's scripts (connect-src 'none'):
+       the simulator can never reach Mjolnir or anything else. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'" />
+  <meta name="robots" content="noindex" />
+  <title>Module 00 — Mjolnir Foundations | HoloBase</title>
+  <meta name="description" content="Shared HoloBase foundation course: HPC concepts and a safe Mjolnir simulation, completed once for every research project." />
+  <link rel="stylesheet" href="../css/styles.css?v=holobase-1" />
+  <link rel="stylesheet" href="../css/theme-holobase.css?v=holobase-1" />
+  <link rel="stylesheet" href="../css/module-00.css?v=holobase-1" />
+</head>
+<body class="m00-page">
+  <div class="hub-shell m00-shell">
+
+    <header class="hub-topbar">
+      <a class="hub-wordmark" href="../index.html">
+        <span class="hub-wordmark-name">HoloBase</span>
+        <span class="hub-wordmark-tagline">Evolutionary Hologenomics Training Hub</span>
+      </a>
+      <a class="btn btn-secondary btn-small" href="../index.html">All projects</a>
+    </header>
+
+    <p class="m00-review" role="note"><strong>Draft — under review.</strong> This course is provisionally approved and is being reviewed in detail by Bent Petersen. Your progress is saved in this browser only: it isn't linked to your HoloBase account yet, and finishing the exercises here is not a verified course completion.</p>
+
+    <div class="m00-layout">
+      <main class="m00-content" id="main">
+
+        <header class="m00-header">
+          <p class="m00-kicker">Shared HoloBase foundation course · complete once, for every project</p>
+          <h1>Module 00 — Mjolnir Foundations</h1>
+          <p class="m00-intro">
+            Every HoloBase research project uses Mjolnir, the University of Copenhagen's HPC cluster.
+            This module teaches the ideas you need before your first real session — what a cluster is,
+            where work belongs, how files and software are organised, and how Slurm runs jobs — and lets you
+            practise each one in a safe simulation. You complete it once; it counts for every project you join.
+          </p>
+        </header>
+
+        <aside class="m00-credit" aria-labelledby="credit-title">
+          <h2 id="credit-title">A HoloBase teaching resource, based on Bent Petersen's Mjolnir Knowledge Base</h2>
+          <p>
+            This course is HoloBase teaching material, <strong>not official Mjolnir documentation</strong>. Its
+            Mjolnir-specific content is based on Bent Petersen's
+            <a href="https://mjolnir-ucph.dk/docs/" target="_blank" rel="noopener">Mjolnir Knowledge Base</a>,
+            and each exercise links to the page it draws on. Mjolnir is an evolving system: if anything here
+            disagrees with the Knowledge Base, follow the Knowledge Base.
+          </p>
+          <p class="m00-credit-f15">
+            For your <strong>real</strong> first session, once your account is approved, follow
+            <a href="https://mjolnir-ucph.dk/docs/getting-started/first-15-minutes/" target="_blank" rel="noopener">First 15 minutes on Mjolnir</a>.
+            This module deliberately doesn't repeat it.
+          </p>
+        </aside>
+
+        <section class="m00-how" aria-labelledby="how-title">
+          <h2 id="how-title">Three separate things</h2>
+          <ol class="m00-how-list">
+            <li class="m00-how-item">
+              <span class="m00-how-step">1</span>
+              <h3>Simulation practice</h3>
+              <p>This page. A pretend terminal with a fictional user, files and compute nodes. It never connects to Mjolnir, and nothing you type runs anywhere.</p>
+            </li>
+            <li class="m00-how-item">
+              <span class="m00-how-step">2</span>
+              <h3>Readiness check</h3>
+              <p>A short assessment, graded by HoloBase, that records your training as complete. <em>Coming in the next development phase.</em></p>
+            </li>
+            <li class="m00-how-item">
+              <span class="m00-how-step">3</span>
+              <h3>Your real Mjolnir account</h3>
+              <p>Requested separately through the Knowledge Base's <a href="https://mjolnir-ucph.dk/docs/accounts-access/request-access/" target="_blank" rel="noopener">Request access</a> page and confirmed by your PI. HoloBase can't grant or change Mjolnir access.</p>
+            </li>
+          </ol>
+        </section>
+
+        <section class="m00-progress" aria-labelledby="progress-title">
+          <h2 id="progress-title" class="visually-hidden">Your progress</h2>
+          <p class="m00-progress-text" data-role="progress-text" aria-live="polite">0 of 0 exercises complete</p>
+          <div class="progress-track m00-progress-track"><div class="progress-fill" data-role="progress-fill"></div></div>
+          <p class="m00-progress-note">Saved in this browser only — not yet synchronised to your HoloBase account, and not a verified completion. Verified completion will come with the readiness check.</p>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="m00-part" aria-labelledby="part1">
+          <h2 id="part1"><span class="m00-part-num">Part 1</span> Before you start</h2>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex01" data-kind="read">
+            <header class="m00-ex-head"><span class="m00-ex-num">01</span><h3>How this module works</h3><span class="m00-kind m00-kind--read">Read</span></header>
+            <div class="m00-ex-body">
+              <p>Each exercise is one of three kinds:</p>
+              <ul>
+                <li><strong>Read</strong> — a page of the Knowledge Base to study, with a question to think about.</li>
+                <li><strong>Practise in the simulator</strong> — tasks for the practice terminal. They tick themselves off as you do them.</li>
+                <li><strong>Explain</strong> — a short answer in your own words.</li>
+              </ul>
+              <p>The terminal is on the right on a wide screen, or behind the <strong>Simulator</strong> button at the bottom of a smaller one. Its prompt looks like Mjolnir's — <code>[sim123@mjolnirgate ~]$</code> — but the user <code>sim123</code>, the project <code>hb_training</code> and the compute nodes <code>simnode01</code>–<code>simnode04</code> are all fictional.</p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex02" data-kind="explain">
+            <header class="m00-ex-head"><span class="m00-ex-num">02</span><h3>What is an HPC cluster, and what is Mjolnir?</h3><span class="m00-kind m00-kind--explain">Explain</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">An HPC (high-performance computing) cluster is many networked computers sharing storage and a scheduler, pooled so that jobs too large for a laptop — and jobs from many people at once — can run efficiently. Mjolnir is UCPH's cluster for this kind of research. You are never the only person using it, and almost every rule in this module follows from that one fact.</p>
+              <p class="m00-task"><strong>Task:</strong> In a few sentences, explain what makes a cluster different from your own laptop, and why sharing it with many researchers changes how you're expected to use it.</p>
+              <details class="m00-hint"><summary>Hint</summary><p>What would happen if every user on a shared machine ran heavy, long-running work wherever and whenever they liked?</p></details>
+              <details class="m00-model"><summary>Model answer</summary><p>A cluster gives you far more compute and memory than a laptop, but that capacity is finite and shared. If one person's work takes all the CPU or memory on a shared entry point, everyone else connected at that moment is slowed down — so clusters need etiquette (separate login and compute nodes, a scheduler, resource limits) that a single-user laptop never does.</p></details>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/getting-started/what-is-mjolnir/" target="_blank" rel="noopener">What is Mjolnir?</a> · <a href="https://mjolnir-ucph.dk/docs/getting-started/how-mjolnir-works/" target="_blank" rel="noopener">How Mjolnir works</a></p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex03" data-kind="explain">
+            <header class="m00-ex-head"><span class="m00-ex-num">03</span><h3>Finding the official answer</h3><span class="m00-kind m00-kind--explain">Explain</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">The Mjolnir Knowledge Base is where current, official information lives: partitions, storage locations, software, troubleshooting and how to get help. Getting into the habit of checking it first will save you — and the support team — a lot of time.</p>
+              <p class="m00-task"><strong>Task:</strong> Open the Knowledge Base and find the section you would use for each of these: (a) your job has been pending for a long time, (b) you need software that isn't installed, (c) you aren't sure where your files should go. Note the page titles.</p>
+              <details class="m00-model"><summary>Model answer</summary><p>(a) Troubleshooting → <em>Why is my job pending?</em> (b) Software → <em>Request software</em>. (c) Storage → <em>Where should my files go?</em></p></details>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/" target="_blank" rel="noopener">Mjolnir Knowledge Base</a></p>
+            </div>
+          </section>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="m00-part" aria-labelledby="part2">
+          <h2 id="part2"><span class="m00-part-num">Part 2</span> Login and compute nodes</h2>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex04" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">04</span><h3>Where am I? Identify yourself and the machine</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">On the real cluster you connect over the UCPH VPN with <code>ssh &lt;KU-ID&gt;@mjolnirgate.unicph.domain</code> — First 15 Minutes covers that once your account exists. Whenever you connect, the first habit is to check who and where you are. In this simulation you are already “connected” as <code>sim123</code>.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-whoami">Run <code>whoami</code> to see which user you are.</li>
+                <li data-task="t-hostname">Run <code>hostname</code> to see which machine you're on.</li>
+              </ol>
+              <p class="m00-check"><strong>Check yourself:</strong> the hostname is <code>mjolnirgate</code> — a login node, not a compute node. Why does that matter for what you do next?</p>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/accounts-access/vpn-ssh-access/" target="_blank" rel="noopener">VPN and SSH access</a></p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex05" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">05</span><h3>Login nodes vs compute nodes: what belongs where</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">The login node <code>mjolnirgate</code> is a shared entry point for everyone connected at that moment, meant for lightweight work: organising files, writing scripts, submitting and checking jobs. Analyses belong on compute nodes, scheduled through Slurm. According to the Knowledge Base, computation isn't allowed on the login node, and repeated misuse can mean losing your access.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-login-compute">See what happens when you try real computation on the login node: run <code>module load samtools/1.21</code>, then <code>samtools sort reads.bam</code>.</li>
+              </ol>
+              <p class="m00-task"><strong>Then:</strong> list three tasks that belong on a login node and three that must go to a compute node.</p>
+              <details class="m00-hint"><summary>Hint</summary><p>The deciding factor isn't “is this a command I type” — it's how much CPU, memory or time it is likely to need.</p></details>
+              <details class="m00-model"><summary>Model answer</summary><p><strong>Login node:</strong> editing a script, organising folders, checking a small file with <code>head</code>, submitting a job with <code>sbatch</code>. <strong>Compute node (through Slurm):</strong> aligning reads, an assembly, model training, or any step whose runtime or memory you aren't sure of.</p></details>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/getting-started/login-vs-compute-nodes/" target="_blank" rel="noopener">Login nodes vs compute nodes</a></p>
+            </div>
+          </section>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="m00-part" aria-labelledby="part3">
+          <h2 id="part3"><span class="m00-part-num">Part 3</span> Moving around the filesystem</h2>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex06" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">06</span><h3>Navigating: <code>pwd</code>, <code>ls</code> and <code>cd</code></h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept"><code>pwd</code> prints where you are, <code>ls</code> lists what's there, and <code>cd</code> moves you somewhere else. Almost everything else you do builds on these three.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-cd-project">Move to the project folder <code>/projects/hb_training</code> and list what's inside.</li>
+                <li data-task="t-ls-long">Use <code>ls -l</code> (or <code>ls -lh</code>) somewhere to see sizes and permissions.</li>
+              </ol>
+              <p class="m00-check"><strong>Check yourself:</strong> which folder in the project is for shared datasets, and which is for your own work?</p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex07" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">07</span><h3>Shortcuts that matter: <code>.</code>, <code>..</code>, <code>~</code> and <code>cd -</code></h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept"><code>.</code> means “this folder”, <code>..</code> “the folder above”, and <code>~</code> “my home folder”. <code>cd -</code> jumps back to wherever you were before. They appear in many commands, not just <code>cd</code>.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-cd-home">Jump straight home with <code>cd ~</code> (or just <code>cd</code>).</li>
+                <li data-task="t-cd-dotdot">Move up one level with <code>cd ..</code>.</li>
+                <li data-task="t-cd-dash">Return to where you were with <code>cd -</code>.</li>
+              </ol>
+              <p class="m00-check"><strong>Check yourself:</strong> where might <code>.</code> be useful as an argument to a command other than <code>cd</code> — for example as the destination for <code>cp</code>?</p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex08" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">08</span><h3>Absolute vs relative paths</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">An <strong>absolute</strong> path starts at the root (<code>/</code>) and means the same thing wherever you are. A <strong>relative</strong> path is read from your current folder — shorter, but it only means what you think if you know where you are. Mixing them up is a common cause of “file not found”, and of scripts that quietly work in the wrong place.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-cd-abs">Move somewhere using an absolute path (one starting with <code>/</code>).</li>
+                <li data-task="t-cd-rel">Move into a subfolder using a relative path (no leading <code>/</code>).</li>
+              </ol>
+              <p class="m00-check"><strong>Check yourself:</strong> if you moved somewhere else first, would <code>../data</code> still point to the same place? Why does an absolute path not have that problem?</p>
+            </div>
+          </section>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="m00-part" aria-labelledby="part4">
+          <h2 id="part4"><span class="m00-part-num">Part 4</span> Storage and files</h2>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex09" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">09</span><h3>Home vs project storage</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">Your home folder, <code>/home/&lt;KU-ID&gt;</code>, is personal but limited to 100 GB, and is for configuration files and small scripts — the Knowledge Base is clear that datasets and job output don't belong there. Research work belongs in the project: <code>/projects/&lt;project&gt;/people/&lt;KU-ID&gt;/</code> for your own work, <code>data/</code> for shared datasets, <code>apps/</code> for shared software, and <code>scratch/</code> for temporary files (not backed up — keep only what you can recreate). If your people folder is missing on the real cluster, don't create it: ask through Getting help.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-ls-home">List your home folder (<code>ls ~</code>) and read <code>welcome.txt</code>.</li>
+                <li data-task="t-ls-people">List your own working folder, <code>/projects/hb_training/people/sim123</code>.</li>
+              </ol>
+              <p class="m00-check"><strong>Check yourself:</strong> which of the two should hold your working files for a project, and why?</p>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/storage/project-folders/" target="_blank" rel="noopener">Where should my files go?</a> · <a href="https://mjolnir-ucph.dk/docs/storage/storage-policy/" target="_blank" rel="noopener">Storage limits and responsibilities</a></p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex10" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">10</span><h3>Create a sensible working folder</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">Give each piece of work its own folder inside your people folder, with a name you'll still understand later. <code>mkdir</code> creates a folder; <code>mkdir -p</code> creates any missing parents too.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-mkdir">Create a folder called <code>m00-practice</code> inside <code>/projects/hb_training/people/sim123</code>.</li>
+              </ol>
+              <p class="m00-check"><strong>Check yourself:</strong> try creating a folder in <code>data/</code>. Why does the simulation stop you?</p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex11" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">11</span><h3>Checking your storage use</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">Project storage is shared, finite and paid for, and the Knowledge Base stresses that having no enforced quota doesn't mean you can store without limit. The Knowledge Base recommends <code>du -sh --apparent-size</code> for reporting how much a folder holds, and <code>du -h --apparent-size --max-depth=1 &lt;folder&gt; | sort -h</code> to find which subfolder is biggest. Big scans belong in a job, not on the login node.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-du">Measure your people folder: <code>du -sh --apparent-size /projects/hb_training/people/sim123</code>.</li>
+              </ol>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/storage/checking-storage-use/" target="_blank" rel="noopener">How much storage am I using?</a> · <a href="https://mjolnir-ucph.dk/docs/storage/storage-policy/" target="_blank" rel="noopener">Storage limits and responsibilities</a></p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex12" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">12</span><h3>Copying, moving and (carefully) removing files</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept"><code>cp</code> copies, <code>mv</code> moves or renames, and <code>rm</code> deletes — immediately, without asking and without a recycle bin. Check the path before every <code>rm</code>, and read shared datasets from <code>data/</code> rather than making your own copies.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-cp">Copy <code>/projects/hb_training/data/README.txt</code> into your <code>m00-practice</code> folder.</li>
+                <li data-task="t-mv">Rename the copy to <code>notes.txt</code>.</li>
+                <li data-task="t-rm">Create an empty file with <code>touch m00-practice/delete-me.txt</code>, then remove it with <code>rm</code>.</li>
+              </ol>
+              <p class="m00-check"><strong>Check yourself:</strong> what does <code>rm -r</code> do, and why is it worth pausing before you press Enter?</p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex13" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">13</span><h3>Inspecting files without opening them fully</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">Sequencing files are large and often compressed. <code>file</code> tells you what a file is; <code>head</code> and <code>tail</code> show its first or last lines; <code>less</code> pages through it. Check what a file is before you assume its format.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-file">Run <code>file</code> on <code>/projects/hb_training/data/sample_R1.fastq.gz</code>.</li>
+                <li data-task="t-head">Show the first four lines of <code>/projects/hb_training/data/sample_preview.fastq</code> with <code>head -n 4</code>.</li>
+              </ol>
+              <p class="m00-check"><strong>Check yourself:</strong> what would <code>cat</code> on a compressed file print, and why is that unhelpful?</p>
+            </div>
+          </section>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="m00-part" aria-labelledby="part5">
+          <h2 id="part5"><span class="m00-part-num">Part 5</span> Software with environment modules</h2>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex14" data-kind="explain">
+            <header class="m00-ex-head"><span class="m00-ex-num">14</span><h3>What are environment modules, and why do they exist?</h3><span class="m00-kind m00-kind--explain">Explain</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">Mjolnir provides shared research software through <strong>Environment Modules</strong> (version 4.5.2 — not Lmod). Instead of everyone installing their own copy of every tool, pre-installed software is loaded into your session or job with one command. Much of it is built from Conda environments under the hood, but <code>module load</code> is the supported way to use it.</p>
+              <p class="m00-task"><strong>Task:</strong> Why would a shared cluster prefer this over letting every user install and manage their own software?</p>
+              <details class="m00-hint"><summary>Hint</summary><p>Think about disk space (home is capped at 100 GB), reproducibility, and fifty people each installing a slightly different version of the same tool.</p></details>
+              <details class="m00-model"><summary>Model answer</summary><p>Shared, versioned installs save duplicated disk space and effort, and when you report which module and version you used, someone else can reproduce your environment exactly.</p></details>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/software/modules-conda/" target="_blank" rel="noopener">Find and load software</a></p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex15" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">15</span><h3>Finding and loading software</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept"><code>module avail</code> lists what's installed, <code>module load &lt;name&gt;/&lt;version&gt;</code> loads it (pin the version for repeatable work), <code>module list</code> shows what's loaded, and <code>which</code> confirms a tool is on your PATH. Some commands from other clusters, like <code>module spider</code>, aren't available on Mjolnir. <em>The module names and versions in the simulation are examples — run <code>module avail</code> on Mjolnir for the real list.</em></p>
+              <ol class="m00-tasks">
+                <li data-task="t-avail">Search for samtools: <code>module avail samtools</code>.</li>
+                <li data-task="t-spider">Try <code>module spider samtools</code> and read why it doesn't work here.</li>
+                <li data-task="t-load">Load a pinned version: <code>module load samtools/1.21</code>.</li>
+                <li data-task="t-list">Check what's loaded with <code>module list</code>.</li>
+                <li data-task="t-which">Confirm the tool is available with <code>which samtools</code>.</li>
+              </ol>
+              <p class="m00-check"><strong>Check yourself:</strong> why might installing your own Conda environment in your home folder be a bad idea on Mjolnir?</p>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/software/modules-conda/" target="_blank" rel="noopener">Find and load software</a> · <a href="https://mjolnir-ucph.dk/docs/software/request-software/" target="_blank" rel="noopener">Request software</a></p>
+            </div>
+          </section>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="m00-part" aria-labelledby="part6">
+          <h2 id="part6"><span class="m00-part-num">Part 6</span> Running work with Slurm</h2>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex16" data-kind="explain">
+            <header class="m00-ex-head"><span class="m00-ex-num">16</span><h3>What is Slurm, and why must you request resources?</h3><span class="m00-kind m00-kind--explain">Explain</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">Slurm is the scheduler that decides which job runs on which compute node, and when. Every job declares the CPUs, memory and maximum time it needs, the <strong>partition</strong> (a pool of nodes) and the <strong>QoS</strong> (a set of limits). On Mjolnir <code>--qos</code> is mandatory: Slurm refuses any job that doesn't name a QoS. <code>cpuqueue</code> is the default partition and <code>normal</code> the everyday QoS. Fairshare matters too: according to the Knowledge Base, your usage is counted by what you request, rather than by what your job actually uses.</p>
+              <p class="m00-task"><strong>Task:</strong> Why does a shared cluster need everyone to declare their needs upfront, rather than letting jobs run and seeing what happens?</p>
+              <details class="m00-hint"><summary>Hint</summary><p>What does the scheduler need to know to fit many people's jobs onto a limited number of machines without conflicts?</p></details>
+              <details class="m00-model"><summary>Model answer</summary><p>Without declared requests, Slurm couldn't tell which jobs can safely share a node without running out of memory or starving each other of CPU. The requests are also what fairshare charges against, so over-requesting lowers your own future priority — and realistic, short requests are easier for the scheduler to fit into gaps.</p></details>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/slurm/partitions-qos-fairshare/" target="_blank" rel="noopener">Partitions, QoS, and fairshare</a></p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex17" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">17</span><h3>Your first batch script</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">A batch script is a shell script whose <code>#SBATCH</code> lines tell Slurm what the job needs. The project has a template at <code>data/templates/first-job.sh</code> — but it has a mistake that older scripts often have.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-copy-template">Copy the template into your people folder: <code>cp /projects/hb_training/data/templates/first-job.sh /projects/hb_training/people/sim123/</code>.</li>
+                <li data-task="t-cat-script">Go there and read it with <code>cat first-job.sh</code>.</li>
+                <li data-task="t-rejected">Submit it with <code>sbatch first-job.sh</code> and read why it's rejected.</li>
+                <li data-task="t-edit">Fix it: open it with <code>nano first-job.sh</code>, add the line <code>#SBATCH --qos=normal</code> under the partition line, and save.</li>
+              </ol>
+              <p class="m00-check"><strong>Check yourself:</strong> which line sets where the output goes, and what does <code>%j</code> become?</p>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/job-submission/submitting-jobs/" target="_blank" rel="noopener">Submitting jobs</a></p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex18" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">18</span><h3>Submit the job</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">When Slurm accepts a job it replies “Submitted batch job &lt;jobid&gt;”. That job ID is how you refer to the job from now on.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-submit">Submit your corrected <code>first-job.sh</code> and note the job ID.</li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex19" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">19</span><h3>Monitor your job</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept"><code>squeue -u $USER</code> shows your queued and running jobs. The <code>ST</code> column reads <code>PD</code> (pending), <code>R</code> (running) or <code>CG</code> (completing); an empty list means your jobs have finished. Pending is usually normal queuing on a shared cluster. <em>Time runs faster in the simulation.</em></p>
+              <ol class="m00-tasks">
+                <li data-task="t-squeue">Run <code>squeue -u $USER</code> while your job is pending or running.</li>
+              </ol>
+              <details class="m00-hint"><summary>Hint</summary><p>To see why a job is waiting, try <code>squeue -u $USER -o "%.10i %.8T %R"</code>.</p></details>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/monitoring-jobs/monitoring-jobs/" target="_blank" rel="noopener">Monitoring jobs</a> · <a href="https://mjolnir-ucph.dk/docs/troubleshooting/job-pending/" target="_blank" rel="noopener">Why is my job pending?</a></p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex20" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">20</span><h3>Read your job's output</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">The job writes to the file named by <code>--output</code> (here <code>first-job-&lt;jobid&gt;.out</code>); errors go there too unless you set <code>--error</code>. The hostname in the output should be a compute node — proof the work didn't run on the login node.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-output">When the job has finished, read its output file, for example <code>cat first-job-*.out</code>.</li>
+              </ol>
+              <p class="m00-check"><strong>Check yourself:</strong> which line of the output proves where the job actually ran?</p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex21" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">21</span><h3>Check how efficiently your job used its resources</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept"><code>seff &lt;jobid&gt;</code> summarises CPU and memory use as a share of what you requested; <code>sacct -j &lt;jobid&gt;</code> gives more detail. Because fairshare is charged on what you request, right-sizing protects your own priority — and memory you reserve but leave idle stays blocked for everyone else until your job ends.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-seff">Run <code>seff</code> on your finished job.</li>
+                <li data-task="t-sacct">Run <code>sacct -j &lt;jobid&gt;</code> on the same job.</li>
+              </ol>
+              <p class="m00-check"><strong>Check yourself:</strong> your job mostly slept. If it had requested 8 CPUs “to be safe”, what would that have cost you, and everyone else?</p>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/monitoring-jobs/job-efficiency/" target="_blank" rel="noopener">Check job efficiency</a></p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex22" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">22</span><h3>Cancelling a job</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">If you spot a mistake after submitting, cancel the job with <code>scancel &lt;jobid&gt;</code> rather than letting it use resources for nothing.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-cancel">Submit <code>first-job.sh</code> again, then cancel it with <code>scancel</code> while it's still pending or running.</li>
+              </ol>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/monitoring-jobs/canceling-jobs/" target="_blank" rel="noopener">Cancelling jobs</a></p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex23" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">23</span><h3>Interactive sessions</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">Sometimes you want to type commands yourself on a compute node — to test a step before writing the batch script. An interactive session gives you that, but it holds its resources until you <code>exit</code>, even while idle, so request only what you need and leave when you're done.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-srun">Start one: <code>srun --partition=cpuqueue --qos=normal --nodes=1 --cpus-per-task=2 --mem-per-cpu=2G --time=01:00:00 --pty bash</code>.</li>
+                <li data-task="t-srun-host">Run <code>hostname</code> to confirm you're on a compute node.</li>
+                <li data-task="t-srun-exit">Release the resources with <code>exit</code>.</li>
+              </ol>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/job-submission/interactive-jobs/" target="_blank" rel="noopener">Interactive jobs</a></p>
+            </div>
+          </section>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="m00-part" aria-labelledby="part7">
+          <h2 id="part7"><span class="m00-part-num">Part 7</span> Working responsibly</h2>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex24" data-kind="explain">
+            <header class="m00-ex-head"><span class="m00-ex-num">24</span><h3>Getting help well</h3><span class="m00-kind m00-kind--explain">Explain</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">Questions and problems go to the Mjolnir Support Center. A request that includes the job ID, the exact command, the exact error text (copied, not described), the relevant path and what you expected is usually resolved in one exchange. New accounts don't go through the Support Center, and VPN problems go to KU-IT.</p>
+              <p class="m00-task"><strong>Task:</strong> Your job failed. Write the support request you would send, using a made-up job ID and error.</p>
+              <details class="m00-model"><summary>Model answer</summary><p>“Job 4200123 failed after two minutes. I ran <code>sbatch align.sh</code> from <code>/projects/&lt;project&gt;/people/&lt;KU-ID&gt;/run1</code>. The .err file says: <em>samtools: command not found</em>. I expected it to run because I load samtools/1.21 in the script.” — plus the output of <code>sacct -j 4200123 --format=JobID,State,Elapsed,ReqMem,MaxRSS,ExitCode</code>.</p></details>
+              <p class="m00-kb">Knowledge Base: <a href="https://mjolnir-ucph.dk/docs/troubleshooting/getting-help/" target="_blank" rel="noopener">Getting help</a> · <a href="https://mjolnir-ucph.dk/docs/troubleshooting/job-failed/" target="_blank" rel="noopener">Why did my job fail?</a></p>
+            </div>
+          </section>
+
+          <section class="m00-ex" data-exercise-id="hb-m00-ex25" data-kind="practise">
+            <header class="m00-ex-head"><span class="m00-ex-num">25</span><h3>Final challenge: do it all yourself</h3><span class="m00-kind m00-kind--practise">Practise in the simulator</span></header>
+            <div class="m00-ex-body">
+              <p class="m00-concept">Put it together without step-by-step instructions.</p>
+              <ol class="m00-tasks">
+                <li data-task="t-final-dir">Create a folder <code>final</code> in your people folder and work inside it.</li>
+                <li data-task="t-final-submit">Write a job script there (use <code>nano</code>) that loads <code>samtools/1.21</code>, prints <code>samtools --version</code>, and requests <code>cpuqueue</code> with <code>--qos=normal</code>. Submit it.</li>
+                <li data-task="t-final-done">Let it finish successfully, then read its output.</li>
+                <li data-task="t-final-seff">Check its efficiency with <code>seff</code>.</li>
+              </ol>
+              <details class="m00-hint"><summary>Hint</summary><p>Start from <code>first-job.sh</code>: copy it, keep the <code>#SBATCH</code> lines, and replace the commands with <code>module load samtools/1.21</code> and <code>samtools --version</code>.</p></details>
+            </div>
+          </section>
+        </section>
+
+        <!-- ============================================================ -->
+        <section class="m00-next" aria-labelledby="next-title">
+          <h2 id="next-title">What comes next</h2>
+          <div class="m00-next-grid">
+            <div class="m00-next-card">
+              <h3>1 · Readiness check</h3>
+              <p>A short assessment, graded by HoloBase, records your training as complete. <strong>Not available yet</strong> — it arrives in the next development phase.</p>
+            </div>
+            <div class="m00-next-card">
+              <h3>2 · Request your Mjolnir account</h3>
+              <p>Follow the Knowledge Base's <a href="https://mjolnir-ucph.dk/docs/accounts-access/request-access/" target="_blank" rel="noopener">Request access</a> page. You'll need a KU-ID and a PI, who confirms the request. This is separate from HoloBase, which can't grant access.</p>
+            </div>
+            <div class="m00-next-card m00-next-card--primary">
+              <h3>3 · Your first real session</h3>
+              <p>Once your account is approved, follow <a href="https://mjolnir-ucph.dk/docs/getting-started/first-15-minutes/" target="_blank" rel="noopener">First 15 minutes on Mjolnir</a> for your actual first connection and job. Then start your project's practical modules.</p>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <aside class="m00-terminal-wrap" aria-label="Mjolnir simulator" data-role="terminal-wrap">
+        <button type="button" class="m00-terminal-toggle" data-role="terminal-toggle" aria-expanded="false" aria-controls="m00-sim">Simulator</button>
+        <div class="m00-terminal" id="m00-sim" data-role="terminal"></div>
+      </aside>
+    </div>
+
+    <footer class="hub-footer">
+      HoloBase teaching resource — Module 00: Mjolnir Foundations · based on Bent Petersen's
+      <a href="https://mjolnir-ucph.dk/docs/" target="_blank" rel="noopener">Mjolnir Knowledge Base</a> · not official Mjolnir documentation
+    </footer>
+  </div>
+
+  <script src="../js/mjolnir-sim.js?v=holobase-1"></script>
+  <script src="../js/mjolnir-sim-ui.js?v=holobase-1"></script>
+  <script src="../js/module-00.js?v=holobase-1"></script>
+</body>
+</html>
