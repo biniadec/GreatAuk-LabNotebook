@@ -91,6 +91,13 @@ code, pre {
   font-family: var(--font-mono);
 }
 
+/* Long inline code in running text (e.g. a comma-separated parameter
+   list) wraps instead of being clipped; it only breaks where nothing
+   else would fit. Code blocks and terminals are untouched. */
+p > code, li > code {
+  overflow-wrap: anywhere;
+}
+
 ul, ol {
   padding-left: 1.3em;
 }
