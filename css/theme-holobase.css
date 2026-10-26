@@ -97,12 +97,11 @@ html[data-project-theme="holobase"] button:focus-visible {
   color: var(--hb-charcoal);
 }
 
-/* The circular HoloBase logo beside the wordmark (shared top bar). */
+/* The HoloBase logo beside the wordmark (shared top bar). */
 .hub-wordmark-logo {
   flex: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  width: auto;
+  height: 40px;
 }
 
 .hub-wordmark-text {
@@ -252,10 +251,9 @@ html[data-project-theme="holobase"] button:focus-visible {
 /* The large HoloBase logo, centred between the heading and the tagline. */
 .hub-intro-logo {
   display: block;
-  width: 140px;
-  height: 140px;
+  width: 156px;
+  height: auto;
   margin: 0.5rem auto 0.75rem;
-  border-radius: 50%;
 }
 
 .hub-intro .hub-tagline {
@@ -446,14 +444,12 @@ html[data-project-theme="holobase"] button:focus-visible {
   }
 
   .hub-intro-logo {
-    width: 116px;
-    height: 116px;
+    width: 124px;
     margin: 0.45rem auto 0.65rem;
   }
 
   .hub-wordmark-logo {
-    width: 38px;
-    height: 38px;
+    height: 34px;
   }
 
   /* Narrow cards: the access badge sits on its own line above the project
