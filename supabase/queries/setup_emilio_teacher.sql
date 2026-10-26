@@ -1,0 +1,62 @@
+-- ============================================================================
+-- setup_emilio_teacher.sql
+--
+-- Enrolls Emilio as a teacher for the Thylacine RNA project ONLY — not
+-- Great Auk, and not as an administrator. Same pattern as
+-- setup_luigi_profile_membership.sql, adapted for a teacher role on a
+-- different project.
+--
+-- Run AFTER:
+--   1. Emilio's real Supabase Auth account has been created via Dashboard >
+--      Authentication > Users > Add user, with a password you set and
+--      relay to him directly. NOT "Invite user" — its emailed set-your-
+--      own-password link won't work with this app as it stands today:
+--      js/supabase-client.js sets detectSessionInUrl: false, so the
+--      session the invite link's redirect carries is never picked up, and
+--      login.html has no set-password step for it to hand off to. This is
+--      an Auth-level action either way, not SQL — auth.users is managed by
+--      Supabase Auth itself, not this script.
+--
+-- Replace every '<EMILIO_USER_ID>' below with his new account's UUID
+-- (visible in the Dashboard's Users list right after creating it) before
+-- running.
+--
+-- The auto-provisioning trigger added in 0001 already created a default
+-- profiles row for this new account the moment it was created (display_name
+-- 'New user' unless you supplied one at invite time, role 'student') — this
+-- script sets his real name, promotes his role to 'teacher', and enrolls
+-- him in Thylacine RNA specifically. It does not touch exercise_progress,
+-- does not grant Great Auk access, and does not make him an administrator.
+-- ============================================================================
+
+update public.profiles
+set display_name = 'Emilio', role = 'teacher'
+where user_id = '<EMILIO_USER_ID>'::uuid;
+
+insert into public.project_memberships (project_id, user_id, role)
+values (
+  (select id from public.projects where slug = 'thylacine-rna'),
+  '<EMILIO_USER_ID>'::uuid,
+  'teacher'
+)
+on conflict (project_id, user_id) do nothing;
+
+-- ---- Verification -----------------------------------------------------
+
+-- Expect: role = 'teacher', display_name = 'Emilio'.
+select user_id, display_name, role from public.profiles where user_id = '<EMILIO_USER_ID>'::uuid;
+
+-- Expect: exactly one row, project 'thylacine-rna', role 'teacher'.
+select p.slug, m.role
+from public.project_memberships m
+join public.projects p on p.id = m.project_id
+where m.user_id = '<EMILIO_USER_ID>'::uuid;
+
+-- Confirms exclusivity: expect this to return ZERO rows. If it returns
+-- anything, Emilio has Great Auk access he shouldn't have — fix before
+-- considering this setup complete.
+select 1
+from public.project_memberships m
+join public.projects p on p.id = m.project_id
+where m.user_id = '<EMILIO_USER_ID>'::uuid
+  and p.slug = 'great-auk';

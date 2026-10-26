@@ -17,12 +17,29 @@
 (function () {
   "use strict";
 
-  document.addEventListener("DOMContentLoaded", () => {
-    initExercises();
+  // A page whose exercises are inserted after load (shared content, e.g.
+  // Thylacine's Module 00) sets GreatAuk.DEFER_MODULE_INIT and calls
+  // GreatAuk.initModulePage() itself once the content is in place and its
+  // IDs validated. Every other page initialises on DOMContentLoaded exactly
+  // as before.
+  let initialised = false;
+  async function initModulePage() {
+    if (initialised) return;
+    initialised = true;
+    const GA = window.GreatAuk || {};
+    if (GA.authReady) await GA.authReady;
+    initExercises(Boolean(GA.PREVIEW_MODE), Boolean(GA.READ_ONLY_ARCHIVE));
     initCopyButtons();
+  }
+
+  window.GreatAuk = window.GreatAuk || {};
+  window.GreatAuk.initModulePage = initModulePage;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!window.GreatAuk.DEFER_MODULE_INIT) initModulePage();
   });
 
-  function initExercises() {
+  function initExercises(preview, readOnly) {
     const exerciseEls = Array.from(document.querySelectorAll("[data-exercise-id]"));
     if (exerciseEls.length === 0) return;
 
@@ -34,10 +51,36 @@
       const textarea = el.querySelector('[data-role="notes"]');
       const saveStatus = el.querySelector('[data-role="notes-status"]');
 
+      // Preview mode: exercises are inspectable but read-only, with nothing
+      // read from or written to anyone's progress.
+      if (preview) {
+        if (checkbox) checkbox.disabled = true;
+        if (textarea) {
+          textarea.readOnly = true;
+          textarea.setAttribute("aria-readonly", "true");
+        }
+        if (saveStatus) saveStatus.textContent = "Preview — not saved";
+        return;
+      }
+
       const [isComplete, notes] = await Promise.all([
         store.isExerciseComplete(id),
         store.getExerciseNotes(id),
       ]);
+
+      // Archived original: show what was saved, exactly as saved, and
+      // accept no changes (sync-adapter.js refuses every write as well).
+      if (readOnly) {
+        if (checkbox) { checkbox.checked = isComplete; checkbox.disabled = true; }
+        setExerciseVisualState(el, isComplete);
+        if (textarea) {
+          textarea.value = notes;
+          textarea.readOnly = true;
+          textarea.setAttribute("aria-readonly", "true");
+        }
+        if (saveStatus) { saveStatus.textContent = "Archived — read-only"; saveStatus.classList.add("notes-status--archived"); }
+        return;
+      }
 
       if (checkbox) {
         checkbox.checked = isComplete;

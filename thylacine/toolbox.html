@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en" data-project-theme="thylacine-rna">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Terminal Toolbox | Thylacine</title>
+  <meta name="description" content="Quick reference for the core Linux commands used throughout the course." />
+  <link rel="stylesheet" href="../css/styles.css?v=holobase-1" />
+  <link rel="stylesheet" href="../css/theme-thylacine.css?v=holobase-1" />
+</head>
+<body data-active-nav="toolbox">
+
+  <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"></button>
+  <div class="sidebar-overlay"></div>
+
+  <div class="app-shell">
+    <nav class="sidebar" aria-label="Primary">
+      <div class="sidebar-brand">
+        <a href="index.html" class="brand-link">
+          <span class="brand-mark"><img src="../assets/thylacine-avatar.png" alt="" /></span>
+          <span class="brand-text">
+            <span class="brand-title">Thylacine</span>
+            <span class="brand-subtitle">Ancient RNA &amp; Transcriptomics</span>
+          </span>
+        </a>
+        <div class="sidebar-project-switcher" data-role="project-switcher" hidden></div>
+      </div>
+
+      <div class="sidebar-section">
+        <a href="index.html" class="nav-link" data-nav="home">
+          <span class="nav-icon" data-icon="home"></span> Home
+        </a>
+        <a href="../supervisor.html" class="nav-link" data-nav="dashboard" data-role="dashboard-link" hidden>
+          <span class="nav-icon" data-icon="dashboard"></span> Dashboard
+        </a>
+        <a href="../index.html" class="nav-link" data-nav="holobase">
+          <span class="nav-icon" data-icon="compass"></span> All projects (HoloBase)
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <p class="sidebar-heading">Modules</p>
+        <a href="../module-00/index.html" class="nav-link" data-nav="module-00">
+          <span class="nav-icon" data-icon="module-00"></span><span class="nav-number">00</span> Mjolnir Foundations<span class="nav-tag">shared</span>
+        </a>
+        <a href="modules/01-without-umi-preprocessing.html" class="nav-link" data-nav="module-01">
+          <span class="nav-icon" data-icon="toolbox"></span><span class="nav-number">01</span> Without UMI: Preprocessing<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/02-without-umi-analysis.html" class="nav-link" data-nav="module-02">
+          <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">02</span> Without UMI: Analysis<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/03-with-umi-preprocessing.html" class="nav-link" data-nav="module-03">
+          <span class="nav-icon" data-icon="toolbox"></span><span class="nav-number">03</span> With UMI: Preprocessing<span class="nav-tag">soon</span>
+        </a>
+        <a href="modules/04-with-umi-analysis.html" class="nav-link" data-nav="module-04">
+          <span class="nav-icon" data-icon="module-03"></span><span class="nav-number">04</span> With UMI: Analysis<span class="nav-tag">soon</span>
+        </a>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section">
+        <a href="toolbox.html" class="nav-link" data-nav="toolbox">
+          <span class="nav-icon" data-icon="toolbox"></span> Terminal Toolbox
+        </a>
+        <a href="resources.html" class="nav-link" data-nav="resources">
+          <span class="nav-icon" data-icon="resources"></span> Project Resources
+        </a>
+        <a href="glossary.html" class="nav-link" data-nav="glossary">
+          <span class="nav-icon" data-icon="glossary"></span> Glossary
+        </a>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section sidebar-account">
+        <p class="sidebar-account-name" data-role="account-name"></p>
+        <a href="../change-password.html" class="btn btn-secondary btn-small" data-role="change-password-link">Change password</a>
+        <button type="button" class="btn btn-secondary btn-small" data-role="sign-out-btn">Sign out</button>
+      </div>
+
+      <div class="sidebar-footer">
+        Thylacine — Ancient RNA &amp; Transcriptomics<br />
+        Part of HoloBase
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="content-column">
+
+        <p class="breadcrumb"><a href="index.html">Home</a> / Terminal Toolbox</p>
+        <h1 class="page-title">Terminal Toolbox</h1>
+
+        <div data-role="shared-content"></div>
+
+        <footer class="site-footer">
+          Thylacine — Ancient RNA &amp; Transcriptomics · <span data-current-year></span> · Part of HoloBase — Evolutionary Hologenomics Training Hub
+        </footer>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/modules-data.js?v=holobase-1"></script>
+  <script src="../js/thylacine-modules-data.js?v=holobase-1"></script>
+  <script>
+    window.GreatAuk = window.GreatAuk || {};
+    window.GreatAuk.REQUIRED_PROJECT = "thylacine-rna";
+    window.GreatAuk.ROOT_PREFIX = "../";
+    window.GreatAuk.MODULES = window.GreatAuk.MODULES_BY_PROJECT["thylacine-rna"];
+  </script>
+  <script src="../js/projects-data.js?v=holobase-1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/supabase-client.js?v=holobase-1"></script>
+  <script src="../js/auth-guard.js?v=holobase-1"></script>
+  <script src="../js/icons.js?v=holobase-1"></script>
+  <script src="../js/app.js?v=holobase-1"></script>
+  <script src="../js/shared-content.js?v=holobase-1"></script>
+  <script src="../js/thylacine-toolbox.js?v=holobase-1"></script>
+</body>
+</html>

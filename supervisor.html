@@ -4,16 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>Supervisor View — Great Auk Lab Notebook</title>
-  <link rel="stylesheet" href="css/styles.css" />
+  <title>Teacher Dashboard | HoloBase</title>
+  <link rel="stylesheet" href="css/styles.css?v=holobase-1" />
+  <link rel="stylesheet" href="css/theme-thylacine.css?v=holobase-1" />
 </head>
 <body>
 
   <div class="supervisor-shell">
 
     <div class="supervisor-header">
-      <h1>Supervisor View — Great Auk Lab Notebook</h1>
-      <button type="button" class="btn btn-secondary btn-small" data-role="sign-out-btn" hidden>Sign out</button>
+      <h1 data-role="dashboard-heading">Teacher Dashboard</h1>
+      <div style="display:flex; gap:0.5rem;">
+        <a href="index.html" class="btn btn-secondary btn-small" data-role="holobase-home-link">HoloBase home</a>
+        <a href="change-password.html" class="btn btn-secondary btn-small" data-role="change-password-link" hidden>Change password</a>
+        <button type="button" class="btn btn-secondary btn-small" data-role="sign-out-btn" hidden>Sign out</button>
+      </div>
     </div>
 
     <!-- Login form: shown when no session exists -->
@@ -33,24 +38,45 @@
       </form>
     </section>
 
-    <!-- Access denied: shown when authenticated but not in public.instructors -->
+    <!-- Access denied: shown ONLY when authentication succeeded and we got a
+         real answer back confirming this account has no admin/teacher role.
+         Never shown for a failed query — see error-view below for that. -->
     <section class="card access-denied-card" data-role="denied-view" hidden>
       <h2 style="font-size:1.05rem;">Access denied</h2>
-      <p>This Supabase account is signed in but is not authorized as an instructor for this course.</p>
+      <p>This account is signed in but is not authorized as a teacher or administrator for any project.</p>
+    </section>
+
+    <!-- Error: shown when a database/network error prevented us from even
+         determining authorization or loading project data — distinct from
+         a genuine denial, so a backend problem is never mistaken for "you
+         don't have access." -->
+    <section class="card access-denied-card" data-role="error-view" hidden>
+      <h2 style="font-size:1.05rem;">Something went wrong</h2>
+      <p data-role="error-message"></p>
     </section>
 
     <!-- Main supervisor view: shown once authorized -->
     <section data-role="main-view" hidden>
 
-      <div class="identity-picker" data-role="identity-picker" hidden>
-        <div data-role="identity-note"></div>
-        <label for="identity-select" style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-muted);margin:0.6rem 0 0.3rem;">Viewing identity:</label>
-        <select id="identity-select" data-role="identity-select"></select>
+      <p class="supervisor-meta" data-role="role-label"></p>
+
+      <div class="identity-picker" data-role="project-picker" hidden>
+        <label for="project-select" style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-muted);margin:0 0 0.3rem;">Project:</label>
+        <select id="project-select" data-role="project-select"></select>
       </div>
 
-      <p class="supervisor-meta" data-role="identity-label"></p>
+      <div data-role="teachers-note" class="supervisor-meta" hidden></div>
 
-      <div class="supervisor-filters">
+      <div data-role="roster-container"></div>
+
+      <div class="identity-picker" data-role="student-picker" hidden>
+        <label for="student-select" style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-muted);margin:0 0 0.3rem;">Viewing student:</label>
+        <select id="student-select" data-role="student-select"></select>
+      </div>
+
+      <p class="supervisor-meta" data-role="student-label"></p>
+
+      <div class="supervisor-filters" data-role="filters-row" hidden>
         <select data-role="filter-module" aria-label="Filter by module">
           <option value="all">All modules</option>
         </select>
@@ -68,15 +94,17 @@
 
       <div data-role="modules-container"></div>
 
-      <p class="supervisor-empty-state" data-role="no-data-message" hidden>No exercise_progress rows found yet.</p>
+      <p class="supervisor-empty-state" data-role="no-data-message" hidden></p>
 
     </section>
 
   </div>
 
-  <script src="js/modules-data.js"></script>
+  <script src="js/modules-data.js?v=holobase-1"></script>
+  <script src="js/thylacine-modules-data.js?v=holobase-1"></script>
+  <script src="js/projects-data.js?v=holobase-1"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="js/supabase-client.js"></script>
-  <script src="js/supervisor.js"></script>
+  <script src="js/supabase-client.js?v=holobase-1"></script>
+  <script src="js/supervisor.js?v=holobase-1"></script>
 </body>
 </html>

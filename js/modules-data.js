@@ -21,6 +21,14 @@
       number: "00",
       title: "Getting Started on Mjolnir",
       status: "active",
+      // The original Great Auk Module 00, replaced for new students by the
+      // shared HoloBase Module 00 (module-00/). Kept, read-only, so existing
+      // answers stay available and the dashboard can still show them; left
+      // out of progress totals and "continue learning", because nobody can
+      // complete it any more.
+      archived: true,
+      // Shown separately from active progress for anyone with saved work in it.
+      historyLabel: "Previous Mjolnir training",
       summary:
         "Prepare to work independently on the UCPH Mjolnir HPC cluster before starting the Great Auk genomics analysis.",
       exerciseIds: [
@@ -135,4 +143,9 @@
 
   global.GreatAuk = global.GreatAuk || {};
   global.GreatAuk.MODULES = MODULES;
+  // Per-project registry, so pages that need more than one project's module
+  // list at once (supervisor.html; Thylacine's shared Module 00) can read
+  // Great Auk's without relying on GreatAuk.MODULES, which each project page
+  // points at its own list.
+  global.GreatAuk.MODULES_BY_PROJECT = Object.assign(global.GreatAuk.MODULES_BY_PROJECT || {}, { "great-auk": MODULES });
 })(window);

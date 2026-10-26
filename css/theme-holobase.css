@@ -1,0 +1,425 @@
+/* =========================================================
+   HoloBase — Evolutionary Hologenomics Training Hub: platform theme.
+
+   Loaded after styles.css on the HoloBase homepage only, and scoped to
+   html[data-project-theme="holobase"], so it can never affect Great Auk
+   or Thylacine RNA pages. Project cards keep each project's own accent
+   (Great Auk blue, Thylacine terracotta) as a thin stripe.
+
+   Palette (contrast checked against WCAG 2.1):
+     Warm cream       #F8F4EE  page background
+     Soft cream       #FFFDF9  cards
+     Light grey       #D8D2C8  borders
+     Muted grey       #A49C92  decorative only (2.5:1 on cream — never text)
+     Dark grey        #5E5954  body and secondary text (6.3:1 on cream)
+     Charcoal         #3F3B37  headings, buttons, navigation (10.1:1;
+                               white on charcoal 11.1:1)
+   ========================================================= */
+
+html[data-project-theme="holobase"] {
+  --hb-cream: #f8f4ee;
+  --hb-card: #fffdf9;
+  --hb-border: #d8d2c8;
+  --hb-muted: #a49c92;
+  --hb-text: #5e5954;
+  --hb-charcoal: #3f3b37;
+  --hb-charcoal-dark: #2c2926;
+
+  --ice: var(--hb-cream);
+  --ice-light: var(--hb-card);
+  --border: var(--hb-border);
+  --border-soft: #e8e3db;
+  --navy: var(--hb-charcoal);
+  --accent: var(--hb-charcoal);
+  --accent-dark: var(--hb-charcoal-dark);
+  --text: var(--hb-text);
+  --text-muted: var(--hb-text);
+  --shadow-sm: 0 1px 2px rgba(63, 59, 55, 0.07);
+  --shadow-md: 0 6px 20px rgba(63, 59, 55, 0.08);
+}
+
+html[data-project-theme="holobase"] body {
+  background: var(--hb-cream);
+  color: var(--hb-text);
+}
+
+html[data-project-theme="holobase"] .btn-primary {
+  background: var(--hb-charcoal);
+  border-color: var(--hb-charcoal);
+  color: #fff;
+}
+
+html[data-project-theme="holobase"] .btn-primary:hover {
+  background: var(--hb-charcoal-dark);
+  border-color: var(--hb-charcoal-dark);
+  color: #fff;
+}
+
+html[data-project-theme="holobase"] .btn-secondary {
+  background: var(--hb-card);
+  border-color: var(--hb-border);
+  color: var(--hb-charcoal);
+}
+
+html[data-project-theme="holobase"] .btn-secondary:hover {
+  border-color: var(--hb-charcoal);
+  color: var(--hb-charcoal);
+}
+
+html[data-project-theme="holobase"] a:focus-visible,
+html[data-project-theme="holobase"] button:focus-visible {
+  outline: 3px solid var(--hb-charcoal);
+  outline-offset: 2px;
+}
+
+/* ---------- Layout ---------- */
+
+.hub-shell {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px 3rem;
+}
+
+.hub-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.1rem 0;
+}
+
+.hub-wordmark {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: var(--hb-charcoal);
+}
+
+.hub-wordmark-name {
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.hub-wordmark-tagline {
+  font-size: 0.82rem;
+  color: var(--hb-text);
+}
+
+.hub-account {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.hub-account-name {
+  font-size: 0.9rem;
+  color: var(--hb-text);
+  margin-right: 0.25rem;
+}
+
+.hub-banner {
+  margin: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--hb-border);
+  background: var(--hb-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.hub-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2172 / 678;
+}
+
+/* ---------- Start here: Module 00 (shared, above the project cards) ---------- */
+
+.hub-start {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin: 1.5rem 0 0;
+  padding: 1.25rem 1.5rem;
+  background: var(--hb-card);
+  border: 1px solid var(--hb-border);
+  border-left: 4px solid var(--hb-charcoal);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.hub-start-text {
+  flex: 1 1 26rem;
+  min-width: 0;
+}
+
+.hub-start-kicker {
+  margin: 0 0 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hb-text);
+}
+
+.hub-start h2 {
+  font-family: var(--font-heading);
+  color: var(--hb-charcoal);
+  font-size: 1.45rem;
+  margin: 0 0 0.45rem;
+}
+
+.hub-start-desc {
+  margin: 0 0 0.7rem;
+  line-height: 1.6;
+  color: var(--hb-text);
+}
+
+.hub-start-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1.2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+  color: var(--hb-text);
+}
+
+.hub-start-facts li:not(:last-child)::before {
+  content: "✓ ";
+  color: var(--hb-charcoal);
+  font-weight: 700;
+}
+
+.hub-start-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.hub-start-note {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--hb-text);
+}
+
+.hub-intro {
+  max-width: 760px;
+  margin: 2.25rem auto 2.5rem;
+  text-align: center;
+}
+
+.hub-intro h1 {
+  font-family: var(--font-heading);
+  color: var(--hb-charcoal);
+  font-size: 2.3rem;
+  margin: 0 0 0.35rem;
+}
+
+.hub-intro .hub-tagline {
+  display: block;
+  font-size: 1.02rem;
+  letter-spacing: 0.02em;
+  color: var(--hb-text);
+  margin-bottom: 1.1rem;
+}
+
+.hub-intro p {
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: var(--hb-text);
+  margin: 0 0 1.1rem;
+}
+
+.hub-rule {
+  width: 64px;
+  height: 2px;
+  margin: 0 auto 1.25rem;
+  border: 0;
+  background: var(--hb-muted);
+}
+
+.hub-status {
+  font-size: 0.92rem;
+  color: var(--hb-text);
+  min-height: 1.4em;
+}
+
+.hub-status--error {
+  color: #8a2f1f; /* 7.0:1 on cream */
+}
+
+.hub-section-title {
+  font-family: var(--font-heading);
+  color: var(--hb-charcoal);
+  font-size: 1.35rem;
+  margin: 0 0 1rem;
+}
+
+/* ---------- Project cards ---------- */
+
+.hub-projects {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.hub-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--hb-card);
+  border: 1px solid var(--hb-border);
+  border-top: 4px solid var(--hub-card-accent, var(--hb-charcoal));
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Project banners are 3:1 artwork with the title painted in, so they are
+   shown whole at their own proportions — never cropped — at every width. */
+.hub-card-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 1;
+  object-fit: cover;
+  background: var(--hb-cream);
+}
+
+.hub-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.25rem 1.4rem 1.4rem;
+  flex: 1;
+}
+
+.hub-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.hub-card h3 {
+  font-family: var(--font-heading);
+  color: var(--hb-charcoal);
+  font-size: 1.3rem;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.hub-card-subtitle {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hub-card-accent, var(--hb-text));
+  margin-top: 0.3rem;
+}
+
+.hub-card p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--hb-text);
+}
+
+.hub-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--hb-border);
+  background: var(--hb-cream);
+  color: var(--hb-charcoal);
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.hub-chip--member {
+  background: var(--hb-charcoal);
+  border-color: var(--hb-charcoal);
+  color: #fff;
+}
+
+.hub-chip svg {
+  width: 12px;
+  height: 12px;
+}
+
+.hub-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+}
+
+.hub-card-note {
+  font-size: 0.88rem;
+  color: var(--hb-text);
+  margin-top: auto;
+  padding-top: 0.6rem;
+}
+
+/* Locked: the artwork is dimmed, the text stays at full contrast. */
+.hub-card--locked .hub-card-art {
+  filter: grayscale(0.85);
+  opacity: 0.55;
+}
+
+.hub-footer {
+  margin-top: 3rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--hb-border);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--hb-text);
+}
+
+@media (max-width: 760px) {
+  .hub-shell {
+    padding: 0 16px 2.5rem;
+  }
+
+  .hub-projects {
+    grid-template-columns: 1fr;
+  }
+
+  .hub-intro {
+    margin: 1.6rem auto 2rem;
+  }
+
+  .hub-intro h1 {
+    font-size: 1.85rem;
+  }
+
+  /* Narrow cards: the access badge sits on its own line above the project
+     name, so a long badge ("No teaching access") never squeezes the title
+     and subtitle. */
+  .hub-card-head {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .hub-card-head .hub-chip {
+    order: -1;
+  }
+
+  .hub-banner {
+    border-radius: var(--radius-md);
+  }
+}

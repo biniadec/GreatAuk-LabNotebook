@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Sign in | HoloBase — Evolutionary Hologenomics Training Hub</title>
+  <link rel="stylesheet" href="css/styles.css?v=holobase-1" />
+</head>
+<body>
+
+  <div class="auth-page-shell">
+    <div class="platform-brand">
+      <h1>HoloBase</h1>
+      <span class="platform-tagline">Evolutionary Hologenomics Training Hub</span>
+    </div>
+
+    <section class="card">
+      <h2 style="font-size:1.05rem;">Sign in</h2>
+      <form data-role="login-form">
+        <div class="form-field">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" name="email" autocomplete="username" required />
+        </div>
+        <div class="form-field">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" autocomplete="current-password" required />
+        </div>
+        <div class="form-error" data-role="login-error"></div>
+        <button type="submit" class="btn btn-primary" data-role="login-submit">Sign in</button>
+      </form>
+      <p style="text-align:center; margin-top:0.75rem;">
+        <a href="recover-password.html" data-role="forgot-password-link">Forgot password?</a>
+      </p>
+    </section>
+    <p style="margin-top:1rem;"><a href="index.html">← Back to HoloBase</a></p>
+  </div>
+
+  <script src="js/projects-data.js?v=holobase-1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-client.js?v=holobase-1"></script>
+  <script src="js/landing-page.js?v=holobase-1"></script>
+  <script src="js/login.js?v=holobase-1"></script>
+</body>
+</html>

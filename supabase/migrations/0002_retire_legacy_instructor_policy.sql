@@ -1,0 +1,40 @@
+-- ============================================================================
+-- 0002_retire_legacy_instructor_policy.sql
+--
+-- APPLIED to the live database (after 0001, and after verifying admin read
+-- access and teacher project-scoping against real data with
+-- queries/verify_0002_before_running.sql — see MIGRATION_PLAN.md section 8,
+-- risk #2). Prepared for review alongside 0001, but sequenced after it on
+-- purpose — see the condition below, which was satisfied before running it.
+--
+-- Why this is needed: 0001 adds a new, project-scoped teacher-read policy
+-- on exercise_progress, but deliberately leaves the OLD "instructors"-table
+-- -based policy active too (it predates the project model and grants an
+-- authorized instructor unconditional read access to every row, regardless
+-- of project). With both policies active at once, "teachers can only
+-- access students in their assigned projects" is not actually a real
+-- guarantee — it's true for any NEW teacher added through the
+-- project_memberships model, but the old policy still bypasses it entirely
+-- for whoever's UUID is in the instructors table today. This migration
+-- retires that bypass.
+--
+-- ONLY RUN THIS AFTER confirming your own account already has working
+-- supervisor-style read access through the NEW model — i.e. your account
+-- has a profiles row with role = 'admin', or a project_memberships row
+-- with role = 'teacher' for the Great Auk project, and you've verified
+-- (e.g. by temporarily testing) that access actually works. Dropping the
+-- old policy first, before confirming the new one covers you, risks
+-- locking the current supervisor view out of its own data.
+--
+-- The exact policy name below was never saved from when it was originally
+-- created in an earlier, ad hoc SQL-editor session — queries/
+-- audit_existing_schema.sql's first query confirms it directly against the
+-- live database. Correct the name in the DROP POLICY statement below if it
+-- differs from what's assumed here.
+-- ============================================================================
+
+drop policy if exists "Instructors can read all progress rows" on public.exercise_progress;
+
+-- The instructors table itself is left in place (harmless, unused) as a
+-- quick rollback path — it can be dropped later once you are fully
+-- confident in the new profiles/project_memberships model.
