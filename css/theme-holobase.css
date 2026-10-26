@@ -138,24 +138,26 @@ html[data-project-theme="holobase"] button:focus-visible {
 }
 
 /* ---------- Start here: Module 00 (shared, between the introduction and
-   the project cards) — a compact, centred card the width of the intro ---------- */
+   the project cards) — full width, edges aligned with the Projects grid,
+   charcoal top accent like the project cards, content centred ---------- */
 
 .hub-start {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  max-width: 760px;
-  margin: 0 auto 1.75rem;
+  margin: 0 0 1.75rem;
   padding: 1.1rem 1.5rem 1.05rem;
   text-align: center;
   background: var(--hb-card);
   border: 1px solid var(--hb-border);
+  border-top: 4px solid var(--hb-charcoal);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
 
 .hub-start-text {
+  max-width: 46rem;
   min-width: 0;
 }
 
