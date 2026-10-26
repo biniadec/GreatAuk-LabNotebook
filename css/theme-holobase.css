@@ -91,9 +91,23 @@ html[data-project-theme="holobase"] button:focus-visible {
 
 .hub-wordmark {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
   text-decoration: none;
   color: var(--hb-charcoal);
+}
+
+/* The circular HoloBase logo beside the wordmark (shared top bar). */
+.hub-wordmark-logo {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.hub-wordmark-text {
+  display: flex;
+  flex-direction: column;
 }
 
 .hub-wordmark-name {
@@ -233,6 +247,41 @@ html[data-project-theme="holobase"] button:focus-visible {
   letter-spacing: 0.02em;
   color: var(--hb-text);
   margin-bottom: 1.1rem;
+}
+
+/* Logo beside the heading and tagline, as one centred row, so the logo
+   adds no height of its own. */
+.hub-intro-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  margin-bottom: 1.1rem;
+}
+
+.hub-intro-logo {
+  flex: none;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+}
+
+.hub-intro-titles {
+  text-align: left;
+}
+
+.hub-intro-brand .hub-tagline {
+  margin-bottom: 0;
+  text-wrap: balance;
+}
+
+/* Phones: the top bar keeps just the logo and name, so the account
+   buttons stay on the same line (the tagline is repeated just below in
+   the introduction). */
+@media (max-width: 480px) {
+  .hub-wordmark-tagline {
+    display: none;
+  }
 }
 
 .hub-intro p {
@@ -407,6 +456,20 @@ html[data-project-theme="holobase"] button:focus-visible {
 
   .hub-intro h1 {
     font-size: 1.85rem;
+  }
+
+  .hub-intro-brand {
+    gap: 0.8rem;
+  }
+
+  .hub-intro-logo {
+    width: 68px;
+    height: 68px;
+  }
+
+  .hub-wordmark-logo {
+    width: 38px;
+    height: 38px;
   }
 
   /* Narrow cards: the access badge sits on its own line above the project
