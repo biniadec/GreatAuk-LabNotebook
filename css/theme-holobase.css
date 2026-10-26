@@ -137,30 +137,39 @@ html[data-project-theme="holobase"] button:focus-visible {
   aspect-ratio: 2172 / 678;
 }
 
-/* ---------- Start here: Module 00 (shared, above the project cards) ---------- */
+/* ---------- Start here: Module 00 (shared, between the introduction and
+   the project cards) — a compact, centred card the width of the intro ---------- */
 
 .hub-start {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem 2rem;
-  margin: 1.5rem 0 0;
-  padding: 1.25rem 1.5rem;
+  gap: 0.75rem;
+  max-width: 760px;
+  margin: 0 auto 1.75rem;
+  padding: 1.1rem 1.5rem 1.05rem;
+  text-align: center;
   background: var(--hb-card);
   border: 1px solid var(--hb-border);
-  border-left: 4px solid var(--hb-charcoal);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
 
 .hub-start-text {
-  flex: 1 1 26rem;
   min-width: 0;
 }
 
+.hub-start-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.75rem;
+  margin: 0 0 0.3rem;
+}
+
 .hub-start-kicker {
-  margin: 0 0 0.2rem;
+  margin: 0;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -172,11 +181,12 @@ html[data-project-theme="holobase"] button:focus-visible {
   font-family: var(--font-heading);
   color: var(--hb-charcoal);
   font-size: 1.45rem;
-  margin: 0 0 0.45rem;
+  margin: 0 0 0.4rem;
 }
 
 .hub-start-desc {
-  margin: 0 0 0.7rem;
+  max-width: 38rem;
+  margin: 0 auto 0.65rem;
   line-height: 1.6;
   color: var(--hb-text);
 }
@@ -185,6 +195,7 @@ html[data-project-theme="holobase"] button:focus-visible {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem 1.2rem;
   margin: 0;
   padding: 0;
@@ -193,7 +204,7 @@ html[data-project-theme="holobase"] button:focus-visible {
   color: var(--hb-text);
 }
 
-.hub-start-facts li:not(:last-child)::before {
+.hub-start-facts li::before {
   content: "✓ ";
   color: var(--hb-charcoal);
   font-weight: 700;
@@ -201,9 +212,10 @@ html[data-project-theme="holobase"] button:focus-visible {
 
 .hub-start-action {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem 1rem;
 }
 
 .hub-start-note {
@@ -214,7 +226,7 @@ html[data-project-theme="holobase"] button:focus-visible {
 
 .hub-intro {
   max-width: 760px;
-  margin: 2.25rem auto 2.5rem;
+  margin: 1.5rem auto 1.25rem;
   text-align: center;
 }
 
@@ -400,7 +412,12 @@ html[data-project-theme="holobase"] button:focus-visible {
   }
 
   .hub-intro {
-    margin: 1.6rem auto 2rem;
+    margin: 1.6rem auto 1.25rem;
+  }
+
+  .hub-start {
+    padding: 1.1rem 1rem 1rem;
+    margin-bottom: 1.75rem;
   }
 
   .hub-intro h1 {
