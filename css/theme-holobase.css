@@ -252,9 +252,9 @@ html[data-project-theme="holobase"] button:focus-visible {
 /* The large HoloBase logo, centred between the heading and the tagline. */
 .hub-intro-logo {
   display: block;
-  width: 160px;
-  height: 160px;
-  margin: 0.6rem auto 0.9rem;
+  width: 140px;
+  height: 140px;
+  margin: 0.5rem auto 0.75rem;
   border-radius: 50%;
 }
 
@@ -446,9 +446,9 @@ html[data-project-theme="holobase"] button:focus-visible {
   }
 
   .hub-intro-logo {
-    width: 128px;
-    height: 128px;
-    margin: 0.5rem auto 0.75rem;
+    width: 116px;
+    height: 116px;
+    margin: 0.45rem auto 0.65rem;
   }
 
   .hub-wordmark-logo {
