@@ -2372,19 +2372,17 @@ body:not(.auth-ready) .app-shell {
   margin: 0;
 }
 
-/* The circular HoloBase logo above the heading on sign-in and account pages. */
+/* The HoloBase logo above the heading on sign-in and account pages. */
 .platform-logo {
   display: block;
-  width: 96px;
-  height: 96px;
+  width: 120px;
+  height: auto;
   margin: 0 auto 0.75rem;
-  border-radius: 50%;
 }
 
 @media (max-width: 480px) {
   .platform-logo {
-    width: 76px;
-    height: 76px;
+    width: 100px;
   }
 }
 
