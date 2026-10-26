@@ -139,16 +139,16 @@ html[data-project-theme="holobase"] button:focus-visible {
 
 /* ---------- Start here: Module 00 (shared, between the introduction and
    the project cards) — full width, edges aligned with the Projects grid,
-   charcoal top accent like the project cards, content centred ---------- */
+   charcoal top accent like the project cards ---------- */
 
 .hub-start {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: space-between;
+  gap: 1rem 2rem;
   margin: 0 0 1.75rem;
-  padding: 1.1rem 1.5rem 1.05rem;
-  text-align: center;
+  padding: 1.25rem 1.5rem;
   background: var(--hb-card);
   border: 1px solid var(--hb-border);
   border-top: 4px solid var(--hb-charcoal);
@@ -157,21 +157,12 @@ html[data-project-theme="holobase"] button:focus-visible {
 }
 
 .hub-start-text {
-  max-width: 46rem;
+  flex: 1 1 26rem;
   min-width: 0;
 }
 
-.hub-start-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem 0.75rem;
-  margin: 0 0 0.3rem;
-}
-
 .hub-start-kicker {
-  margin: 0;
+  margin: 0 0 0.2rem;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -183,12 +174,11 @@ html[data-project-theme="holobase"] button:focus-visible {
   font-family: var(--font-heading);
   color: var(--hb-charcoal);
   font-size: 1.45rem;
-  margin: 0 0 0.4rem;
+  margin: 0 0 0.45rem;
 }
 
 .hub-start-desc {
-  max-width: 38rem;
-  margin: 0 auto 0.65rem;
+  margin: 0 0 0.7rem;
   line-height: 1.6;
   color: var(--hb-text);
 }
@@ -197,7 +187,6 @@ html[data-project-theme="holobase"] button:focus-visible {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
   gap: 0.4rem 1.2rem;
   margin: 0;
   padding: 0;
@@ -206,7 +195,7 @@ html[data-project-theme="holobase"] button:focus-visible {
   color: var(--hb-text);
 }
 
-.hub-start-facts li::before {
+.hub-start-facts li:not(:last-child)::before {
   content: "✓ ";
   color: var(--hb-charcoal);
   font-weight: 700;
@@ -214,10 +203,9 @@ html[data-project-theme="holobase"] button:focus-visible {
 
 .hub-start-action {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem 1rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
 }
 
 .hub-start-note {
@@ -415,11 +403,6 @@ html[data-project-theme="holobase"] button:focus-visible {
 
   .hub-intro {
     margin: 1.6rem auto 1.25rem;
-  }
-
-  .hub-start {
-    padding: 1.1rem 1rem 1rem;
-    margin-bottom: 1.75rem;
   }
 
   .hub-intro h1 {
