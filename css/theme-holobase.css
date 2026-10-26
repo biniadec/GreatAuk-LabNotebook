@@ -137,7 +137,9 @@ html[data-project-theme="holobase"] button:focus-visible {
   aspect-ratio: 2172 / 678;
 }
 
-/* ---------- Start here: Module 00 (shared, above the project cards) ---------- */
+/* ---------- Start here: Module 00 (shared, between the introduction and
+   the project cards) — full width, edges aligned with the Projects grid,
+   charcoal top accent like the project cards ---------- */
 
 .hub-start {
   display: flex;
@@ -145,11 +147,11 @@ html[data-project-theme="holobase"] button:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 1rem 2rem;
-  margin: 1.5rem 0 0;
+  margin: 0 0 1.75rem;
   padding: 1.25rem 1.5rem;
   background: var(--hb-card);
   border: 1px solid var(--hb-border);
-  border-left: 4px solid var(--hb-charcoal);
+  border-top: 4px solid var(--hb-charcoal);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
@@ -214,7 +216,7 @@ html[data-project-theme="holobase"] button:focus-visible {
 
 .hub-intro {
   max-width: 760px;
-  margin: 2.25rem auto 2.5rem;
+  margin: 1.5rem auto 1.25rem;
   text-align: center;
 }
 
@@ -400,7 +402,7 @@ html[data-project-theme="holobase"] button:focus-visible {
   }
 
   .hub-intro {
-    margin: 1.6rem auto 2rem;
+    margin: 1.6rem auto 1.25rem;
   }
 
   .hub-intro h1 {
